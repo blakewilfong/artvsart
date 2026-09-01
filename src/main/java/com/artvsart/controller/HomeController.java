@@ -2,6 +2,7 @@ package com.artvsart.controller;
 
 import com.artvsart.model.Matchup;
 import com.artvsart.model.Vote;
+import com.artvsart.service.ArtworkStatisticsService;
 import com.artvsart.service.MatchupService;
 import com.artvsart.service.VoteService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,13 +28,16 @@ public class HomeController {
 
     private final MatchupService matchupService;
     private final VoteService voteService;
+    private final ArtworkStatisticsService statisticsService;
 
     public HomeController(
             MatchupService matchupService,
-            VoteService voteService
+            VoteService voteService,
+            ArtworkStatisticsService statisticsService
     ) {
         this.matchupService = matchupService;
         this.voteService = voteService;
+        this.statisticsService = statisticsService;
     }
 
     @GetMapping("/")
@@ -81,6 +85,20 @@ public class HomeController {
             model.addAttribute(
                     "outcome",
                     vote.getOutcome()
+            );
+
+            model.addAttribute(
+                    "artworkOneStats",
+                    statisticsService.getStats(
+                            matchup.getArtworkOne()
+                    )
+            );
+
+            model.addAttribute(
+                    "artworkTwoStats",
+                    statisticsService.getStats(
+                            matchup.getArtworkTwo()
+                    )
             );
         });
 

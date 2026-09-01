@@ -27,10 +27,14 @@
             <p>Your prediction has been recorded.</p>
 
             <p>
-                Result:
+                Result at the time of your prediction:
                 <strong th:text="${outcome}">
                     Outcome
                 </strong>
+            </p>
+
+            <p>
+                Current lifetime rates:
             </p>
         </div>
 
@@ -74,12 +78,25 @@
                 </button>
             </form>
 
-            <p
-                    th:if="${voted
-                        && selectedArtworkId == matchup.artworkOne.id}"
-            >
-                Your prediction
-            </p>
+            <div th:if="${voted}">
+                <strong
+                        th:text="|${#numbers.formatDecimal(artworkOneStats.selectionPercentage(), 1, 2)}%|"
+                >
+                    Selection rate
+                </strong>
+
+                <p
+                        th:text="|Selected ${artworkOneStats.selections} times in ${artworkOneStats.presentations} presentations|"
+                >
+                    Selection totals
+                </p>
+
+                <p
+                        th:if="${selectedArtworkId == matchup.artworkOne.id}"
+                >
+                    Your prediction
+                </p>
+            </div>
         </article>
 
         <article>
@@ -122,12 +139,25 @@
                 </button>
             </form>
 
-            <p
-                    th:if="${voted
-                        && selectedArtworkId == matchup.artworkTwo.id}"
-            >
-                Your prediction
-            </p>
+            <div th:if="${voted}">
+                <strong
+                        th:text="|${#numbers.formatDecimal(artworkTwoStats.selectionPercentage(), 1, 2)}%|"
+                >
+                    Selection rate
+                </strong>
+
+                <p
+                        th:text="|Selected ${artworkTwoStats.selections} times in ${artworkTwoStats.presentations} presentations|"
+                >
+                    Selection totals
+                </p>
+
+                <p
+                        th:if="${selectedArtworkId == matchup.artworkTwo.id}"
+                >
+                    Your prediction
+                </p>
+            </div>
         </article>
 
         <nav th:if="${voted}">
