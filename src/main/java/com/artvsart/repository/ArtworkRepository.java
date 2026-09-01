@@ -3,5 +3,13 @@ package com.artvsart.repository;
 import com.artvsart.model.Artwork;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ArtworkRepository extends JpaRepository<Artwork, Long> {
+import java.util.Optional;
+
+public interface ArtworkRepository
+        extends JpaRepository<Artwork, Long> {
+
+    Optional<Artwork> findBySourceAndSourceArtworkId(
+            String source,
+            String sourceArtworkId
+    );
 }
