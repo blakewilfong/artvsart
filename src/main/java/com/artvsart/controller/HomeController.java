@@ -1,6 +1,7 @@
 package com.artvsart.controller;
 
-import com.artvsart.service.ArtworkService;
+import com.artvsart.model.Matchup;
+import com.artvsart.service.MatchupService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,15 +9,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    private final ArtworkService artworkService;
+    private final MatchupService matchupService;
 
-    public HomeController(ArtworkService artworkService) {
-        this.artworkService = artworkService;
+    public HomeController(MatchupService matchupService) {
+        this.matchupService = matchupService;
     }
 
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("artworks", artworkService.getAllArtworks());
+        Matchup matchup = matchupService.getTodaysMatchup();
+        model.addAttribute("matchup", matchup);
+
         return "home";
     }
 }

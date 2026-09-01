@@ -13,18 +13,49 @@
     <section>
         <h2>Today's matchup</h2>
 
-        <article th:each="artwork : ${artworks}">
+        <p th:text="|Matchup for ${matchup.matchupDate}|">
+            Matchup date
+        </p>
+
+        <article>
             <img
-                    th:src="${artwork.imageUrl}"
-                    th:alt="|${artwork.title} by ${artwork.artistName}|"
+                    th:src="${matchup.artworkOne.imageUrl}"
+                    th:alt="|${matchup.artworkOne.title} by ${matchup.artworkOne.artistName}|"
                     width="500"
             >
 
-            <h3 th:text="${artwork.title}">Artwork title</h3>
+            <h3 th:text="${matchup.artworkOne.title}">
+                First artwork
+            </h3>
 
             <p>
-                <span th:text="${artwork.artistName}">Artist name</span>,
-                <span th:text="${artwork.dateDisplay}">Date</span>
+                    <span th:text="${matchup.artworkOne.artistName}">
+                        Artist
+                    </span>,
+                <span th:text="${matchup.artworkOne.dateDisplay}">
+                        Date
+                    </span>
+            </p>
+        </article>
+
+        <article>
+            <img
+                    th:src="${matchup.artworkTwo.imageUrl}"
+                    th:alt="|${matchup.artworkTwo.title} by ${matchup.artworkTwo.artistName}|"
+                    width="500"
+            >
+
+            <h3 th:text="${matchup.artworkTwo.title}">
+                Second artwork
+            </h3>
+
+            <p>
+                    <span th:text="${matchup.artworkTwo.artistName}">
+                        Artist
+                    </span>,
+                <span th:text="${matchup.artworkTwo.dateDisplay}">
+                        Date
+                    </span>
             </p>
         </article>
     </section>
