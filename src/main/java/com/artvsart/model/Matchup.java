@@ -8,19 +8,33 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import java.time.LocalDate;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "matchups")
+@Table(
+        name = "matchups",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_matchup_game_round",
+                        columnNames = {
+                                "daily_game_id",
+                                "round_number"
+                        }
+                )
+        }
+)
 public class Matchup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private LocalDate matchupDate;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "daily_game_id", nullable = false)
+    private DailyGame dailyGame;
+
+    @Column(name = "round_number", nullable = false)
+    private int roundNumber;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "artwork_one_id", nullable = false)
@@ -34,17 +48,26 @@ public class Matchup {
     }
 
     public Matchup(
-            LocalDate matchupDate,
+            DailyGame dailyGame,
+            int roundNumber,
             Artwork artworkOne,
             Artwork artworkTwo
     ) {
+        if (roundNumber < 1
+                || roundNumber > dailyGame.getTotalRounds()) {
+            throw new IllegalArgumentException(
+                    "Round number must be within the daily game"
+            );
+        }
+
         if (artworkOne == artworkTwo) {
             throw new IllegalArgumentException(
                     "A matchup requires two different artworks"
             );
         }
 
-        this.matchupDate = matchupDate;
+        this.dailyGame = dailyGame;
+        this.roundNumber = roundNumber;
         this.artworkOne = artworkOne;
         this.artworkTwo = artworkTwo;
     }
@@ -53,8 +76,12 @@ public class Matchup {
         return id;
     }
 
-    public LocalDate getMatchupDate() {
-        return matchupDate;
+    public DailyGame getDailyGame() {
+        return dailyGame;
+    }
+
+    public int getRoundNumber() {
+        return roundNumber;
     }
 
     public Artwork getArtworkOne() {

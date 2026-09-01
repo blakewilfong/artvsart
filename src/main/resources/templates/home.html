@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -12,10 +11,12 @@
     <p>A daily head-to-head art discovery game.</p>
 
     <section>
-        <h2>Today's matchup</h2>
+        <h2 th:text="|Round ${matchup.roundNumber} of ${matchup.dailyGame.totalRounds}|">
+            Round
+        </h2>
 
-        <p th:text="|Matchup for ${matchup.matchupDate}|">
-            Matchup date
+        <p th:text="|Game for ${matchup.dailyGame.gameDate}|">
+            Game date
         </p>
 
         <p th:if="${voted}">

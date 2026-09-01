@@ -1,8 +1,10 @@
 package com.artvsart.config;
 
 import com.artvsart.model.Artwork;
+import com.artvsart.model.DailyGame;
 import com.artvsart.model.Matchup;
 import com.artvsart.repository.ArtworkRepository;
+import com.artvsart.repository.DailyGameRepository;
 import com.artvsart.repository.MatchupRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -14,14 +16,19 @@ import java.util.List;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    private static final int TOTAL_ROUNDS = 10;
+
     private final ArtworkRepository artworkRepository;
+    private final DailyGameRepository dailyGameRepository;
     private final MatchupRepository matchupRepository;
 
     public DataInitializer(
             ArtworkRepository artworkRepository,
+            DailyGameRepository dailyGameRepository,
             MatchupRepository matchupRepository
     ) {
         this.artworkRepository = artworkRepository;
+        this.dailyGameRepository = dailyGameRepository;
         this.matchupRepository = matchupRepository;
     }
 
@@ -55,7 +62,7 @@ public class DataInitializer implements CommandLineRunner {
 
         if (artworks.size() < 2) {
             throw new IllegalStateException(
-                    "At least two artworks are required to create a matchup"
+                    "At least two artworks are required"
             );
         }
 
@@ -63,14 +70,29 @@ public class DataInitializer implements CommandLineRunner {
                 ZoneId.of("America/Chicago")
         );
 
-        if (matchupRepository.findByMatchupDate(today).isEmpty()) {
-            Matchup matchup = new Matchup(
-                    today,
-                    artworks.get(0),
-                    artworks.get(1)
-            );
+        DailyGame dailyGame = dailyGameRepository
+                .findByGameDate(today)
+                .orElseGet(() -> dailyGameRepository.save(
+                        new DailyGame(today, TOTAL_ROUNDS)
+                ));
 
-            matchupRepository.save(matchup);
+        for (int round = 1; round <= TOTAL_ROUNDS; round++) {
+            if (matchupRepository
+                    .findByDailyGameIdAndRoundNumber(
+                            dailyGame.getId(),
+                            round
+                    )
+                    .isEmpty()) {
+
+                matchupRepository.save(
+                        new Matchup(
+                                dailyGame,
+                                round,
+                                artworks.get(0),
+                                artworks.get(1)
+                        )
+                );
+            }
         }
     }
 }
