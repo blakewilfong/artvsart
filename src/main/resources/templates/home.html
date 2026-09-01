@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,25 @@
 <main>
     <h1>Art vs Art</h1>
     <p>A daily head-to-head art discovery game.</p>
+
+    <section>
+        <h2>Today's matchup</h2>
+
+        <article th:each="artwork : ${artworks}">
+            <img
+                    th:src="${artwork.imageUrl}"
+                    th:alt="|${artwork.title} by ${artwork.artistName}|"
+                    width="500"
+            >
+
+            <h3 th:text="${artwork.title}">Artwork title</h3>
+
+            <p>
+                <span th:text="${artwork.artistName}">Artist name</span>,
+                <span th:text="${artwork.dateDisplay}">Date</span>
+            </p>
+        </article>
+    </section>
 </main>
 </body>
 </html>
