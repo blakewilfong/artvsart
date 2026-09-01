@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Results | Art vs Art</title>
+</head>
+<body>
+<main>
+    <h1>Today's Results</h1>
+
+    <p th:text="|Art vs Art for ${dailyGame.gameDate}|">
+        Game date
+    </p>
+
+    <section>
+        <h2
+                th:text="|${score.correctPredictions} of ${score.totalRounds} correct|"
+        >
+            Score
+        </h2>
+
+        <p>
+            Correct:
+            <strong th:text="${score.correctPredictions}">
+                0
+            </strong>
+        </p>
+
+        <p>
+            Incorrect:
+            <strong th:text="${score.incorrectPredictions}">
+                0
+            </strong>
+        </p>
+
+        <p>
+            Ties:
+            <strong th:text="${score.ties}">
+                0
+            </strong>
+        </p>
+
+        <p
+                th:text="|Completed ${score.completedRounds} of ${score.totalRounds} rounds|"
+        >
+            Completion
+        </p>
+    </section>
+
+    <nav>
+        <a href="/round/1">
+            Review today's game
+        </a>
+    </nav>
+</main>
+</body>
+</html>

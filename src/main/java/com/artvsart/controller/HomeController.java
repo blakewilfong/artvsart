@@ -144,6 +144,36 @@ public class HomeController {
         return "home";
     }
 
+    @GetMapping("/results")
+    public String showResults(
+            @CookieValue(
+                    name = VOTER_COOKIE_NAME,
+                    required = false
+            ) String voterId,
+            Model model
+    ) {
+        if (!isValidVoterId(voterId)) {
+            return "redirect:/round/1";
+        }
+
+        DailyGame dailyGame = matchupService.getTodaysGame();
+
+        DailyGameScore score = gameProgressService.getScore(
+                dailyGame,
+                voterId
+        );
+
+        if (!score.complete()) {
+            return "redirect:/round/"
+                    + score.nextRoundNumber();
+        }
+
+        model.addAttribute("dailyGame", dailyGame);
+        model.addAttribute("score", score);
+
+        return "results";
+    }
+
     @PostMapping("/vote")
     public String vote(
             @RequestParam Long matchupId,

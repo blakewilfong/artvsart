@@ -33,9 +33,7 @@
                 </strong>
             </p>
 
-            <p>
-                Current lifetime rates:
-            </p>
+            <p>Current lifetime rates:</p>
         </div>
 
         <article>
@@ -168,11 +166,12 @@
                 Next matchup
             </a>
 
-            <p
+            <a
                     th:if="${matchup.roundNumber == matchup.dailyGame.totalRounds}"
+                    href="/results"
             >
-                You finished today's game.
-            </p>
+                Finish game
+            </a>
         </nav>
     </section>
 </main>
