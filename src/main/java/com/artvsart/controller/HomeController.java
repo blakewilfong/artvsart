@@ -1,8 +1,11 @@
 package com.artvsart.controller;
 
+import com.artvsart.dto.DailyGameScore;
+import com.artvsart.model.DailyGame;
 import com.artvsart.model.Matchup;
 import com.artvsart.model.Vote;
 import com.artvsart.service.ArtworkStatisticsService;
+import com.artvsart.service.GameProgressService;
 import com.artvsart.service.MatchupService;
 import com.artvsart.service.VoteService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,15 +32,18 @@ public class HomeController {
     private final MatchupService matchupService;
     private final VoteService voteService;
     private final ArtworkStatisticsService statisticsService;
+    private final GameProgressService gameProgressService;
 
     public HomeController(
             MatchupService matchupService,
             VoteService voteService,
-            ArtworkStatisticsService statisticsService
+            ArtworkStatisticsService statisticsService,
+            GameProgressService gameProgressService
     ) {
         this.matchupService = matchupService;
         this.voteService = voteService;
         this.statisticsService = statisticsService;
+        this.gameProgressService = gameProgressService;
     }
 
     @GetMapping("/")
@@ -54,16 +60,49 @@ public class HomeController {
             ) String voterId,
             Model model
     ) {
+        DailyGame dailyGame = matchupService.getTodaysGame();
+
+        boolean validVoter = isValidVoterId(voterId);
+
+        DailyGameScore score = validVoter
+                ? gameProgressService.getScore(
+                dailyGame,
+                voterId
+        )
+                : null;
+
+        if (roundNumber < 1
+                || roundNumber > dailyGame.getTotalRounds()) {
+            return redirectToCurrentRound(
+                    dailyGame,
+                    score
+            );
+        }
+
         Matchup matchup = matchupService
                 .getTodaysMatchup(roundNumber);
 
         Optional<Vote> existingVote = Optional.empty();
 
-        if (isValidVoterId(voterId)) {
+        if (validVoter) {
             existingVote = voteService.findVote(
                     matchup.getId(),
                     voterId
             );
+        }
+
+        if (existingVote.isEmpty()) {
+            int permittedRound = score == null
+                    ? 1
+                    : score.nextRoundNumber();
+
+            if (permittedRound == 0) {
+                permittedRound = dailyGame.getTotalRounds();
+            }
+
+            if (roundNumber != permittedRound) {
+                return "redirect:/round/" + permittedRound;
+            }
         }
 
         model.addAttribute(
@@ -140,6 +179,23 @@ public class HomeController {
 
         return "redirect:/round/"
                 + vote.getMatchup().getRoundNumber();
+    }
+
+    private String redirectToCurrentRound(
+            DailyGame dailyGame,
+            DailyGameScore score
+    ) {
+        if (score == null) {
+            return "redirect:/round/1";
+        }
+
+        if (score.complete()) {
+            return "redirect:/round/"
+                    + dailyGame.getTotalRounds();
+        }
+
+        return "redirect:/round/"
+                + score.nextRoundNumber();
     }
 
     private boolean isValidVoterId(String voterId) {

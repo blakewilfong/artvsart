@@ -65,7 +65,7 @@ public class MatchupService {
         return matchup;
     }
 
-    private DailyGame getTodaysGame() {
+    public DailyGame getTodaysGame() {
         LocalDate today = today();
 
         return dailyGameRepository
