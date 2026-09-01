@@ -1,3 +1,6 @@
+Replace the entire contents of `home.html` with:
+
+```html
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -15,6 +18,10 @@
 
         <p th:text="|Matchup for ${matchup.matchupDate}|">
             Matchup date
+        </p>
+
+        <p th:if="${voted}">
+            Your vote has been recorded.
         </p>
 
         <article>
@@ -36,6 +43,22 @@
                         Date
                     </span>
             </p>
+
+            <form method="post" action="/vote">
+                <input
+                        type="hidden"
+                        name="matchupId"
+                        th:value="${matchup.id}"
+                >
+                <input
+                        type="hidden"
+                        name="artworkId"
+                        th:value="${matchup.artworkOne.id}"
+                >
+                <button type="submit">
+                    Choose this artwork
+                </button>
+            </form>
         </article>
 
         <article>
@@ -57,8 +80,25 @@
                         Date
                     </span>
             </p>
+
+            <form method="post" action="/vote">
+                <input
+                        type="hidden"
+                        name="matchupId"
+                        th:value="${matchup.id}"
+                >
+                <input
+                        type="hidden"
+                        name="artworkId"
+                        th:value="${matchup.artworkTwo.id}"
+                >
+                <button type="submit">
+                    Choose this artwork
+                </button>
+            </form>
         </article>
     </section>
 </main>
 </body>
 </html>
+```

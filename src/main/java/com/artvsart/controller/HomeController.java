@@ -2,24 +2,99 @@ package com.artvsart.controller;
 
 import com.artvsart.model.Matchup;
 import com.artvsart.service.MatchupService;
+import com.artvsart.service.VoteService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.Duration;
+import java.util.UUID;
 
 @Controller
 public class HomeController {
 
-    private final MatchupService matchupService;
+    private static final String VOTER_COOKIE_NAME =
+            "artvsart_voter";
 
-    public HomeController(MatchupService matchupService) {
+    private final MatchupService matchupService;
+    private final VoteService voteService;
+
+    public HomeController(
+            MatchupService matchupService,
+            VoteService voteService
+    ) {
         this.matchupService = matchupService;
+        this.voteService = voteService;
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(
+            @RequestParam(
+                    name = "voted",
+                    defaultValue = "false"
+            ) boolean voted,
+            Model model
+    ) {
         Matchup matchup = matchupService.getTodaysMatchup();
+
         model.addAttribute("matchup", matchup);
+        model.addAttribute("voted", voted);
 
         return "home";
+    }
+
+    @PostMapping("/vote")
+    public String vote(
+            @RequestParam Long matchupId,
+            @RequestParam Long artworkId,
+            @CookieValue(
+                    name = VOTER_COOKIE_NAME,
+                    required = false
+            ) String voterId,
+            HttpServletResponse response
+    ) {
+        if (!isValidVoterId(voterId)) {
+            voterId = UUID.randomUUID().toString();
+
+            ResponseCookie voterCookie = ResponseCookie
+                    .from(VOTER_COOKIE_NAME, voterId)
+                    .httpOnly(true)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(Duration.ofDays(365))
+                    .build();
+
+            response.addHeader(
+                    HttpHeaders.SET_COOKIE,
+                    voterCookie.toString()
+            );
+        }
+
+        voteService.castVote(
+                matchupId,
+                artworkId,
+                voterId
+        );
+
+        return "redirect:/?voted=true";
+    }
+
+    private boolean isValidVoterId(String voterId) {
+        if (voterId == null) {
+            return false;
+        }
+
+        try {
+            UUID.fromString(voterId);
+            return true;
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 }
