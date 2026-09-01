@@ -26,22 +26,56 @@ public class MatchupService {
         this.matchupRepository = matchupRepository;
     }
 
-    public Matchup getTodaysMatchup() {
-        LocalDate today = LocalDate.now(GAME_TIME_ZONE);
+    public Matchup getTodaysMatchup(int roundNumber) {
+        DailyGame dailyGame = getTodaysGame();
 
-        DailyGame dailyGame = dailyGameRepository
-                .findByGameDate(today)
-                .orElseThrow(() -> new IllegalStateException(
-                        "No daily game scheduled for " + today
-                ));
+        if (roundNumber < 1
+                || roundNumber > dailyGame.getTotalRounds()) {
+            throw new IllegalArgumentException(
+                    "Round number is outside today's game"
+            );
+        }
 
         return matchupRepository
                 .findByDailyGameIdAndRoundNumber(
                         dailyGame.getId(),
-                        1
+                        roundNumber
                 )
                 .orElseThrow(() -> new IllegalStateException(
-                        "Round 1 has not been scheduled"
+                        "Round " + roundNumber
+                                + " has not been scheduled"
                 ));
+    }
+
+    public Matchup getTodaysMatchupById(Long matchupId) {
+        Matchup matchup = matchupRepository
+                .findById(matchupId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Matchup does not exist"
+                ));
+
+        if (!matchup.getDailyGame()
+                .getGameDate()
+                .equals(today())) {
+            throw new IllegalArgumentException(
+                    "Voting is only open for today's game"
+            );
+        }
+
+        return matchup;
+    }
+
+    private DailyGame getTodaysGame() {
+        LocalDate today = today();
+
+        return dailyGameRepository
+                .findByGameDate(today)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No daily game scheduled for " + today
+                ));
+    }
+
+    private LocalDate today() {
+        return LocalDate.now(GAME_TIME_ZONE);
     }
 }

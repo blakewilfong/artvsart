@@ -1,6 +1,7 @@
 package com.artvsart.controller;
 
 import com.artvsart.model.Matchup;
+import com.artvsart.model.Vote;
 import com.artvsart.service.MatchupService;
 import com.artvsart.service.VoteService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -34,14 +36,27 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String home(
-            @RequestParam(
-                    name = "voted",
-                    defaultValue = "false"
-            ) boolean voted,
+    public String startGame() {
+        return "redirect:/round/1";
+    }
+
+    @GetMapping("/round/{roundNumber}")
+    public String showRound(
+            @PathVariable int roundNumber,
+            @CookieValue(
+                    name = VOTER_COOKIE_NAME,
+                    required = false
+            ) String voterId,
             Model model
     ) {
-        Matchup matchup = matchupService.getTodaysMatchup();
+        Matchup matchup = matchupService
+                .getTodaysMatchup(roundNumber);
+
+        boolean voted = isValidVoterId(voterId)
+                && voteService.hasVoted(
+                matchup.getId(),
+                voterId
+        );
 
         model.addAttribute("matchup", matchup);
         model.addAttribute("voted", voted);
@@ -76,13 +91,15 @@ public class HomeController {
             );
         }
 
-        voteService.castVote(
+        Vote vote = voteService.castVote(
                 matchupId,
                 artworkId,
                 voterId
         );
 
-        return "redirect:/?voted=true";
+        int roundNumber = vote.getMatchup().getRoundNumber();
+
+        return "redirect:/round/" + roundNumber;
     }
 
     private boolean isValidVoterId(String voterId) {

@@ -43,7 +43,11 @@
                     </span>
             </p>
 
-            <form method="post" action="/vote">
+            <form
+                    th:if="${!voted}"
+                    method="post"
+                    action="/vote"
+            >
                 <input
                         type="hidden"
                         name="matchupId"
@@ -80,7 +84,11 @@
                     </span>
             </p>
 
-            <form method="post" action="/vote">
+            <form
+                    th:if="${!voted}"
+                    method="post"
+                    action="/vote"
+            >
                 <input
                         type="hidden"
                         name="matchupId"
@@ -96,6 +104,21 @@
                 </button>
             </form>
         </article>
+
+        <nav th:if="${voted}">
+            <a
+                    th:if="${matchup.roundNumber < matchup.dailyGame.totalRounds}"
+                    th:href="@{/round/{roundNumber}(roundNumber=${matchup.roundNumber + 1})}"
+            >
+                Next matchup
+            </a>
+
+            <p
+                    th:if="${matchup.roundNumber == matchup.dailyGame.totalRounds}"
+            >
+                You finished today's game.
+            </p>
+        </nav>
     </section>
 </main>
 </body>

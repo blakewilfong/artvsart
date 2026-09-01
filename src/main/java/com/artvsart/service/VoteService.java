@@ -33,13 +33,8 @@ public class VoteService {
             );
         }
 
-        Matchup matchup = matchupService.getTodaysMatchup();
-
-        if (!matchup.getId().equals(matchupId)) {
-            throw new IllegalArgumentException(
-                    "Voting is only open for today's matchup"
-            );
-        }
+        Matchup matchup = matchupService
+                .getTodaysMatchupById(matchupId);
 
         Artwork selectedArtwork = resolveSelectedArtwork(
                 matchup,
@@ -51,6 +46,20 @@ public class VoteService {
                 .orElseGet(() -> voteRepository.save(
                         new Vote(matchup, selectedArtwork, voterId)
                 ));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasVoted(
+            Long matchupId,
+            String voterId
+    ) {
+        if (voterId == null || voterId.isBlank()) {
+            return false;
+        }
+
+        return voteRepository
+                .findByMatchupIdAndVoterId(matchupId, voterId)
+                .isPresent();
     }
 
     private Artwork resolveSelectedArtwork(
