@@ -22,24 +22,24 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        Artwork nighthawks = new Artwork(
+        Artwork grandeJatte = new Artwork(
                 "artic",
-                "111628",
-                "Nighthawks",
-                "Edward Hopper",
-                "1942",
-                "https://www.artic.edu/iiif/2/831a05de-d3f6-f4fa-a460-23008dd58dda/full/843,/0/default.jpg"
+                "27992",
+                "A Sunday on La Grande Jatte, 1884",
+                "Georges Seurat",
+                "1884-86",
+                "/images/artworks/grande-jatte.jpg"
         );
 
-        Artwork americanGothic = new Artwork(
+        Artwork theBedroom = new Artwork(
                 "artic",
-                "6565",
-                "American Gothic",
-                "Grant Wood",
-                "1930",
-                "https://www.artic.edu/iiif/2/b272df73-a965-ac37-4172-be4e99483637/full/843,/0/default.jpg"
+                "28560",
+                "The Bedroom",
+                "Vincent van Gogh",
+                "1889",
+                "/images/artworks/the-bedroom.jpg"
         );
 
-        artworkRepository.saveAll(List.of(nighthawks, americanGothic));
+        artworkRepository.saveAll(List.of(grandeJatte, theBedroom));
     }
 }
