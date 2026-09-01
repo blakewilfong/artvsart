@@ -2,6 +2,8 @@ package com.artvsart.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,6 +41,10 @@ public class Vote {
     @Column(name = "voter_id", nullable = false, length = 36)
     private String voterId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PredictionOutcome outcome;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -48,11 +54,13 @@ public class Vote {
     public Vote(
             Matchup matchup,
             Artwork selectedArtwork,
-            String voterId
+            String voterId,
+            PredictionOutcome outcome
     ) {
         this.matchup = matchup;
         this.selectedArtwork = selectedArtwork;
         this.voterId = voterId;
+        this.outcome = outcome;
         this.createdAt = Instant.now();
     }
 
@@ -70,6 +78,10 @@ public class Vote {
 
     public String getVoterId() {
         return voterId;
+    }
+
+    public PredictionOutcome getOutcome() {
+        return outcome;
     }
 
     public Instant getCreatedAt() {

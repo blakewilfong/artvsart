@@ -8,7 +8,7 @@
 <body>
 <main>
     <h1>Art vs Art</h1>
-    <p>A daily head-to-head art discovery game.</p>
+    <p>A daily head-to-head art prediction game.</p>
 
     <section>
         <h2 th:text="|Round ${matchup.roundNumber} of ${matchup.dailyGame.totalRounds}|">
@@ -19,9 +19,20 @@
             Game date
         </p>
 
-        <p th:if="${voted}">
-            Your vote has been recorded.
+        <p>
+            Which artwork has the higher lifetime selection rate?
         </p>
+
+        <div th:if="${voted}">
+            <p>Your prediction has been recorded.</p>
+
+            <p>
+                Result:
+                <strong th:text="${outcome}">
+                    Outcome
+                </strong>
+            </p>
+        </div>
 
         <article>
             <img
@@ -59,9 +70,16 @@
                         th:value="${matchup.artworkOne.id}"
                 >
                 <button type="submit">
-                    Choose this artwork
+                    Predict this artwork
                 </button>
             </form>
+
+            <p
+                    th:if="${voted
+                        && selectedArtworkId == matchup.artworkOne.id}"
+            >
+                Your prediction
+            </p>
         </article>
 
         <article>
@@ -100,9 +118,16 @@
                         th:value="${matchup.artworkTwo.id}"
                 >
                 <button type="submit">
-                    Choose this artwork
+                    Predict this artwork
                 </button>
             </form>
+
+            <p
+                    th:if="${voted
+                        && selectedArtworkId == matchup.artworkTwo.id}"
+            >
+                Your prediction
+            </p>
         </article>
 
         <nav th:if="${voted}">

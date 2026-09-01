@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 @Controller
@@ -52,14 +53,36 @@ public class HomeController {
         Matchup matchup = matchupService
                 .getTodaysMatchup(roundNumber);
 
-        boolean voted = isValidVoterId(voterId)
-                && voteService.hasVoted(
-                matchup.getId(),
-                voterId
+        Optional<Vote> existingVote = Optional.empty();
+
+        if (isValidVoterId(voterId)) {
+            existingVote = voteService.findVote(
+                    matchup.getId(),
+                    voterId
+            );
+        }
+
+        model.addAttribute(
+                "matchup",
+                matchup
         );
 
-        model.addAttribute("matchup", matchup);
-        model.addAttribute("voted", voted);
+        model.addAttribute(
+                "voted",
+                existingVote.isPresent()
+        );
+
+        existingVote.ifPresent(vote -> {
+            model.addAttribute(
+                    "selectedArtworkId",
+                    vote.getSelectedArtwork().getId()
+            );
+
+            model.addAttribute(
+                    "outcome",
+                    vote.getOutcome()
+            );
+        });
 
         return "home";
     }
@@ -97,9 +120,8 @@ public class HomeController {
                 voterId
         );
 
-        int roundNumber = vote.getMatchup().getRoundNumber();
-
-        return "redirect:/round/" + roundNumber;
+        return "redirect:/round/"
+                + vote.getMatchup().getRoundNumber();
     }
 
     private boolean isValidVoterId(String voterId) {
