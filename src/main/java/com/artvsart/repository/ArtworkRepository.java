@@ -12,4 +12,6 @@ public interface ArtworkRepository
             String source,
             String sourceArtworkId
     );
+
+    long countBySource(String source);
 }
