@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Controller
-public class HomeController {
+public class DailyGameController {
 
     private static final String VOTER_COOKIE_NAME =
             "artvsart_voter";
@@ -34,7 +34,7 @@ public class HomeController {
     private final ArtworkStatisticsService statisticsService;
     private final GameProgressService gameProgressService;
 
-    public HomeController(
+    public DailyGameController(
             MatchupService matchupService,
             VoteService voteService,
             ArtworkStatisticsService statisticsService,
@@ -44,11 +44,6 @@ public class HomeController {
         this.voteService = voteService;
         this.statisticsService = statisticsService;
         this.gameProgressService = gameProgressService;
-    }
-
-    @GetMapping("/")
-    public String startGame() {
-        return "redirect:/round/1";
     }
 
     @GetMapping("/round/{roundNumber}")
