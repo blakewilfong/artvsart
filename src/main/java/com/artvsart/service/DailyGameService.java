@@ -25,16 +25,16 @@ public class DailyGameService {
     private static final ZoneId GAME_TIME_ZONE =
             ZoneId.of("America/Chicago");
 
-    private final ArtworkRepository artworkRepository;
+    private final ArtworkService artworkService;
     private final DailyGameRepository dailyGameRepository;
     private final MatchupRepository matchupRepository;
 
     public DailyGameService(
-            ArtworkRepository artworkRepository,
+            ArtworkService artworkService,
             DailyGameRepository dailyGameRepository,
             MatchupRepository matchupRepository
     ) {
-        this.artworkRepository = artworkRepository;
+        this.artworkService = artworkService;
         this.dailyGameRepository = dailyGameRepository;
         this.matchupRepository = matchupRepository;
     }
@@ -62,9 +62,8 @@ public class DailyGameService {
     }
 
     private void scheduleMissingMatchups(DailyGame dailyGame) {
-        List<Artwork> artworks = artworkRepository.findAll(
-                Sort.by(Sort.Direction.ASC, "id")
-        );
+        List<Artwork> artworks =
+                artworkService.getPlayableArtworks();
 
         List<ArtworkPair> pairs = createPairs(artworks);
 
