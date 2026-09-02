@@ -68,8 +68,9 @@ public record MetArtworkResponse(
         return objectId != null
                 && Boolean.TRUE.equals(publicDomain)
                 && hasText(title)
-                && hasText(artistDisplayName)
                 && hasText(objectDate)
+                && objectBeginDate != null
+                && objectBeginDate != 0
                 && hasText(primaryImageSmall)
                 && hasText(objectUrl);
     }

@@ -36,6 +36,7 @@ class MetArtworkClientTest {
                   "title": "Wheat Field with Cypresses",
                   "artistDisplayName": "Vincent van Gogh",
                   "objectDate": "1889",
+                  "objectBeginDate": 1889,
                   "objectURL": "https://www.metmuseum.org/art/collection/search/436535"
                 }
                 """,
@@ -55,6 +56,7 @@ class MetArtworkClientTest {
                 artwork.artistDisplayName()
         );
         assertEquals("1889", artwork.objectDate());
+        assertEquals(1889, artwork.objectBeginDate());
         assertTrue(artwork.publicDomain());
         assertTrue(artwork.isUsable());
 
@@ -99,6 +101,54 @@ class MetArtworkClientTest {
         assertEquals(3, response.total());
         assertEquals(
                 3,
+                response.objectIds().size()
+        );
+        assertEquals(
+                436535L,
+                response.objectIds().getFirst()
+        );
+
+        server.verify();
+    }
+
+    @Test
+    void searchesForPaintingsWithinDepartment() {
+        RestClient.Builder builder = RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer
+                        .bindTo(builder)
+                        .build();
+
+        MetArtworkClient client =
+                new MetArtworkClient(builder);
+
+        server.expect(requestTo(
+                "https://collectionapi.metmuseum.org"
+                        + "/public/collection/v1/search"
+                        + "?q=painting"
+                        + "&hasImages=true"
+                        + "&medium=Paintings"
+                        + "&departmentId=11"
+        )).andRespond(withSuccess(
+                """
+                {
+                  "total": 2,
+                  "objectIDs": [
+                    436535,
+                    437329
+                  ]
+                }
+                """,
+                MediaType.APPLICATION_JSON
+        ));
+
+        MetSearchResponse response =
+                client.searchPaintings(11);
+
+        assertEquals(2, response.total());
+        assertEquals(
+                2,
                 response.objectIds().size()
         );
         assertEquals(

@@ -31,13 +31,35 @@ public class MetArtworkClient {
                 .retrieve()
                 .body(MetSearchResponse.class);
 
-        if (response == null) {
-            throw new IllegalStateException(
-                    "The Met returned an empty search response"
+        return requireSearchResponse(response);
+    }
+
+    public MetSearchResponse searchPaintings(
+            int departmentId
+    ) {
+        if (departmentId <= 0) {
+            throw new IllegalArgumentException(
+                    "Department ID must be positive"
             );
         }
 
-        return response;
+        MetSearchResponse response = restClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/search")
+                        .queryParam("q", "painting")
+                        .queryParam("hasImages", true)
+                        .queryParam("medium", "Paintings")
+                        .queryParam(
+                                "departmentId",
+                                departmentId
+                        )
+                        .build()
+                )
+                .retrieve()
+                .body(MetSearchResponse.class);
+
+        return requireSearchResponse(response);
     }
 
     public MetArtworkResponse fetchArtwork(long objectId) {
@@ -51,6 +73,18 @@ public class MetArtworkClient {
             throw new IllegalStateException(
                     "The Met returned an empty response for object "
                             + objectId
+            );
+        }
+
+        return response;
+    }
+
+    private MetSearchResponse requireSearchResponse(
+            MetSearchResponse response
+    ) {
+        if (response == null) {
+            throw new IllegalStateException(
+                    "The Met returned an empty search response"
             );
         }
 
