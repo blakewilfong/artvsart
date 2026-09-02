@@ -21,7 +21,7 @@ public class MetArtworkImportService {
     private static final String LICENSE = "CC0";
 
     private static final int MAX_CANDIDATES_TO_CHECK = 1000;
-    private static final long REQUEST_DELAY_MILLISECONDS = 250;
+    private static final long REQUEST_DELAY_MILLISECONDS = 1000;
 
     private final MetArtworkClient metArtworkClient;
     private final ArtworkRepository artworkRepository;
