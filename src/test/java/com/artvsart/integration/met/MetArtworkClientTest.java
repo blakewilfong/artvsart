@@ -60,4 +60,52 @@ class MetArtworkClientTest {
 
         server.verify();
     }
+
+    @Test
+    void searchesForPaintingObjectIds() {
+        RestClient.Builder builder = RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer
+                        .bindTo(builder)
+                        .build();
+
+        MetArtworkClient client =
+                new MetArtworkClient(builder);
+
+        server.expect(requestTo(
+                "https://collectionapi.metmuseum.org"
+                        + "/public/collection/v1/search"
+                        + "?q=painting"
+                        + "&hasImages=true"
+                        + "&medium=Paintings"
+        )).andRespond(withSuccess(
+                """
+                {
+                  "total": 3,
+                  "objectIDs": [
+                    436535,
+                    437329,
+                    436121
+                  ]
+                }
+                """,
+                MediaType.APPLICATION_JSON
+        ));
+
+        MetSearchResponse response =
+                client.searchPaintings();
+
+        assertEquals(3, response.total());
+        assertEquals(
+                3,
+                response.objectIds().size()
+        );
+        assertEquals(
+                436535L,
+                response.objectIds().getFirst()
+        );
+
+        server.verify();
+    }
 }
