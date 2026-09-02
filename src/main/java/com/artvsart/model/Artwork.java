@@ -14,7 +14,10 @@ import jakarta.persistence.UniqueConstraint;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_artwork_source_id",
-                        columnNames = {"source", "source_artwork_id"}
+                        columnNames = {
+                                "source",
+                                "source_artwork_id"
+                        }
                 )
         }
 )
@@ -27,7 +30,11 @@ public class Artwork {
     @Column(nullable = false, length = 50)
     private String source;
 
-    @Column(name = "source_artwork_id", nullable = false, length = 100)
+    @Column(
+            name = "source_artwork_id",
+            nullable = false,
+            length = 100
+    )
     private String sourceArtworkId;
 
     @Column(nullable = false)
@@ -40,6 +47,12 @@ public class Artwork {
     @Column(nullable = false, length = 1000)
     private String imageUrl;
 
+    @Column(name = "source_url", length = 1000)
+    private String sourceUrl;
+
+    @Column(length = 50)
+    private String license;
+
     protected Artwork() {
     }
 
@@ -51,12 +64,36 @@ public class Artwork {
             String dateDisplay,
             String imageUrl
     ) {
+        this(
+                source,
+                sourceArtworkId,
+                title,
+                artistName,
+                dateDisplay,
+                imageUrl,
+                null,
+                null
+        );
+    }
+
+    public Artwork(
+            String source,
+            String sourceArtworkId,
+            String title,
+            String artistName,
+            String dateDisplay,
+            String imageUrl,
+            String sourceUrl,
+            String license
+    ) {
         this.source = source;
         this.sourceArtworkId = sourceArtworkId;
         this.title = title;
         this.artistName = artistName;
         this.dateDisplay = dateDisplay;
         this.imageUrl = imageUrl;
+        this.sourceUrl = sourceUrl;
+        this.license = license;
     }
 
     public Long getId() {
@@ -85,5 +122,13 @@ public class Artwork {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public String getLicense() {
+        return license;
     }
 }
