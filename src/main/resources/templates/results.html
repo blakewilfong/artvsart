@@ -4,52 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Today's Results | Art vs Art</title>
+    <link
+            rel="stylesheet"
+            th:href="@{/css/styles.css}"
+            href="/css/styles.css"
+    >
 </head>
 <body>
-<main>
-    <h1>Today's Results</h1>
+<header class="site-header">
+    <h1 class="brand">
+        <a href="/">Art vs Art</a>
+    </h1>
 
-    <p th:text="|Art vs Art for ${dailyGame.gameDate}|">
-        Game date
+    <p class="site-description">
+        A daily head-to-head art prediction game.
     </p>
+</header>
 
-    <section>
-        <h2
-                th:text="|${score.correctPredictions} of ${score.totalRounds} correct|"
-        >
-            Score
-        </h2>
+<main class="results-shell">
+    <section class="results-card">
+        <header class="results-heading">
+            <p class="results-label">
+                Today's results
+            </p>
 
-        <p>
-            Correct:
-            <strong th:text="${score.correctPredictions}">
+            <h2>Game complete</h2>
+
+            <p
+                    class="results-date"
+                    th:text="|Art vs Art for ${dailyGame.gameDate}|"
+            >
+                Game date
+            </p>
+        </header>
+
+        <div class="score-display">
+            <strong
+                    class="score-number"
+                    th:text="${score.correctPredictions}"
+            >
                 0
             </strong>
-        </p>
 
-        <p>
-            Incorrect:
-            <strong th:text="${score.incorrectPredictions}">
-                0
-            </strong>
-        </p>
+            <span
+                    class="score-total"
+                    th:text="|of ${score.totalRounds} correct|"
+            >
+                of 10 correct
+            </span>
+        </div>
 
-        <p>
-            Ties:
-            <strong th:text="${score.ties}">
-                0
-            </strong>
-        </p>
+        <dl class="result-stats">
+            <div class="result-stat result-stat--correct">
+                <dt>Correct</dt>
+                <dd th:text="${score.correctPredictions}">
+                    0
+                </dd>
+            </div>
 
-        <p
-                th:text="|Completed ${score.completedRounds} of ${score.totalRounds} rounds|"
-        >
-            Completion
-        </p>
+            <div class="result-stat result-stat--incorrect">
+                <dt>Incorrect</dt>
+                <dd th:text="${score.incorrectPredictions}">
+                    0
+                </dd>
+            </div>
+
+            <div class="result-stat result-stat--tie">
+                <dt>Ties</dt>
+                <dd th:text="${score.ties}">
+                    0
+                </dd>
+            </div>
+        </dl>
     </section>
 
-    <nav>
-        <a href="/round/1">
+    <nav class="results-navigation">
+        <a class="primary-link" href="/round/1">
             Review today's game
         </a>
     </nav>

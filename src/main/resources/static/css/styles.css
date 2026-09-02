@@ -375,6 +375,116 @@ button.artwork-card:focus-visible .choice-label {
     outline-offset: 3px;
 }
 
+.results-shell {
+    width: min(720px, calc(100% - 3rem));
+    margin: 2rem auto 0;
+    padding-bottom: 3rem;
+    text-align: center;
+}
+
+.results-card {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.results-heading {
+    padding: 2rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.results-label {
+    margin: 0 0 0.5rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.results-heading h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    line-height: 1;
+}
+
+.results-date {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+}
+
+.score-display {
+    padding: 2.5rem 1.5rem;
+}
+
+.score-number {
+    display: block;
+    color: var(--accent);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(5rem, 18vw, 8rem);
+    line-height: 0.85;
+}
+
+.score-total {
+    display: block;
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0;
+    border-top: 1px solid var(--border);
+}
+
+.result-stat {
+    padding: 1.25rem 0.75rem;
+}
+
+.result-stat + .result-stat {
+    border-left: 1px solid var(--border);
+}
+
+.result-stat dt {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.result-stat dd {
+    margin: 0.35rem 0 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.result-stat--correct dd {
+    color: var(--correct);
+}
+
+.result-stat--incorrect dd {
+    color: var(--incorrect);
+}
+
+.result-stat--tie dd {
+    color: var(--tie);
+}
+
+.results-navigation {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
 @media (max-width: 800px) {
     .site-header {
         display: block;
