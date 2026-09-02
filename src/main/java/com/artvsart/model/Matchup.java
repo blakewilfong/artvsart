@@ -29,12 +29,12 @@ public class Matchup {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "daily_game_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "daily_game_id")
     private DailyGame dailyGame;
 
-    @Column(name = "round_number", nullable = false)
-    private int roundNumber;
+    @Column(name = "round_number")
+    private Integer roundNumber;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "artwork_one_id", nullable = false)
@@ -47,16 +47,66 @@ public class Matchup {
     protected Matchup() {
     }
 
-    public Matchup(
+    private Matchup(
+            DailyGame dailyGame,
+            Integer roundNumber,
+            Artwork artworkOne,
+            Artwork artworkTwo
+    ) {
+        validateArtworks(artworkOne, artworkTwo);
+
+        this.dailyGame = dailyGame;
+        this.roundNumber = roundNumber;
+        this.artworkOne = artworkOne;
+        this.artworkTwo = artworkTwo;
+    }
+
+    public static Matchup forDailyGame(
             DailyGame dailyGame,
             int roundNumber,
             Artwork artworkOne,
             Artwork artworkTwo
     ) {
+        if (dailyGame == null) {
+            throw new IllegalArgumentException(
+                    "A daily game is required"
+            );
+        }
+
         if (roundNumber < 1
                 || roundNumber > dailyGame.getTotalRounds()) {
             throw new IllegalArgumentException(
                     "Round number must be within the daily game"
+            );
+        }
+
+        return new Matchup(
+                dailyGame,
+                roundNumber,
+                artworkOne,
+                artworkTwo
+        );
+    }
+
+    public static Matchup forFreePlay(
+            Artwork artworkOne,
+            Artwork artworkTwo
+    ) {
+        return new Matchup(
+                null,
+                null,
+                artworkOne,
+                artworkTwo
+        );
+    }
+
+    private static void validateArtworks(
+            Artwork artworkOne,
+            Artwork artworkTwo
+    ) {
+        if (artworkOne == null || artworkTwo == null) {
+            throw new IllegalArgumentException(
+                    "A matchup requires two artworks"
             );
         }
 
@@ -65,11 +115,6 @@ public class Matchup {
                     "A matchup requires two different artworks"
             );
         }
-
-        this.dailyGame = dailyGame;
-        this.roundNumber = roundNumber;
-        this.artworkOne = artworkOne;
-        this.artworkTwo = artworkTwo;
     }
 
     public Long getId() {
@@ -81,6 +126,12 @@ public class Matchup {
     }
 
     public int getRoundNumber() {
+        if (!isDailyGameMatchup()) {
+            throw new IllegalStateException(
+                    "Free-play matchups do not have round numbers"
+            );
+        }
+
         return roundNumber;
     }
 
@@ -90,5 +141,9 @@ public class Matchup {
 
     public Artwork getArtworkTwo() {
         return artworkTwo;
+    }
+
+    public boolean isDailyGameMatchup() {
+        return dailyGame != null && roundNumber != null;
     }
 }

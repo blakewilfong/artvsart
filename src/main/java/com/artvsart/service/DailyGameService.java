@@ -3,10 +3,8 @@ package com.artvsart.service;
 import com.artvsart.model.Artwork;
 import com.artvsart.model.DailyGame;
 import com.artvsart.model.Matchup;
-import com.artvsart.repository.ArtworkRepository;
 import com.artvsart.repository.DailyGameRepository;
 import com.artvsart.repository.MatchupRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,7 +93,7 @@ public class DailyGameService {
                     .isEmpty()) {
 
                 matchupRepository.save(
-                        new Matchup(
+                        Matchup.forDailyGame(
                                 dailyGame,
                                 roundNumber,
                                 pair.first(),
