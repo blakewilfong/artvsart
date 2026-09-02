@@ -9,8 +9,6 @@ import com.artvsart.service.GameProgressService;
 import com.artvsart.service.MatchupService;
 import com.artvsart.service.VoteService;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -19,45 +17,44 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
 
 @Controller
 public class DailyGameController {
-
-    private static final String VOTER_COOKIE_NAME =
-            "artvsart_voter";
 
     private final MatchupService matchupService;
     private final VoteService voteService;
     private final ArtworkStatisticsService statisticsService;
     private final GameProgressService gameProgressService;
+    private final VoterCookieManager voterCookieManager;
 
     public DailyGameController(
             MatchupService matchupService,
             VoteService voteService,
             ArtworkStatisticsService statisticsService,
-            GameProgressService gameProgressService
+            GameProgressService gameProgressService,
+            VoterCookieManager voterCookieManager
     ) {
         this.matchupService = matchupService;
         this.voteService = voteService;
         this.statisticsService = statisticsService;
         this.gameProgressService = gameProgressService;
+        this.voterCookieManager = voterCookieManager;
     }
 
     @GetMapping("/round/{roundNumber}")
     public String showRound(
             @PathVariable int roundNumber,
             @CookieValue(
-                    name = VOTER_COOKIE_NAME,
+                    name = VoterCookieManager.COOKIE_NAME,
                     required = false
             ) String voterId,
             Model model
     ) {
         DailyGame dailyGame = matchupService.getTodaysGame();
 
-        boolean validVoter = isValidVoterId(voterId);
+        boolean validVoter =
+                voterCookieManager.isValid(voterId);
 
         DailyGameScore score = validVoter
                 ? gameProgressService.getScore(
@@ -142,12 +139,12 @@ public class DailyGameController {
     @GetMapping("/results")
     public String showResults(
             @CookieValue(
-                    name = VOTER_COOKIE_NAME,
+                    name = VoterCookieManager.COOKIE_NAME,
                     required = false
             ) String voterId,
             Model model
     ) {
-        if (!isValidVoterId(voterId)) {
+        if (!voterCookieManager.isValid(voterId)) {
             return "redirect:/round/1";
         }
 
@@ -174,27 +171,15 @@ public class DailyGameController {
             @RequestParam Long matchupId,
             @RequestParam Long artworkId,
             @CookieValue(
-                    name = VOTER_COOKIE_NAME,
+                    name = VoterCookieManager.COOKIE_NAME,
                     required = false
             ) String voterId,
             HttpServletResponse response
     ) {
-        if (!isValidVoterId(voterId)) {
-            voterId = UUID.randomUUID().toString();
-
-            ResponseCookie voterCookie = ResponseCookie
-                    .from(VOTER_COOKIE_NAME, voterId)
-                    .httpOnly(true)
-                    .sameSite("Lax")
-                    .path("/")
-                    .maxAge(Duration.ofDays(365))
-                    .build();
-
-            response.addHeader(
-                    HttpHeaders.SET_COOKIE,
-                    voterCookie.toString()
-            );
-        }
+        voterId = voterCookieManager.getOrCreate(
+                voterId,
+                response
+        );
 
         Matchup matchup = matchupService
                 .getTodaysMatchupById(matchupId);
@@ -225,18 +210,5 @@ public class DailyGameController {
 
         return "redirect:/round/"
                 + score.nextRoundNumber();
-    }
-
-    private boolean isValidVoterId(String voterId) {
-        if (voterId == null) {
-            return false;
-        }
-
-        try {
-            UUID.fromString(voterId);
-            return true;
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
     }
 }
