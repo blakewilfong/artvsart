@@ -5,7 +5,6 @@ public record DailyGameScore(
         int completedRounds,
         int correctPredictions,
         int incorrectPredictions,
-        int ties,
         int nextRoundNumber
 ) {
 

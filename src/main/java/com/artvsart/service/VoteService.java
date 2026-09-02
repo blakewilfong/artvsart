@@ -110,15 +110,11 @@ public class VoteService {
                 nonSelectedStats.selectionPercentage()
         );
 
-        if (comparison > 0) {
+        if (comparison >= 0) {
             return PredictionOutcome.CORRECT;
         }
 
-        if (comparison < 0) {
-            return PredictionOutcome.INCORRECT;
-        }
-
-        return PredictionOutcome.TIE;
+        return PredictionOutcome.INCORRECT;
     }
 
     private Artwork resolveSelectedArtwork(

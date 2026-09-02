@@ -56,7 +56,6 @@ class VoteServiceTest {
 
         when(artworkOne.getId()).thenReturn(ARTWORK_ONE_ID);
 
-
         when(matchup.getArtworkOne()).thenReturn(artworkOne);
         when(matchup.getArtworkTwo()).thenReturn(artworkTwo);
 
@@ -87,7 +86,10 @@ class VoteServiceTest {
         );
 
         assertSame(artworkOne, vote.getSelectedArtwork());
-        assertEquals(PredictionOutcome.CORRECT, vote.getOutcome());
+        assertEquals(
+                PredictionOutcome.CORRECT,
+                vote.getOutcome()
+        );
     }
 
     @Test
@@ -107,11 +109,14 @@ class VoteServiceTest {
         );
 
         assertSame(artworkTwo, vote.getSelectedArtwork());
-        assertEquals(PredictionOutcome.INCORRECT, vote.getOutcome());
+        assertEquals(
+                PredictionOutcome.INCORRECT,
+                vote.getOutcome()
+        );
     }
 
     @Test
-    void storesTieWhenBothArtworksFinishWithSameRate() {
+    void storesCorrectWhenBothArtworksFinishWithSameRate() {
         when(statisticsService.getStats(artworkOne))
                 .thenReturn(new ArtworkStats(4, 10));
 
@@ -125,6 +130,9 @@ class VoteServiceTest {
         );
 
         assertSame(artworkOne, vote.getSelectedArtwork());
-        assertEquals(PredictionOutcome.TIE, vote.getOutcome());
+        assertEquals(
+                PredictionOutcome.CORRECT,
+                vote.getOutcome()
+        );
     }
 }

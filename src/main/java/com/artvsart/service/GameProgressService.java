@@ -44,11 +44,6 @@ public class GameProgressService {
                         == PredictionOutcome.INCORRECT)
                 .count();
 
-        int ties = (int) votes.stream()
-                .filter(vote -> vote.getOutcome()
-                        == PredictionOutcome.TIE)
-                .count();
-
         Set<Integer> completedRounds = votes.stream()
                 .map(vote -> vote
                         .getMatchup()
@@ -69,7 +64,6 @@ public class GameProgressService {
                 votes.size(),
                 correctPredictions,
                 incorrectPredictions,
-                ties,
                 nextRoundNumber
         );
     }
