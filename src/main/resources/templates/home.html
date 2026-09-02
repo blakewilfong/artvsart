@@ -84,41 +84,19 @@
                 <button
                         class="artwork-card"
                         type="submit"
-                        th:attr="aria-label=|Predict ${matchup.artworkOne.title}|"
+                        aria-label="Choose left artwork"
                 >
                     <span class="artwork-image-frame">
                         <img
                                 class="artwork-image"
                                 th:src="${matchup.artworkOne.imageUrl}"
-                                th:alt="|${matchup.artworkOne.title} by ${matchup.artworkOne.artistName}|"
+                                alt="First artwork"
                                 width="800"
                                 height="600"
                         >
 
                         <span class="choice-label">
                             Choose
-                        </span>
-                    </span>
-
-                    <span class="artwork-details">
-                        <span
-                                class="artwork-title"
-                                th:text="${matchup.artworkOne.title}"
-                        >
-                            First artwork
-                        </span>
-
-                        <span class="artwork-credit">
-                            <span
-                                    th:text="${matchup.artworkOne.artistName}"
-                            >
-                                Artist
-                            </span>,
-                            <span
-                                    th:text="${matchup.artworkOne.dateDisplay}"
-                            >
-                                Date
-                            </span>
                         </span>
                     </span>
                 </button>
@@ -200,13 +178,6 @@
                         </span>
                     </p>
 
-                    <p
-                            class="selection-count"
-                            th:text="|Selected ${artworkOneStats.selections} times in ${artworkOneStats.presentations} presentations|"
-                    >
-                        Selection totals
-                    </p>
-
                     <span
                             class="selected-badge"
                             th:if="${selectedArtworkId == matchup.artworkOne.id}"
@@ -241,41 +212,19 @@
                 <button
                         class="artwork-card"
                         type="submit"
-                        th:attr="aria-label=|Predict ${matchup.artworkTwo.title}|"
+                        aria-label="Choose right artwork"
                 >
                     <span class="artwork-image-frame">
                         <img
                                 class="artwork-image"
                                 th:src="${matchup.artworkTwo.imageUrl}"
-                                th:alt="|${matchup.artworkTwo.title} by ${matchup.artworkTwo.artistName}|"
+                                alt="Second artwork"
                                 width="800"
                                 height="600"
                         >
 
                         <span class="choice-label">
                             Choose
-                        </span>
-                    </span>
-
-                    <span class="artwork-details">
-                        <span
-                                class="artwork-title"
-                                th:text="${matchup.artworkTwo.title}"
-                        >
-                            Second artwork
-                        </span>
-
-                        <span class="artwork-credit">
-                            <span
-                                    th:text="${matchup.artworkTwo.artistName}"
-                            >
-                                Artist
-                            </span>,
-                            <span
-                                    th:text="${matchup.artworkTwo.dateDisplay}"
-                            >
-                                Date
-                            </span>
                         </span>
                     </span>
                 </button>
@@ -355,13 +304,6 @@
                         >
                             Date
                         </span>
-                    </p>
-
-                    <p
-                            class="selection-count"
-                            th:text="|Selected ${artworkTwoStats.selections} times in ${artworkTwoStats.presentations} presentations|"
-                    >
-                        Selection totals
                     </p>
 
                     <span

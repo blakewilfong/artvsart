@@ -625,3 +625,34 @@ button.artwork-card:focus-visible .choice-label {
         flex-direction: column;
     }
 }
+
+
+.artwork-image-frame {
+    display: flex;
+    width: 100%;
+    height: clamp(320px, 36vw, 540px);
+    aspect-ratio: auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 1rem;
+    background: var(--surface-dark);
+}
+
+.artwork-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.choice-label {
+    display: none;
+}
+
+@media (max-width: 800px) {
+    .artwork-image-frame {
+        height: min(110vw, 520px);
+    }
+}
