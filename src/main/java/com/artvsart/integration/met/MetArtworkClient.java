@@ -18,6 +18,28 @@ public class MetArtworkClient {
                 .build();
     }
 
+    public MetSearchResponse searchPaintings() {
+        MetSearchResponse response = restClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/search")
+                        .queryParam("q", "painting")
+                        .queryParam("hasImages", true)
+                        .queryParam("medium", "Paintings")
+                        .build()
+                )
+                .retrieve()
+                .body(MetSearchResponse.class);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "The Met returned an empty search response"
+            );
+        }
+
+        return response;
+    }
+
     public MetArtworkResponse fetchArtwork(long objectId) {
         MetArtworkResponse response = restClient
                 .get()
