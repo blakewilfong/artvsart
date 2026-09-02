@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Play | Art vs Art</title>
+    <link
+            rel="stylesheet"
+            th:href="@{/css/styles.css}"
+            href="/css/styles.css"
+    >
+    <script
+            defer
+            th:src="@{/js/game.js}"
+            src="/js/game.js"
+    ></script>
+</head>
+<body>
+<header class="site-header">
+    <h1 class="brand">
+        <a href="/">Art vs Art</a>
+    </h1>
+
+    <p class="site-description">
+        Keep playing for as long as you like.
+    </p>
+</header>
+
+<main class="game-shell">
+    <section>
+        <header class="game-heading">
+            <div class="game-meta">
+                <span>Free Play</span>
+            </div>
+
+            <h2>
+                Which artwork has the higher lifetime selection rate?
+            </h2>
+        </header>
+
+        <div th:replace="~{home :: matchupCards}"></div>
+
+        <nav
+                class="round-navigation"
+                th:if="${voted and param.reveal == null}"
+        >
+            <a class="primary-link" href="/free-play">
+                Next matchup
+            </a>
+        </nav>
+
+        <div
+                id="auto-advance"
+                th:if="${voted and param.reveal != null}"
+                th:data-next-url="@{/free-play}"
+                hidden
+        ></div>
+    </section>
+</main>
+</body>
+</html>

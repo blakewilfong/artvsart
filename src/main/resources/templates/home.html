@@ -2,13 +2,18 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
     <title>Art vs Art</title>
+
     <link
             rel="stylesheet"
             th:href="@{/css/styles.css}"
             href="/css/styles.css"
     >
+
     <script
             defer
             th:src="@{/js/game.js}"
@@ -54,18 +59,22 @@
             </progress>
         </header>
 
-        <div class="matchup-grid">
+        <div
+                class="matchup-grid"
+                th:fragment="matchupCards"
+        >
             <form
                     class="artwork-form"
                     th:if="${!voted}"
                     method="post"
-                    th:action="@{/vote}"
+                    th:action="${voteAction}"
             >
                 <input
                         type="hidden"
                         name="matchupId"
                         th:value="${matchup.id}"
                 >
+
                 <input
                         type="hidden"
                         name="artworkId"
@@ -100,10 +109,14 @@
                         </span>
 
                         <span class="artwork-credit">
-                            <span th:text="${matchup.artworkOne.artistName}">
+                            <span
+                                    th:text="${matchup.artworkOne.artistName}"
+                            >
                                 Artist
                             </span>,
-                            <span th:text="${matchup.artworkOne.dateDisplay}">
+                            <span
+                                    th:text="${matchup.artworkOne.dateDisplay}"
+                            >
                                 Date
                             </span>
                         </span>
@@ -175,10 +188,14 @@
                     </h3>
 
                     <p class="artwork-credit">
-                        <span th:text="${matchup.artworkOne.artistName}">
+                        <span
+                                th:text="${matchup.artworkOne.artistName}"
+                        >
                             Artist
                         </span>,
-                        <span th:text="${matchup.artworkOne.dateDisplay}">
+                        <span
+                                th:text="${matchup.artworkOne.dateDisplay}"
+                        >
                             Date
                         </span>
                     </p>
@@ -207,13 +224,14 @@
                     class="artwork-form"
                     th:if="${!voted}"
                     method="post"
-                    th:action="@{/vote}"
+                    th:action="${voteAction}"
             >
                 <input
                         type="hidden"
                         name="matchupId"
                         th:value="${matchup.id}"
                 >
+
                 <input
                         type="hidden"
                         name="artworkId"
@@ -248,10 +266,14 @@
                         </span>
 
                         <span class="artwork-credit">
-                            <span th:text="${matchup.artworkTwo.artistName}">
+                            <span
+                                    th:text="${matchup.artworkTwo.artistName}"
+                            >
                                 Artist
                             </span>,
-                            <span th:text="${matchup.artworkTwo.dateDisplay}">
+                            <span
+                                    th:text="${matchup.artworkTwo.dateDisplay}"
+                            >
                                 Date
                             </span>
                         </span>
@@ -323,10 +345,14 @@
                     </h3>
 
                     <p class="artwork-credit">
-                        <span th:text="${matchup.artworkTwo.artistName}">
+                        <span
+                                th:text="${matchup.artworkTwo.artistName}"
+                        >
                             Artist
                         </span>,
-                        <span th:text="${matchup.artworkTwo.dateDisplay}">
+                        <span
+                                th:text="${matchup.artworkTwo.dateDisplay}"
+                        >
                             Date
                         </span>
                     </p>

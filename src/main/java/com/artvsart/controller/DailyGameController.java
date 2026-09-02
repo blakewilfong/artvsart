@@ -102,6 +102,8 @@ public class DailyGameController {
                 matchup
         );
 
+        model.addAttribute("voteAction", "/vote");
+
         model.addAttribute(
                 "voted",
                 existingVote.isPresent()
