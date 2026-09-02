@@ -8,6 +8,6 @@ public class LandingController {
 
     @GetMapping("/")
     public String showLandingPage() {
-        return "redirect:/round/1";
+        return "landing";
     }
 }

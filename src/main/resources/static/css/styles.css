@@ -343,13 +343,20 @@ button.artwork-card:focus-visible .choice-label {
     line-height: 1.15;
 }
 
-
 .artwork-credit {
     display: block;
     margin: 0.55rem 0 0;
     color: var(--muted);
     line-height: 1.45;
 }
+
+.selection-count {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
 .selected-badge {
     display: inline-block;
     margin-top: 0.85rem;
@@ -517,6 +524,69 @@ button.artwork-card:focus-visible .choice-label {
     margin-top: 1.5rem;
 }
 
+/* Landing page */
+
+.landing-page {
+    display: grid;
+    min-height: 100vh;
+    padding: 1.5rem;
+    place-items: center;
+}
+
+.landing-content {
+    text-align: center;
+}
+
+.landing-logo {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(4rem, 13vw, 8rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.landing-logo span {
+    color: var(--accent);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.35em;
+    letter-spacing: 0.08em;
+    vertical-align: middle;
+}
+
+.landing-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 3rem;
+}
+
+.landing-button {
+    min-width: 150px;
+    padding: 0.9rem 1.4rem;
+    border: 2px solid var(--text);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--text);
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+            background 160ms ease,
+            color 160ms ease,
+            transform 160ms ease;
+}
+
+.landing-button:hover {
+    transform: translateY(-2px);
+    background: var(--text);
+    color: var(--surface);
+}
+
+.landing-button:focus-visible {
+    outline: 4px solid rgba(155, 58, 42, 0.3);
+    outline-offset: 4px;
+}
+
 @media (max-width: 800px) {
     .site-header {
         display: block;
@@ -547,5 +617,11 @@ button.artwork-card:focus-visible .choice-label {
     .choice-label {
         opacity: 1;
         transform: none;
+    }
+}
+
+@media (max-width: 430px) {
+    .landing-actions {
+        flex-direction: column;
     }
 }
