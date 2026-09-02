@@ -262,15 +262,35 @@ button.artwork-card:focus-visible .choice-label {
 
 .rate-overlay {
     position: absolute;
-    inset: auto 0 0;
+    top: 50%;
+    right: 0;
+    left: 0;
     padding: 1rem;
-    background: linear-gradient(
-            to top,
-            rgba(0, 0, 0, 0.88),
-            rgba(0, 0, 0, 0)
-    );
     color: white;
     text-align: center;
+    transform: translateY(-50%);
+    animation: reveal-rate 220ms ease-out;
+}
+
+.rate-overlay--winner {
+    background: rgba(38, 116, 69, 0.9);
+}
+
+.rate-overlay--loser {
+    background: rgba(161, 52, 44, 0.9);
+}
+
+.rate-overlay--tie {
+    background: rgba(132, 109, 49, 0.9);
+}
+
+.rate-result {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .rate-value {
@@ -287,6 +307,18 @@ button.artwork-card:focus-visible .choice-label {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+@keyframes reveal-rate {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
 }
 
 .artwork-details {

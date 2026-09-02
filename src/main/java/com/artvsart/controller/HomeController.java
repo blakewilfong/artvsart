@@ -208,7 +208,8 @@ public class HomeController {
         );
 
         return "redirect:/round/"
-                + vote.getMatchup().getRoundNumber();
+                + vote.getMatchup().getRoundNumber()
+                + "?reveal=true";
     }
 
     private String redirectToCurrentRound(

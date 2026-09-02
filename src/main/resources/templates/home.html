@@ -9,6 +9,11 @@
             th:href="@{/css/styles.css}"
             href="/css/styles.css"
     >
+    <script
+            defer
+            th:src="@{/js/game.js}"
+            src="/js/game.js"
+    ></script>
 </head>
 <body>
 <header class="site-header">
@@ -48,36 +53,6 @@
                 Round progress
             </progress>
         </header>
-
-        <div
-                class="outcome-banner"
-                th:if="${voted}"
-                th:classappend="${outcome.name() == 'CORRECT'}
-                    ? ' outcome-banner--correct'
-                    : (${outcome.name() == 'INCORRECT'}
-                        ? ' outcome-banner--incorrect'
-                        : ' outcome-banner--tie')"
-        >
-            <p class="outcome-label">
-                Result at the time of your prediction
-            </p>
-
-            <h2 th:if="${outcome.name() == 'CORRECT'}">
-                Correct prediction
-            </h2>
-
-            <h2 th:if="${outcome.name() == 'INCORRECT'}">
-                Incorrect prediction
-            </h2>
-
-            <h2 th:if="${outcome.name() == 'TIE'}">
-                The rates were tied
-            </h2>
-
-            <p class="outcome-note">
-                The percentages below show the current lifetime rates.
-            </p>
-        </div>
 
         <div class="matchup-grid">
             <form
@@ -152,7 +127,35 @@
                             height="600"
                     >
 
-                    <div class="rate-overlay">
+                    <div
+                            class="rate-overlay"
+                            th:classappend="${artworkOneStats.selectionPercentage() > artworkTwoStats.selectionPercentage()}
+                                ? ' rate-overlay--winner'
+                                : (${artworkOneStats.selectionPercentage() < artworkTwoStats.selectionPercentage()}
+                                    ? ' rate-overlay--loser'
+                                    : ' rate-overlay--tie')"
+                    >
+                        <span
+                                class="rate-result"
+                                th:if="${artworkOneStats.selectionPercentage() > artworkTwoStats.selectionPercentage()}"
+                        >
+                            Higher rate
+                        </span>
+
+                        <span
+                                class="rate-result"
+                                th:if="${artworkOneStats.selectionPercentage() < artworkTwoStats.selectionPercentage()}"
+                        >
+                            Lower rate
+                        </span>
+
+                        <span
+                                class="rate-result"
+                                th:if="${artworkOneStats.selectionPercentage() == artworkTwoStats.selectionPercentage()}"
+                        >
+                            Tied
+                        </span>
+
                         <strong
                                 class="rate-value"
                                 th:text="|${#numbers.formatDecimal(artworkOneStats.selectionPercentage(), 1, 2)}%|"
@@ -272,7 +275,35 @@
                             height="600"
                     >
 
-                    <div class="rate-overlay">
+                    <div
+                            class="rate-overlay"
+                            th:classappend="${artworkTwoStats.selectionPercentage() > artworkOneStats.selectionPercentage()}
+                                ? ' rate-overlay--winner'
+                                : (${artworkTwoStats.selectionPercentage() < artworkOneStats.selectionPercentage()}
+                                    ? ' rate-overlay--loser'
+                                    : ' rate-overlay--tie')"
+                    >
+                        <span
+                                class="rate-result"
+                                th:if="${artworkTwoStats.selectionPercentage() > artworkOneStats.selectionPercentage()}"
+                        >
+                            Higher rate
+                        </span>
+
+                        <span
+                                class="rate-result"
+                                th:if="${artworkTwoStats.selectionPercentage() < artworkOneStats.selectionPercentage()}"
+                        >
+                            Lower rate
+                        </span>
+
+                        <span
+                                class="rate-result"
+                                th:if="${artworkTwoStats.selectionPercentage() == artworkOneStats.selectionPercentage()}"
+                        >
+                            Tied
+                        </span>
+
                         <strong
                                 class="rate-value"
                                 th:text="|${#numbers.formatDecimal(artworkTwoStats.selectionPercentage(), 1, 2)}%|"
@@ -317,7 +348,10 @@
             </article>
         </div>
 
-        <nav class="round-navigation" th:if="${voted}">
+        <nav
+                class="round-navigation"
+                th:if="${voted and param.reveal == null}"
+        >
             <a
                     class="primary-link"
                     th:if="${matchup.roundNumber < matchup.dailyGame.totalRounds}"
@@ -331,9 +365,27 @@
                     th:if="${matchup.roundNumber == matchup.dailyGame.totalRounds}"
                     href="/results"
             >
-                Finish game
+                Return to results
             </a>
         </nav>
+
+        <div
+                id="auto-advance"
+                th:if="${voted
+                    and param.reveal != null
+                    and matchup.roundNumber < matchup.dailyGame.totalRounds}"
+                th:data-next-url="@{/round/{roundNumber}(roundNumber=${matchup.roundNumber + 1})}"
+                hidden
+        ></div>
+
+        <div
+                id="auto-advance"
+                th:if="${voted
+                    and param.reveal != null
+                    and matchup.roundNumber == matchup.dailyGame.totalRounds}"
+                th:data-next-url="@{/results}"
+                hidden
+        ></div>
     </section>
 </main>
 </body>
