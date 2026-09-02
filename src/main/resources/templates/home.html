@@ -4,62 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Art vs Art</title>
+    <link
+            rel="stylesheet"
+            th:href="@{/css/styles.css}"
+            href="/css/styles.css"
+    >
 </head>
 <body>
-<main>
-    <h1>Art vs Art</h1>
-    <p>A daily head-to-head art prediction game.</p>
+<header class="site-header">
+    <h1 class="brand">
+        <a href="/">Art vs Art</a>
+    </h1>
 
+    <p class="site-description">
+        A daily head-to-head art prediction game.
+    </p>
+</header>
+
+<main class="game-shell">
     <section>
-        <h2 th:text="|Round ${matchup.roundNumber} of ${matchup.dailyGame.totalRounds}|">
-            Round
-        </h2>
+        <header class="game-heading">
+            <div class="game-meta">
+                <span
+                        th:text="|Round ${matchup.roundNumber} of ${matchup.dailyGame.totalRounds}|"
+                >
+                    Round
+                </span>
 
-        <p th:text="|Game for ${matchup.dailyGame.gameDate}|">
-            Game date
-        </p>
+                <span th:text="${matchup.dailyGame.gameDate}">
+                    Game date
+                </span>
+            </div>
 
-        <p>
-            Which artwork has the higher lifetime selection rate?
-        </p>
+            <h2>
+                Which artwork has the higher lifetime selection rate?
+            </h2>
 
-        <div th:if="${voted}">
-            <p>Your prediction has been recorded.</p>
+            <progress
+                    class="round-progress"
+                    th:value="${matchup.roundNumber}"
+                    th:max="${matchup.dailyGame.totalRounds}"
+            >
+                Round progress
+            </progress>
+        </header>
 
-            <p>
-                Result at the time of your prediction:
-                <strong th:text="${outcome}">
-                    Outcome
-                </strong>
+        <div
+                class="outcome-banner"
+                th:if="${voted}"
+                th:classappend="${outcome.name() == 'CORRECT'}
+                    ? ' outcome-banner--correct'
+                    : (${outcome.name() == 'INCORRECT'}
+                        ? ' outcome-banner--incorrect'
+                        : ' outcome-banner--tie')"
+        >
+            <p class="outcome-label">
+                Result at the time of your prediction
             </p>
 
-            <p>Current lifetime rates:</p>
+            <h2 th:if="${outcome.name() == 'CORRECT'}">
+                Correct prediction
+            </h2>
+
+            <h2 th:if="${outcome.name() == 'INCORRECT'}">
+                Incorrect prediction
+            </h2>
+
+            <h2 th:if="${outcome.name() == 'TIE'}">
+                The rates were tied
+            </h2>
+
+            <p class="outcome-note">
+                The percentages below show the current lifetime rates.
+            </p>
         </div>
 
-        <article>
-            <img
-                    th:src="${matchup.artworkOne.imageUrl}"
-                    th:alt="|${matchup.artworkOne.title} by ${matchup.artworkOne.artistName}|"
-                    width="500"
-            >
-
-            <h3 th:text="${matchup.artworkOne.title}">
-                First artwork
-            </h3>
-
-            <p>
-                    <span th:text="${matchup.artworkOne.artistName}">
-                        Artist
-                    </span>,
-                <span th:text="${matchup.artworkOne.dateDisplay}">
-                        Date
-                    </span>
-            </p>
-
+        <div class="matchup-grid">
             <form
+                    class="artwork-form"
                     th:if="${!voted}"
                     method="post"
-                    action="/vote"
+                    th:action="@{/vote}"
             >
                 <input
                         type="hidden"
@@ -71,56 +96,115 @@
                         name="artworkId"
                         th:value="${matchup.artworkOne.id}"
                 >
-                <button type="submit">
-                    Predict this artwork
+
+                <button
+                        class="artwork-card"
+                        type="submit"
+                        th:attr="aria-label=|Predict ${matchup.artworkOne.title}|"
+                >
+                    <span class="artwork-image-frame">
+                        <img
+                                class="artwork-image"
+                                th:src="${matchup.artworkOne.imageUrl}"
+                                th:alt="|${matchup.artworkOne.title} by ${matchup.artworkOne.artistName}|"
+                                width="800"
+                                height="600"
+                        >
+
+                        <span class="choice-label">
+                            Choose
+                        </span>
+                    </span>
+
+                    <span class="artwork-details">
+                        <span
+                                class="artwork-title"
+                                th:text="${matchup.artworkOne.title}"
+                        >
+                            First artwork
+                        </span>
+
+                        <span class="artwork-credit">
+                            <span th:text="${matchup.artworkOne.artistName}">
+                                Artist
+                            </span>,
+                            <span th:text="${matchup.artworkOne.dateDisplay}">
+                                Date
+                            </span>
+                        </span>
+                    </span>
                 </button>
             </form>
 
-            <div th:if="${voted}">
-                <strong
-                        th:text="|${#numbers.formatDecimal(artworkOneStats.selectionPercentage(), 1, 2)}%|"
-                >
-                    Selection rate
-                </strong>
-
-                <p
-                        th:text="|Selected ${artworkOneStats.selections} times in ${artworkOneStats.presentations} presentations|"
-                >
-                    Selection totals
-                </p>
-
-                <p
-                        th:if="${selectedArtworkId == matchup.artworkOne.id}"
-                >
-                    Your prediction
-                </p>
-            </div>
-        </article>
-
-        <article>
-            <img
-                    th:src="${matchup.artworkTwo.imageUrl}"
-                    th:alt="|${matchup.artworkTwo.title} by ${matchup.artworkTwo.artistName}|"
-                    width="500"
+            <article
+                    class="artwork-card"
+                    th:if="${voted}"
+                    th:classappend="${selectedArtworkId == matchup.artworkOne.id}
+                        ? ' artwork-card--selected'
+                        : ''"
             >
+                <div class="artwork-image-frame">
+                    <img
+                            class="artwork-image"
+                            th:src="${matchup.artworkOne.imageUrl}"
+                            th:alt="|${matchup.artworkOne.title} by ${matchup.artworkOne.artistName}|"
+                            width="800"
+                            height="600"
+                    >
 
-            <h3 th:text="${matchup.artworkTwo.title}">
-                Second artwork
-            </h3>
+                    <div class="rate-overlay">
+                        <strong
+                                class="rate-value"
+                                th:text="|${#numbers.formatDecimal(artworkOneStats.selectionPercentage(), 1, 2)}%|"
+                        >
+                            Selection rate
+                        </strong>
 
-            <p>
-                    <span th:text="${matchup.artworkTwo.artistName}">
-                        Artist
-                    </span>,
-                <span th:text="${matchup.artworkTwo.dateDisplay}">
-                        Date
+                        <span class="rate-label">
+                            Lifetime selection rate
+                        </span>
+                    </div>
+                </div>
+
+                <div class="artwork-details">
+                    <h3 th:text="${matchup.artworkOne.title}">
+                        First artwork
+                    </h3>
+
+                    <p class="artwork-credit">
+                        <span th:text="${matchup.artworkOne.artistName}">
+                            Artist
+                        </span>,
+                        <span th:text="${matchup.artworkOne.dateDisplay}">
+                            Date
+                        </span>
+                    </p>
+
+                    <p
+                            class="selection-count"
+                            th:text="|Selected ${artworkOneStats.selections} times in ${artworkOneStats.presentations} presentations|"
+                    >
+                        Selection totals
+                    </p>
+
+                    <span
+                            class="selected-badge"
+                            th:if="${selectedArtworkId == matchup.artworkOne.id}"
+                    >
+                        Your prediction
                     </span>
-            </p>
+                </div>
+            </article>
+
+            <div class="versus" aria-hidden="true">
+                VS
+            </div>
 
             <form
+                    class="artwork-form"
                     th:if="${!voted}"
                     method="post"
-                    action="/vote"
+                    th:action="@{/vote}"
             >
                 <input
                         type="hidden"
@@ -132,34 +216,110 @@
                         name="artworkId"
                         th:value="${matchup.artworkTwo.id}"
                 >
-                <button type="submit">
-                    Predict this artwork
+
+                <button
+                        class="artwork-card"
+                        type="submit"
+                        th:attr="aria-label=|Predict ${matchup.artworkTwo.title}|"
+                >
+                    <span class="artwork-image-frame">
+                        <img
+                                class="artwork-image"
+                                th:src="${matchup.artworkTwo.imageUrl}"
+                                th:alt="|${matchup.artworkTwo.title} by ${matchup.artworkTwo.artistName}|"
+                                width="800"
+                                height="600"
+                        >
+
+                        <span class="choice-label">
+                            Choose
+                        </span>
+                    </span>
+
+                    <span class="artwork-details">
+                        <span
+                                class="artwork-title"
+                                th:text="${matchup.artworkTwo.title}"
+                        >
+                            Second artwork
+                        </span>
+
+                        <span class="artwork-credit">
+                            <span th:text="${matchup.artworkTwo.artistName}">
+                                Artist
+                            </span>,
+                            <span th:text="${matchup.artworkTwo.dateDisplay}">
+                                Date
+                            </span>
+                        </span>
+                    </span>
                 </button>
             </form>
 
-            <div th:if="${voted}">
-                <strong
-                        th:text="|${#numbers.formatDecimal(artworkTwoStats.selectionPercentage(), 1, 2)}%|"
-                >
-                    Selection rate
-                </strong>
+            <article
+                    class="artwork-card"
+                    th:if="${voted}"
+                    th:classappend="${selectedArtworkId == matchup.artworkTwo.id}
+                        ? ' artwork-card--selected'
+                        : ''"
+            >
+                <div class="artwork-image-frame">
+                    <img
+                            class="artwork-image"
+                            th:src="${matchup.artworkTwo.imageUrl}"
+                            th:alt="|${matchup.artworkTwo.title} by ${matchup.artworkTwo.artistName}|"
+                            width="800"
+                            height="600"
+                    >
 
-                <p
-                        th:text="|Selected ${artworkTwoStats.selections} times in ${artworkTwoStats.presentations} presentations|"
-                >
-                    Selection totals
-                </p>
+                    <div class="rate-overlay">
+                        <strong
+                                class="rate-value"
+                                th:text="|${#numbers.formatDecimal(artworkTwoStats.selectionPercentage(), 1, 2)}%|"
+                        >
+                            Selection rate
+                        </strong>
 
-                <p
-                        th:if="${selectedArtworkId == matchup.artworkTwo.id}"
-                >
-                    Your prediction
-                </p>
-            </div>
-        </article>
+                        <span class="rate-label">
+                            Lifetime selection rate
+                        </span>
+                    </div>
+                </div>
 
-        <nav th:if="${voted}">
+                <div class="artwork-details">
+                    <h3 th:text="${matchup.artworkTwo.title}">
+                        Second artwork
+                    </h3>
+
+                    <p class="artwork-credit">
+                        <span th:text="${matchup.artworkTwo.artistName}">
+                            Artist
+                        </span>,
+                        <span th:text="${matchup.artworkTwo.dateDisplay}">
+                            Date
+                        </span>
+                    </p>
+
+                    <p
+                            class="selection-count"
+                            th:text="|Selected ${artworkTwoStats.selections} times in ${artworkTwoStats.presentations} presentations|"
+                    >
+                        Selection totals
+                    </p>
+
+                    <span
+                            class="selected-badge"
+                            th:if="${selectedArtworkId == matchup.artworkTwo.id}"
+                    >
+                        Your prediction
+                    </span>
+                </div>
+            </article>
+        </div>
+
+        <nav class="round-navigation" th:if="${voted}">
             <a
+                    class="primary-link"
                     th:if="${matchup.roundNumber < matchup.dailyGame.totalRounds}"
                     th:href="@{/round/{roundNumber}(roundNumber=${matchup.roundNumber + 1})}"
             >
@@ -167,6 +327,7 @@
             </a>
 
             <a
+                    class="primary-link"
                     th:if="${matchup.roundNumber == matchup.dailyGame.totalRounds}"
                     href="/results"
             >
