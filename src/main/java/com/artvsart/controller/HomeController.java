@@ -201,8 +201,11 @@ public class HomeController {
             );
         }
 
+        Matchup matchup = matchupService
+                .getTodaysMatchupById(matchupId);
+
         Vote vote = voteService.castVote(
-                matchupId,
+                matchup,
                 artworkId,
                 voterId
         );

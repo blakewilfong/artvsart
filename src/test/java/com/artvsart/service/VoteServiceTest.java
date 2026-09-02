@@ -29,9 +29,6 @@ class VoteServiceTest {
     private static final String VOTER_ID = "voter-1";
 
     @Mock
-    private MatchupService matchupService;
-
-    @Mock
     private VoteRepository voteRepository;
 
     @Mock
@@ -45,7 +42,6 @@ class VoteServiceTest {
     @BeforeEach
     void setUp() {
         voteService = new VoteService(
-                matchupService,
                 voteRepository,
                 statisticsService
         );
@@ -56,11 +52,9 @@ class VoteServiceTest {
 
         when(artworkOne.getId()).thenReturn(ARTWORK_ONE_ID);
 
+        when(matchup.getId()).thenReturn(MATCHUP_ID);
         when(matchup.getArtworkOne()).thenReturn(artworkOne);
         when(matchup.getArtworkTwo()).thenReturn(artworkTwo);
-
-        when(matchupService.getTodaysMatchupById(MATCHUP_ID))
-                .thenReturn(matchup);
 
         when(voteRepository.findByMatchupIdAndVoterId(
                 MATCHUP_ID,
@@ -80,7 +74,7 @@ class VoteServiceTest {
                 .thenReturn(new ArtworkStats(4, 10));
 
         Vote vote = voteService.castVote(
-                MATCHUP_ID,
+                matchup,
                 ARTWORK_ONE_ID,
                 VOTER_ID
         );
@@ -103,7 +97,7 @@ class VoteServiceTest {
                 .thenReturn(new ArtworkStats(6, 10));
 
         Vote vote = voteService.castVote(
-                MATCHUP_ID,
+                matchup,
                 ARTWORK_TWO_ID,
                 VOTER_ID
         );
@@ -124,7 +118,7 @@ class VoteServiceTest {
                 .thenReturn(new ArtworkStats(5, 10));
 
         Vote vote = voteService.castVote(
-                MATCHUP_ID,
+                matchup,
                 ARTWORK_ONE_ID,
                 VOTER_ID
         );

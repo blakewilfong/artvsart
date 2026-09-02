@@ -14,34 +14,34 @@ import java.util.Optional;
 @Service
 public class VoteService {
 
-    private final MatchupService matchupService;
     private final VoteRepository voteRepository;
     private final ArtworkStatisticsService statisticsService;
 
     public VoteService(
-            MatchupService matchupService,
             VoteRepository voteRepository,
             ArtworkStatisticsService statisticsService
     ) {
-        this.matchupService = matchupService;
         this.voteRepository = voteRepository;
         this.statisticsService = statisticsService;
     }
 
     @Transactional
     public Vote castVote(
-            Long matchupId,
+            Matchup matchup,
             Long selectedArtworkId,
             String voterId
     ) {
+        if (matchup == null) {
+            throw new IllegalArgumentException(
+                    "A matchup is required"
+            );
+        }
+
         if (voterId == null || voterId.isBlank()) {
             throw new IllegalArgumentException(
                     "A voter ID is required"
             );
         }
-
-        Matchup matchup = matchupService
-                .getTodaysMatchupById(matchupId);
 
         Artwork selectedArtwork = resolveSelectedArtwork(
                 matchup,
@@ -50,7 +50,7 @@ public class VoteService {
 
         Optional<Vote> existingVote = voteRepository
                 .findByMatchupIdAndVoterId(
-                        matchupId,
+                        matchup.getId(),
                         voterId
                 );
 
