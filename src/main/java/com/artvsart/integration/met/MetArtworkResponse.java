@@ -27,9 +27,14 @@ public record MetArtworkResponse(
     public boolean isUsable() {
         return objectId != null
                 && publicDomain
-                && title != null
-                && !title.isBlank()
-                && primaryImageSmall != null
-                && !primaryImageSmall.isBlank();
+                && hasText(title)
+                && hasText(artistDisplayName)
+                && hasText(objectDate)
+                && hasText(primaryImageSmall)
+                && hasText(objectUrl);
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }
