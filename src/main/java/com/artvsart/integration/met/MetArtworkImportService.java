@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.Optional;
 
@@ -14,15 +15,13 @@ import java.util.Optional;
 public class MetArtworkImportService {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(
-                    MetArtworkImportService.class
-            );
+            LoggerFactory.getLogger(MetArtworkImportService.class);
 
     private static final String SOURCE = "met";
     private static final String LICENSE = "CC0";
 
-    private static final int MAX_CANDIDATES_TO_CHECK =
-            1000;
+    private static final int MAX_CANDIDATES_TO_CHECK = 1000;
+    private static final long REQUEST_DELAY_MILLISECONDS = 250;
 
     private final MetArtworkClient metArtworkClient;
     private final ArtworkRepository artworkRepository;
@@ -36,16 +35,15 @@ public class MetArtworkImportService {
     }
 
     public int importPaintingPool(int targetSize) {
-        if (targetSize < 1) {
-            throw new IllegalArgumentException(
-                    "Target size must be at least one"
-            );
-        }
-
-        long existingCount =
+        long existingArtworkCount =
                 artworkRepository.countBySource(SOURCE);
 
-        if (existingCount >= targetSize) {
+        if (existingArtworkCount >= targetSize) {
+            LOGGER.info(
+                    "Met artwork pool already contains {} artworks",
+                    existingArtworkCount
+            );
+
             return 0;
         }
 
@@ -56,34 +54,56 @@ public class MetArtworkImportService {
         int checkedCount = 0;
 
         for (Long objectId : searchResponse.objectIds()) {
-            if (existingCount + importedCount >= targetSize
-                    || checkedCount
-                    >= MAX_CANDIDATES_TO_CHECK) {
+            if (existingArtworkCount + importedCount >= targetSize) {
                 break;
             }
 
-            if (objectId == null) {
+            if (checkedCount >= MAX_CANDIDATES_TO_CHECK) {
+                break;
+            }
+
+            String sourceArtworkId = Long.toString(objectId);
+
+            boolean alreadyImported = artworkRepository
+                    .findBySourceAndSourceArtworkId(
+                            SOURCE,
+                            sourceArtworkId
+                    )
+                    .isPresent();
+
+            if (alreadyImported) {
                 continue;
             }
 
             checkedCount++;
 
-            String sourceArtworkId =
-                    Long.toString(objectId);
-
-            if (artworkRepository
-                    .findBySourceAndSourceArtworkId(
-                            SOURCE,
-                            sourceArtworkId
-                    )
-                    .isPresent()) {
-                continue;
-            }
+            pauseBeforeRequest();
 
             try {
-                if (importArtwork(objectId).isPresent()) {
+                Optional<Artwork> importedArtwork =
+                        importArtwork(objectId);
+
+                if (importedArtwork.isPresent()) {
                     importedCount++;
                 }
+            } catch (RestClientResponseException exception) {
+                int statusCode =
+                        exception.getStatusCode().value();
+
+                if (statusCode == 403 || statusCode == 429) {
+                    LOGGER.warn(
+                            "Met returned HTTP {}. Stopping import to avoid further requests.",
+                            statusCode
+                    );
+
+                    break;
+                }
+
+                LOGGER.warn(
+                        "Could not import Met object {}: HTTP {}",
+                        objectId,
+                        statusCode
+                );
             } catch (RestClientException exception) {
                 LOGGER.warn(
                         "Could not import Met object {}: {}",
@@ -93,12 +113,13 @@ public class MetArtworkImportService {
             }
         }
 
-        long finalCount = existingCount + importedCount;
+        long finalArtworkCount =
+                existingArtworkCount + importedCount;
 
-        if (finalCount < targetSize) {
+        if (finalArtworkCount < targetSize) {
             LOGGER.warn(
                     "Met import stopped with {} of {} artworks",
-                    finalCount,
+                    finalArtworkCount,
                     targetSize
             );
         }
@@ -108,20 +129,6 @@ public class MetArtworkImportService {
 
     @Transactional
     public Optional<Artwork> importArtwork(long objectId) {
-        String sourceArtworkId =
-                Long.toString(objectId);
-
-        Optional<Artwork> existingArtwork =
-                artworkRepository
-                        .findBySourceAndSourceArtworkId(
-                                SOURCE,
-                                sourceArtworkId
-                        );
-
-        if (existingArtwork.isPresent()) {
-            return existingArtwork;
-        }
-
         MetArtworkResponse response =
                 metArtworkClient.fetchArtwork(objectId);
 
@@ -129,19 +136,40 @@ public class MetArtworkImportService {
             return Optional.empty();
         }
 
-        Artwork artwork = artworkRepository.save(
-                new Artwork(
+        String sourceArtworkId =
+                Long.toString(response.objectId());
+
+        Artwork artwork = artworkRepository
+                .findBySourceAndSourceArtworkId(
                         SOURCE,
-                        sourceArtworkId,
-                        response.title(),
-                        response.artistDisplayName(),
-                        response.objectDate(),
-                        response.primaryImageSmall(),
-                        response.objectUrl(),
-                        LICENSE
+                        sourceArtworkId
                 )
-        );
+                .orElseGet(() -> artworkRepository.save(
+                        new Artwork(
+                                SOURCE,
+                                sourceArtworkId,
+                                response.title(),
+                                response.artistDisplayName(),
+                                response.objectDate(),
+                                response.primaryImageSmall(),
+                                response.objectUrl(),
+                                LICENSE
+                        )
+                ));
 
         return Optional.of(artwork);
+    }
+
+    private void pauseBeforeRequest() {
+        try {
+            Thread.sleep(REQUEST_DELAY_MILLISECONDS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+
+            throw new IllegalStateException(
+                    "Met artwork import was interrupted",
+                    exception
+            );
+        }
     }
 }
