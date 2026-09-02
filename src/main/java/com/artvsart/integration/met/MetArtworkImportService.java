@@ -13,9 +13,10 @@ import org.springframework.web.client.RestClientResponseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,29 +30,25 @@ public class MetArtworkImportService {
     private static final String SOURCE = "met";
     private static final String LICENSE = "CC0";
 
-    private static final int MAX_CANDIDATES_PER_DEPARTMENT =
-            500;
+    private static final int
+            MAX_CANDIDATES_PER_DEPARTMENT = 1000;
 
-    private static final long REQUEST_DELAY_MILLISECONDS =
-            1000;
+    private static final long
+            REQUEST_DELAY_MILLISECONDS = 1000;
 
     private static final List<MetDepartment> DEPARTMENTS =
             List.of(
                     new MetDepartment(
                             1,
-                            "American Decorative Arts"
-                    ),
-                    new MetDepartment(
-                            5,
-                            "Arts of Africa, Oceania, and the Americas"
+                            "The American Wing"
                     ),
                     new MetDepartment(
                             6,
                             "Asian Art"
                     ),
                     new MetDepartment(
-                            10,
-                            "Egyptian Art"
+                            9,
+                            "Drawings and Prints"
                     ),
                     new MetDepartment(
                             11,
@@ -62,24 +59,28 @@ public class MetArtworkImportService {
                             "Islamic Art"
                     ),
                     new MetDepartment(
-                            17,
-                            "Medieval Art"
+                            15,
+                            "The Robert Lehman Collection"
                     ),
                     new MetDepartment(
                             21,
-                            "Modern Art"
+                            "Modern and Contemporary Art"
                     )
             );
 
     private final MetArtworkClient metArtworkClient;
     private final ArtworkRepository artworkRepository;
+    private final MetArtworkEligibilityPolicy
+            eligibilityPolicy;
 
     public MetArtworkImportService(
             MetArtworkClient metArtworkClient,
-            ArtworkRepository artworkRepository
+            ArtworkRepository artworkRepository,
+            MetArtworkEligibilityPolicy eligibilityPolicy
     ) {
         this.metArtworkClient = metArtworkClient;
         this.artworkRepository = artworkRepository;
+        this.eligibilityPolicy = eligibilityPolicy;
     }
 
     public int importPaintingPool(int targetSize) {
@@ -101,17 +102,12 @@ public class MetArtworkImportService {
             return 0;
         }
 
-        Map<String, Long> departmentCounts =
+        Set<String> importedObjectIds =
                 artworkRepository
                         .findAllBySourceOrderByIdAsc(SOURCE)
                         .stream()
-                        .filter(artwork ->
-                                artwork.getDepartment() != null
-                        )
-                        .collect(Collectors.groupingBy(
-                                Artwork::getDepartment,
-                                Collectors.counting()
-                        ));
+                        .map(Artwork::getSourceArtworkId)
+                        .collect(Collectors.toSet());
 
         int baseQuota =
                 targetSize / DEPARTMENTS.size();
@@ -136,11 +132,62 @@ public class MetArtworkImportService {
                 departmentTarget++;
             }
 
-            long existingDepartmentCount =
-                    departmentCounts.getOrDefault(
-                            department.name(),
-                            0L
+            LOGGER.info(
+                    "Loading object IDs for {}",
+                    department.name()
+            );
+
+            MetSearchResponse departmentObjects;
+
+            pauseBeforeRequest();
+
+            try {
+                departmentObjects =
+                        metArtworkClient
+                                .listDepartmentObjects(
+                                        department.id()
+                                );
+            } catch (
+                    RestClientResponseException exception
+            ) {
+                int statusCode =
+                        exception.getStatusCode().value();
+
+                LOGGER.warn(
+                        "Could not load Met department {}: HTTP {}",
+                        department.name(),
+                        statusCode
+                );
+
+                if (statusCode == 403
+                        || statusCode == 429) {
+                    break;
+                }
+
+                continue;
+            } catch (RestClientException exception) {
+                LOGGER.warn(
+                        "Could not load Met department {}: {}",
+                        department.name(),
+                        exception.getMessage()
+                );
+
+                continue;
+            }
+
+            List<Long> candidateIds =
+                    new ArrayList<>(
+                            departmentObjects.objectIds()
                     );
+
+            long existingDepartmentCount =
+                    candidateIds.stream()
+                            .filter(Objects::nonNull)
+                            .map(String::valueOf)
+                            .filter(
+                                    importedObjectIds::contains
+                            )
+                            .count();
 
             int neededCount = Math.max(
                     0,
@@ -161,50 +208,10 @@ public class MetArtworkImportService {
             }
 
             LOGGER.info(
-                    "Importing {} artworks from {}",
+                    "Importing {} flat artworks from {}",
                     neededCount,
                     department.name()
             );
-
-            MetSearchResponse searchResponse;
-
-            pauseBeforeRequest();
-
-            try {
-                searchResponse =
-                        metArtworkClient.searchPaintings(
-                                department.id()
-                        );
-            } catch (RestClientResponseException exception) {
-                int statusCode =
-                        exception.getStatusCode().value();
-
-                LOGGER.warn(
-                        "Could not search Met department {}: HTTP {}",
-                        department.name(),
-                        statusCode
-                );
-
-                if (statusCode == 403
-                        || statusCode == 429) {
-                    break;
-                }
-
-                continue;
-            } catch (RestClientException exception) {
-                LOGGER.warn(
-                        "Could not search Met department {}: {}",
-                        department.name(),
-                        exception.getMessage()
-                );
-
-                continue;
-            }
-
-            List<Long> candidateIds =
-                    new ArrayList<>(
-                            searchResponse.objectIds()
-                    );
 
             Collections.shuffle(
                     candidateIds,
@@ -232,15 +239,9 @@ public class MetArtworkImportService {
                 String sourceArtworkId =
                         Long.toString(objectId);
 
-                boolean alreadyImported =
-                        artworkRepository
-                                .findBySourceAndSourceArtworkId(
-                                        SOURCE,
-                                        sourceArtworkId
-                                )
-                                .isPresent();
-
-                if (alreadyImported) {
+                if (importedObjectIds.contains(
+                        sourceArtworkId
+                )) {
                     continue;
                 }
 
@@ -252,6 +253,10 @@ public class MetArtworkImportService {
                             importArtwork(objectId);
 
                     if (importedArtwork.isPresent()) {
+                        importedObjectIds.add(
+                                sourceArtworkId
+                        );
+
                         importedCount++;
                         departmentImportedCount++;
                     }
@@ -288,10 +293,11 @@ public class MetArtworkImportService {
             }
 
             LOGGER.info(
-                    "Imported {} of {} requested artworks from {}",
+                    "Imported {} of {} requested artworks from {} after checking {} candidates",
                     departmentImportedCount,
                     neededCount,
-                    department.name()
+                    department.name(),
+                    checkedCount
             );
         }
 
@@ -341,7 +347,9 @@ public class MetArtworkImportService {
                 if (refreshedArtwork.isPresent()) {
                     refreshedCount++;
                 }
-            } catch (RestClientResponseException exception) {
+            } catch (
+                    RestClientResponseException exception
+            ) {
                 int statusCode =
                         exception.getStatusCode().value();
 
@@ -377,7 +385,7 @@ public class MetArtworkImportService {
         MetArtworkResponse response =
                 metArtworkClient.fetchArtwork(objectId);
 
-        if (!response.isUsable()) {
+        if (!eligibilityPolicy.isEligible(response)) {
             return Optional.empty();
         }
 

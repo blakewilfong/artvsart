@@ -112,7 +112,7 @@ class MetArtworkClientTest {
     }
 
     @Test
-    void searchesForPaintingsWithinDepartment() {
+    void listsAllObjectIdsForDepartment() {
         RestClient.Builder builder = RestClient.builder();
 
         MockRestServiceServer server =
@@ -125,18 +125,16 @@ class MetArtworkClientTest {
 
         server.expect(requestTo(
                 "https://collectionapi.metmuseum.org"
-                        + "/public/collection/v1/search"
-                        + "?q=painting"
-                        + "&hasImages=true"
-                        + "&medium=Paintings"
-                        + "&departmentId=11"
+                        + "/public/collection/v1/objects"
+                        + "?departmentIds=11"
         )).andRespond(withSuccess(
                 """
                 {
-                  "total": 2,
+                  "total": 3,
                   "objectIDs": [
                     436535,
-                    437329
+                    437329,
+                    436121
                   ]
                 }
                 """,
@@ -144,11 +142,11 @@ class MetArtworkClientTest {
         ));
 
         MetSearchResponse response =
-                client.searchPaintings(11);
+                client.listDepartmentObjects(11);
 
-        assertEquals(2, response.total());
+        assertEquals(3, response.total());
         assertEquals(
-                2,
+                3,
                 response.objectIds().size()
         );
         assertEquals(

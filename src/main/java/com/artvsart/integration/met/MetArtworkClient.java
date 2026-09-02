@@ -31,27 +31,20 @@ public class MetArtworkClient {
                 .retrieve()
                 .body(MetSearchResponse.class);
 
-        return requireSearchResponse(response);
+        return requireResponse(response);
     }
 
-    public MetSearchResponse searchPaintings(
+    public MetSearchResponse listDepartmentObjects(
             int departmentId
     ) {
-        if (departmentId <= 0) {
-            throw new IllegalArgumentException(
-                    "Department ID must be positive"
-            );
-        }
+        validateDepartmentId(departmentId);
 
         MetSearchResponse response = restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/search")
-                        .queryParam("q", "painting")
-                        .queryParam("hasImages", true)
-                        .queryParam("medium", "Paintings")
+                        .path("/objects")
                         .queryParam(
-                                "departmentId",
+                                "departmentIds",
                                 departmentId
                         )
                         .build()
@@ -59,7 +52,7 @@ public class MetArtworkClient {
                 .retrieve()
                 .body(MetSearchResponse.class);
 
-        return requireSearchResponse(response);
+        return requireResponse(response);
     }
 
     public MetArtworkResponse fetchArtwork(long objectId) {
@@ -79,12 +72,22 @@ public class MetArtworkClient {
         return response;
     }
 
-    private MetSearchResponse requireSearchResponse(
+    private void validateDepartmentId(
+            int departmentId
+    ) {
+        if (departmentId <= 0) {
+            throw new IllegalArgumentException(
+                    "Department ID must be positive"
+            );
+        }
+    }
+
+    private MetSearchResponse requireResponse(
             MetSearchResponse response
     ) {
         if (response == null) {
             throw new IllegalStateException(
-                    "The Met returned an empty search response"
+                    "The Met returned an empty object ID response"
             );
         }
 
