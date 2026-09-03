@@ -17,13 +17,13 @@ public class StreakGameService {
     private final ArtworkQuestionRepository questionRepository;
     private final GameRunRepository gameRunRepository;
     private final ArtworkAnswerService answerService;
-    private final OlderArtworkQuestionFactory questionFactory;
+    private final ArtworkQuestionFactory questionFactory;
 
     public StreakGameService(
             ArtworkQuestionRepository questionRepository,
             GameRunRepository gameRunRepository,
             ArtworkAnswerService answerService,
-            OlderArtworkQuestionFactory questionFactory
+            ArtworkQuestionFactory questionFactory
     ) {
         this.questionRepository = questionRepository;
         this.gameRunRepository = gameRunRepository;

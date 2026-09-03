@@ -36,7 +36,7 @@ class WagerGameServiceTest {
     private ArtworkAnswerService answerService;
 
     @Mock
-    private OlderArtworkQuestionFactory questionFactory;
+    private ArtworkQuestionFactory questionFactory;
 
     private WagerGameService service;
 

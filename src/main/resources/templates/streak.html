@@ -50,7 +50,9 @@
                 </span>
             </div>
 
-            <h2>Which artwork is older?</h2>
+            <h2 th:text="${question.questionType.prompt}">
+                Question
+            </h2>
         </header>
 
         <section
@@ -153,22 +155,27 @@
                         <span
                                 class="rate-result"
                                 th:text="${correctArtworkId
-                                    == question.artworkOne.id}
-                                    ? 'Older'
-                                    : 'Newer'"
+                                    == question.artworkOne.id
+                                    ? question.questionType.correctAnswerLabel
+                                    : question.questionType.incorrectAnswerLabel}"
                         >
                             Result
                         </span>
 
                         <strong
                                 class="rate-value"
-                                th:text="${question.artworkOne.dateDisplay}"
+                                th:text="${question.questionType.displayValue(
+                                    question.artworkOne
+                                )}"
                         >
-                            Artwork date
+                            Answer value
                         </strong>
 
-                        <span class="rate-label">
-                            Artwork date
+                        <span
+                                class="rate-label"
+                                th:text="${question.questionType.valueLabel}"
+                        >
+                            Answer value
                         </span>
                     </div>
                 </div>
@@ -264,22 +271,27 @@
                         <span
                                 class="rate-result"
                                 th:text="${correctArtworkId
-                                    == question.artworkTwo.id}
-                                    ? 'Older'
-                                    : 'Newer'"
+                                    == question.artworkTwo.id
+                                    ? question.questionType.correctAnswerLabel
+                                    : question.questionType.incorrectAnswerLabel}"
                         >
                             Result
                         </span>
 
                         <strong
                                 class="rate-value"
-                                th:text="${question.artworkTwo.dateDisplay}"
+                                th:text="${question.questionType.displayValue(
+                                    question.artworkTwo
+                                )}"
                         >
-                            Artwork date
+                            Answer value
                         </strong>
 
-                        <span class="rate-label">
-                            Artwork date
+                        <span
+                                class="rate-label"
+                                th:text="${question.questionType.valueLabel}"
+                        >
+                            Answer value
                         </span>
                     </div>
                 </div>

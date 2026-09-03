@@ -35,7 +35,7 @@ class StreakGameServiceTest {
     private ArtworkAnswerService answerService;
 
     @Mock
-    private OlderArtworkQuestionFactory questionFactory;
+    private ArtworkQuestionFactory questionFactory;
 
     private StreakGameService service;
 
