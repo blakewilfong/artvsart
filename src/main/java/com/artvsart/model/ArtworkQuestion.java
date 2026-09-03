@@ -10,9 +10,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "artwork_questions")
+@Table(
+        name = "artwork_questions",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_question_run_round",
+                        columnNames = {
+                                "game_run_id",
+                                "round_number"
+                        }
+                )
+        }
+)
 public class ArtworkQuestion {
 
     @Id
@@ -26,6 +38,13 @@ public class ArtworkQuestion {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private QuestionType questionType;
+
+    @ManyToOne
+    @JoinColumn(name = "game_run_id")
+    private GameRun gameRun;
+
+    @Column(name = "round_number")
+    private Integer roundNumber;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "artwork_one_id", nullable = false)
@@ -49,9 +68,31 @@ public class ArtworkQuestion {
             Artwork artworkTwo,
             Artwork correctArtwork
     ) {
+        this(
+                gameMode,
+                questionType,
+                null,
+                null,
+                artworkOne,
+                artworkTwo,
+                correctArtwork
+        );
+    }
+
+    private ArtworkQuestion(
+            GameMode gameMode,
+            QuestionType questionType,
+            GameRun gameRun,
+            Integer roundNumber,
+            Artwork artworkOne,
+            Artwork artworkTwo,
+            Artwork correctArtwork
+    ) {
         validate(
                 gameMode,
                 questionType,
+                gameRun,
+                roundNumber,
                 artworkOne,
                 artworkTwo,
                 correctArtwork
@@ -59,9 +100,36 @@ public class ArtworkQuestion {
 
         this.gameMode = gameMode;
         this.questionType = questionType;
+        this.gameRun = gameRun;
+        this.roundNumber = roundNumber;
         this.artworkOne = artworkOne;
         this.artworkTwo = artworkTwo;
         this.correctArtwork = correctArtwork;
+    }
+
+    public static ArtworkQuestion forRun(
+            GameRun gameRun,
+            int roundNumber,
+            QuestionType questionType,
+            Artwork artworkOne,
+            Artwork artworkTwo,
+            Artwork correctArtwork
+    ) {
+        if (gameRun == null) {
+            throw new IllegalArgumentException(
+                    "A game run is required"
+            );
+        }
+
+        return new ArtworkQuestion(
+                gameRun.getGameMode(),
+                questionType,
+                gameRun,
+                roundNumber,
+                artworkOne,
+                artworkTwo,
+                correctArtwork
+        );
     }
 
     public boolean isCorrect(Long selectedArtworkId) {
@@ -83,9 +151,15 @@ public class ArtworkQuestion {
                 || artworkId.equals(artworkTwo.getId());
     }
 
+    public boolean belongsToRun() {
+        return gameRun != null && roundNumber != null;
+    }
+
     private void validate(
             GameMode gameMode,
             QuestionType questionType,
+            GameRun gameRun,
+            Integer roundNumber,
             Artwork artworkOne,
             Artwork artworkTwo,
             Artwork correctArtwork
@@ -106,6 +180,26 @@ public class ArtworkQuestion {
             throw new IllegalArgumentException(
                     "A question type is required"
             );
+        }
+
+        if ((gameRun == null) != (roundNumber == null)) {
+            throw new IllegalArgumentException(
+                    "A run and round number must be provided together"
+            );
+        }
+
+        if (gameRun != null) {
+            if (gameRun.getGameMode() != gameMode) {
+                throw new IllegalArgumentException(
+                        "Question mode must match its game run"
+                );
+            }
+
+            if (roundNumber < 1) {
+                throw new IllegalArgumentException(
+                        "Round number must be positive"
+                );
+            }
         }
 
         if (artworkOne == null
@@ -152,6 +246,20 @@ public class ArtworkQuestion {
 
     public QuestionType getQuestionType() {
         return questionType;
+    }
+
+    public GameRun getGameRun() {
+        return gameRun;
+    }
+
+    public int getRoundNumber() {
+        if (!belongsToRun()) {
+            throw new IllegalStateException(
+                    "Question does not belong to a game run"
+            );
+        }
+
+        return roundNumber;
     }
 
     public Artwork getArtworkOne() {
