@@ -17,7 +17,11 @@ public class GameRun {
 
     public static final int STARTING_POINTS = 100;
     public static final int BASE_MINIMUM_WAGER = 5;
-    public static final int WAGER_INCREASE_PER_ROUND = 5;
+
+    private static final double MINIMUM_WAGER_GROWTH_RATE = 1.10;
+    private static final int ROUNDS_PER_RAKE_INCREASE = 5;
+    private static final int RAKE_INCREASE_PERCENTAGE = 5;
+    private static final int MAXIMUM_RAKE_PERCENTAGE = 25;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -114,7 +118,12 @@ public class GameRun {
         validateWager(wager);
 
         if (correct) {
-            pointBalance += wager;
+            int profit = calculateProfitForRound(
+                    wager,
+                    roundNumber
+            );
+
+            pointBalance += profit;
             correctAnswers++;
         } else {
             pointBalance -= wager;
@@ -136,15 +145,108 @@ public class GameRun {
     public int getMinimumWager() {
         requireMode(GameMode.WAGER);
 
-        long calculatedMinimum =
-                (long) BASE_MINIMUM_WAGER
-                        + (long) (roundNumber - 1)
-                        * WAGER_INCREASE_PER_ROUND;
+        double calculatedMinimum =
+                BASE_MINIMUM_WAGER
+                        * Math.pow(
+                        MINIMUM_WAGER_GROWTH_RATE,
+                        roundNumber - 1
+                );
 
-        return (int) Math.min(
-                pointBalance,
+        int roundedMinimum = (int) Math.ceil(
                 calculatedMinimum
         );
+
+        return Math.min(
+                pointBalance,
+                roundedMinimum
+        );
+    }
+
+    public int getRakePercentage() {
+        requireMode(GameMode.WAGER);
+
+        return getRakePercentageForRound(
+                roundNumber
+        );
+    }
+
+    public int getRakePercentageForRound(int round) {
+        requireMode(GameMode.WAGER);
+        validateRound(round);
+
+        int completedTiers =
+                (round - 1)
+                        / ROUNDS_PER_RAKE_INCREASE;
+
+        return Math.min(
+                MAXIMUM_RAKE_PERCENTAGE,
+                completedTiers
+                        * RAKE_INCREASE_PERCENTAGE
+        );
+    }
+
+    public int calculateProfitForRound(
+            int wager,
+            int round
+    ) {
+        requireMode(GameMode.WAGER);
+        validateRound(round);
+
+        if (wager < 1) {
+            throw new IllegalArgumentException(
+                    "Wager must be positive"
+            );
+        }
+
+        int rakePercentage =
+                getRakePercentageForRound(round);
+
+        int rakeAmount = (int) Math.ceil(
+                wager
+                        * rakePercentage
+                        / 100.0
+        );
+
+        return wager - rakeAmount;
+    }
+
+    public Integer getNextRakeIncreaseRound() {
+        requireMode(GameMode.WAGER);
+
+        if (getRakePercentage()
+                >= MAXIMUM_RAKE_PERCENTAGE) {
+            return null;
+        }
+
+        int currentTier =
+                (roundNumber - 1)
+                        / ROUNDS_PER_RAKE_INCREASE;
+
+        return (currentTier + 1)
+                * ROUNDS_PER_RAKE_INCREASE
+                + 1;
+    }
+
+    public Integer getNextRakePercentage() {
+        Integer nextIncreaseRound =
+                getNextRakeIncreaseRound();
+
+        if (nextIncreaseRound == null) {
+            return null;
+        }
+
+        return getRakePercentageForRound(
+                nextIncreaseRound
+        );
+    }
+
+    public boolean isRakeIncreaseNextRound() {
+        Integer nextIncreaseRound =
+                getNextRakeIncreaseRound();
+
+        return nextIncreaseRound != null
+                && nextIncreaseRound
+                == roundNumber + 1;
     }
 
     private void validateWager(int wager) {
@@ -164,7 +266,17 @@ public class GameRun {
         }
     }
 
-    private void requireActiveMode(GameMode requiredMode) {
+    private void validateRound(int round) {
+        if (round < 1) {
+            throw new IllegalArgumentException(
+                    "Round number must be positive"
+            );
+        }
+    }
+
+    private void requireActiveMode(
+            GameMode requiredMode
+    ) {
         requireMode(requiredMode);
 
         if (!active) {
@@ -211,13 +323,11 @@ public class GameRun {
 
     public int getPointBalance() {
         requireMode(GameMode.WAGER);
-
         return pointBalance;
     }
 
     public int getHighestPointBalance() {
         requireMode(GameMode.WAGER);
-
         return highestPointBalance;
     }
 

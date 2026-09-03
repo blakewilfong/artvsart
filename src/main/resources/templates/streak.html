@@ -16,7 +16,12 @@
             href="/css/styles.css"
     >
 </head>
-<body>
+<body
+        class="streak-page"
+        th:classappend="${answered}
+            ? ' streak-page--answered'
+            : ''"
+>
 <header class="site-header">
     <h1 class="brand">
         <a href="/">Art vs Art</a>
@@ -27,7 +32,7 @@
     </p>
 </header>
 
-<main class="game-shell">
+<main class="game-shell streak-shell">
     <section>
         <header class="game-heading">
             <div class="game-meta">

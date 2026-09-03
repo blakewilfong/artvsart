@@ -85,9 +85,23 @@ a {
     text-transform: uppercase;
 }
 
-.game-meta span + span::before {
+.game-meta > span + span::before {
     margin-right: 0.75rem;
     content: "•";
+}
+
+@keyframes settle-balance {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.18);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .game-heading h2 {
@@ -166,6 +180,36 @@ a {
     margin: 0.4rem 0 0;
     color: var(--muted);
     font-size: 0.9rem;
+}
+
+.rake-increase-banner {
+    max-width: 700px;
+    margin: -0.5rem auto 1.5rem;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid var(--accent);
+    border-radius: 0.75rem;
+    background: rgba(155, 58, 42, 0.07);
+    text-align: center;
+    animation: reveal-rake-increase 300ms ease-out;
+}
+
+.rake-increase-banner h2 {
+    margin: 0;
+    color: var(--accent-dark);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.35rem;
+}
+
+@keyframes reveal-rake-increase {
+    from {
+        opacity: 0;
+        transform: translateY(-0.4rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .matchup-grid {
@@ -391,6 +435,15 @@ button.artwork-card:focus-visible .choice-label {
     margin-top: 1.75rem;
 }
 
+.auto-advance-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
 .primary-link {
     display: inline-block;
     padding: 0.85rem 1.4rem;
@@ -602,6 +655,10 @@ button.artwork-card:focus-visible .choice-label {
         width: min(100% - 1.5rem, 620px);
     }
 
+    .game-meta {
+        flex-wrap: wrap;
+    }
+
     .matchup-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -625,7 +682,6 @@ button.artwork-card:focus-visible .choice-label {
         flex-direction: column;
     }
 }
-
 
 .artwork-image-frame {
     display: flex;
@@ -661,27 +717,111 @@ button.artwork-card:focus-visible .choice-label {
     margin: 0;
 }
 
-.wager-panel {
-    display: flex;
-    align-items: end;
-    justify-content: center;
+.wager-shell {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: start;
     gap: 2rem;
-    width: min(520px, 100%);
-    margin: 0 auto 1.5rem;
-    padding: 1rem 1.25rem;
+    width: min(100% - 2rem, 1320px);
+}
+
+.wager-content {
+    min-width: 0;
+}
+
+.wager-sidebar {
+    position: sticky;
+    top: 1.5rem;
+    display: grid;
+    gap: 0;
+    overflow: hidden;
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     background: var(--surface);
     box-shadow: 0 8px 24px rgba(39, 32, 22, 0.08);
 }
 
-.wager-balance,
+.wager-stat {
+    position: relative;
+    display: grid;
+    gap: 0.25rem;
+    min-height: 82px;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.wager-stat:last-child {
+    border-bottom: 0;
+}
+
+.wager-stat > span:first-child {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.wager-stat strong {
+    color: var(--accent);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.65rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.wager-stat--gain strong,
+.chip-change--gain {
+    color: var(--correct);
+}
+
+.wager-stat--loss strong,
+.chip-change--loss {
+    color: var(--incorrect);
+}
+
+.wager-stat--settled strong {
+    animation: settle-balance 260ms ease-out;
+}
+
+.chip-change {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    opacity: 1;
+    transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.chip-change:empty {
+    display: none;
+}
+
+.chip-change--finished {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.9);
+}
+
+.wager-panel {
+    display: flex;
+    justify-content: center;
+    width: min(360px, 100%);
+    margin: 0 auto 1.5rem;
+    padding: 1.15rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgba(39, 32, 22, 0.08);
+}
+
 .wager-field {
     display: grid;
     gap: 0.35rem;
 }
 
-.wager-balance span,
 .wager-field span {
     color: var(--muted);
     font-size: 0.72rem;
@@ -690,14 +830,8 @@ button.artwork-card:focus-visible .choice-label {
     text-transform: uppercase;
 }
 
-.wager-balance strong {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 2rem;
-    line-height: 1;
-}
-
 .wager-input {
-    width: 150px;
+    width: 160px;
     padding: 0.65rem 0.75rem;
     border: 2px solid var(--border);
     border-radius: 0.5rem;
@@ -712,14 +846,176 @@ button.artwork-card:focus-visible .choice-label {
     outline: 3px solid rgba(155, 58, 42, 0.2);
 }
 
-@media (max-width: 600px) {
-    .wager-panel {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 1rem;
+@media (max-width: 800px) {
+    .wager-shell {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
 
-    .wager-input {
-        width: 100%;
+    .wager-sidebar {
+        top: 0.5rem;
+        z-index: 10;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .wager-stat {
+        min-height: 70px;
+        padding: 0.8rem;
+        border-right: 1px solid var(--border);
+        border-bottom: 0;
+    }
+
+    .wager-stat:last-child {
+        border-right: 0;
+    }
+}
+
+/* Streak keeps the artwork as close to full-screen as the matchup allows. */
+.streak-page {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.streak-page .site-header {
+    width: 100%;
+    padding-top: clamp(0.65rem, 2vh, 1.25rem);
+    padding-bottom: clamp(0.45rem, 1vh, 0.8rem);
+}
+
+.streak-shell {
+    width: min(1600px, calc(100% - 2rem));
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 0.75rem;
+}
+
+.streak-shell > section {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.streak-shell .game-heading {
+    flex: 0 0 auto;
+    padding: clamp(0.35rem, 1vh, 0.7rem) 0 clamp(0.55rem, 1.2vh, 0.9rem);
+}
+
+.streak-shell .game-meta {
+    margin-bottom: 0.4rem;
+}
+
+.streak-shell .matchup-grid {
+    flex: 1 1 auto;
+    gap: clamp(0.75rem, 1.5vw, 1.5rem);
+    min-height: 0;
+}
+
+.streak-shell .artwork-form {
+    height: 100%;
+    min-height: 0;
+}
+
+.streak-shell .artwork-card {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.streak-shell .artwork-image-frame {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    padding: clamp(0.5rem, 1vw, 1rem);
+}
+
+.streak-shell .artwork-details {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0.8rem 1rem 0.9rem;
+}
+
+.streak-shell .round-navigation {
+    flex: 0 0 auto;
+    margin-top: 0.65rem;
+}
+
+.streak-page--answered .outcome-banner {
+    flex: 0 0 auto;
+    margin-bottom: 0.65rem;
+    padding: 0.55rem 1rem;
+}
+
+@media (max-width: 800px) {
+    .streak-page .site-header {
+        display: flex;
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+        text-align: left;
+    }
+
+    .streak-page .site-description {
+        margin: 0;
+        text-align: right;
+    }
+
+    .streak-shell {
+        width: calc(100% - 0.75rem);
+    }
+
+    .streak-shell .game-heading {
+        padding-top: 0.15rem;
+    }
+
+    .streak-shell .matchup-grid {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 0.35rem;
+    }
+
+    .streak-shell .versus {
+        width: 2rem;
+        height: 2rem;
+        margin: 0 -0.15rem;
+        font-size: 0.75rem;
+    }
+
+    .streak-shell .artwork-details {
+        padding: 0.55rem 0.65rem 0.65rem;
+    }
+
+    .streak-shell .artwork-details h3 {
+        font-size: clamp(0.9rem, 3.8vw, 1.2rem);
+    }
+
+    .streak-shell .artwork-credit {
+        margin-top: 0.3rem;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-height: 650px) {
+    .streak-page .brand {
+        font-size: 1.8rem;
+    }
+
+    .streak-page .site-description {
+        display: none;
+    }
+
+    .streak-shell .game-heading h2 {
+        font-size: 1.35rem;
+    }
+
+    .streak-shell .round-progress {
+        margin-top: 0.65rem;
+    }
+
+    .streak-shell .artwork-details {
+        padding-top: 0.45rem;
+        padding-bottom: 0.5rem;
     }
 }

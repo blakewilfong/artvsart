@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,11 +66,14 @@ class GameRunTest {
         assertEquals(100, run.getPointBalance());
         assertEquals(100, run.getHighestPointBalance());
         assertEquals(5, run.getMinimumWager());
+        assertEquals(0, run.getRakePercentage());
+        assertEquals(6, run.getNextRakeIncreaseRound());
+        assertEquals(5, run.getNextRakePercentage());
         assertTrue(run.isActive());
     }
 
     @Test
-    void correctWagerAddsPoints() {
+    void correctWagerAddsFullProfitBeforeRakeBegins() {
         GameRun run = GameRun.startWager("voter-1");
 
         run.recordWagerAnswer(
@@ -81,11 +85,10 @@ class GameRunTest {
         assertEquals(120, run.getHighestPointBalance());
         assertEquals(1, run.getCorrectAnswers());
         assertEquals(2, run.getRoundNumber());
-        assertEquals(10, run.getMinimumWager());
     }
 
     @Test
-    void incorrectWagerSubtractsPoints() {
+    void incorrectWagerSubtractsEntireWager() {
         GameRun run = GameRun.startWager("voter-1");
 
         run.recordWagerAnswer(
@@ -101,24 +104,135 @@ class GameRunTest {
     }
 
     @Test
-    void minimumWagerIncreasesEachRound() {
+    void minimumWagerCompoundsByTenPercentEachRound() {
         GameRun run = GameRun.startWager("voter-1");
 
         assertEquals(5, run.getMinimumWager());
 
         run.recordWagerAnswer(
                 true,
-                5
+                run.getMinimumWager()
         );
 
-        assertEquals(10, run.getMinimumWager());
+        assertEquals(6, run.getMinimumWager());
 
         run.recordWagerAnswer(
                 true,
-                10
+                run.getMinimumWager()
         );
 
-        assertEquals(15, run.getMinimumWager());
+        assertEquals(7, run.getMinimumWager());
+
+        advanceWithCorrectAnswers(run, 7);
+
+        assertEquals(10, run.getRoundNumber());
+        assertEquals(12, run.getMinimumWager());
+    }
+
+    @Test
+    void minimumWagerCannotExceedCurrentBalance() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        advanceWithCorrectAnswers(run, 9);
+
+        int wagerLeavingFivePoints =
+                run.getPointBalance() - 5;
+
+        run.recordWagerAnswer(
+                false,
+                wagerLeavingFivePoints
+        );
+
+        assertEquals(5, run.getPointBalance());
+        assertEquals(5, run.getMinimumWager());
+        assertTrue(run.isActive());
+    }
+
+    @Test
+    void rakeIncreasesEveryFiveRounds() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        assertEquals(0, run.getRakePercentage());
+
+        advanceWithCorrectAnswers(run, 5);
+        assertEquals(6, run.getRoundNumber());
+        assertEquals(5, run.getRakePercentage());
+
+        advanceWithCorrectAnswers(run, 5);
+        assertEquals(11, run.getRoundNumber());
+        assertEquals(10, run.getRakePercentage());
+
+        advanceWithCorrectAnswers(run, 5);
+        assertEquals(16, run.getRoundNumber());
+        assertEquals(15, run.getRakePercentage());
+
+        advanceWithCorrectAnswers(run, 5);
+        assertEquals(21, run.getRoundNumber());
+        assertEquals(20, run.getRakePercentage());
+
+        advanceWithCorrectAnswers(run, 5);
+        assertEquals(26, run.getRoundNumber());
+        assertEquals(25, run.getRakePercentage());
+    }
+
+    @Test
+    void rakeStopsIncreasingAtTwentyFivePercent() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        advanceWithCorrectAnswers(run, 30);
+
+        assertEquals(31, run.getRoundNumber());
+        assertEquals(25, run.getRakePercentage());
+        assertNull(run.getNextRakeIncreaseRound());
+        assertNull(run.getNextRakePercentage());
+    }
+
+    @Test
+    void correctWagerAddsProfitAfterRake() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        advanceWithCorrectAnswers(run, 5);
+
+        int balanceBeforeAnswer =
+                run.getPointBalance();
+
+        run.recordWagerAnswer(
+                true,
+                20
+        );
+
+        assertEquals(
+                balanceBeforeAnswer + 19,
+                run.getPointBalance()
+        );
+
+        assertEquals(6, run.getCorrectAnswers());
+        assertEquals(7, run.getRoundNumber());
+    }
+
+    @Test
+    void calculatesProfitAfterHouseRake() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        assertEquals(
+                34,
+                run.calculateProfitForRound(
+                        40,
+                        16
+                )
+        );
+    }
+
+    @Test
+    void identifiesRoundBeforeRakeIncrease() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        advanceWithCorrectAnswers(run, 4);
+
+        assertEquals(5, run.getRoundNumber());
+        assertTrue(run.isRakeIncreaseNextRound());
+        assertEquals(6, run.getNextRakeIncreaseRound());
+        assertEquals(5, run.getNextRakePercentage());
     }
 
     @Test
@@ -159,5 +273,19 @@ class GameRunTest {
         assertEquals(0, run.getPointBalance());
         assertFalse(run.isActive());
         assertNotNull(run.getCompletedAt());
+    }
+
+    private void advanceWithCorrectAnswers(
+            GameRun run,
+            int numberOfAnswers
+    ) {
+        for (int answer = 0;
+             answer < numberOfAnswers;
+             answer++) {
+            run.recordWagerAnswer(
+                    true,
+                    run.getMinimumWager()
+            );
+        }
     }
 }

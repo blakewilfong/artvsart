@@ -98,34 +98,24 @@ public class WagerController {
                 existingAnswer.isPresent()
         );
 
-        if (existingAnswer.isEmpty()) {
-            model.addAttribute(
-                    "minimumWager",
-                    run.getMinimumWager()
-            );
-        }
+        model.addAttribute(
+                "minimumWager",
+                run.getMinimumWager()
+        );
 
-        existingAnswer.ifPresent(answer -> {
-            model.addAttribute(
-                    "selectedArtworkId",
-                    answer.getSelectedArtwork().getId()
-            );
+        model.addAttribute(
+                "rakePercentage",
+                run.getRakePercentage()
+        );
 
-            model.addAttribute(
-                    "correctArtworkId",
-                    question.getCorrectArtwork().getId()
-            );
-
-            model.addAttribute(
-                    "answerCorrect",
-                    answer.isCorrect()
-            );
-
-            model.addAttribute(
-                    "wagerAmount",
-                    answer.getWagerAmount()
-            );
-        });
+        existingAnswer.ifPresent(answer ->
+                addAnswerResult(
+                        model,
+                        question,
+                        run,
+                        answer
+                )
+        );
 
         return "wager";
     }
@@ -155,5 +145,78 @@ public class WagerController {
         return "redirect:/wager/"
                 + answer.getQuestion().getId()
                 + "?reveal=true";
+    }
+
+    private void addAnswerResult(
+            Model model,
+            ArtworkQuestion question,
+            GameRun run,
+            ArtworkAnswer answer
+    ) {
+        int answeredRound =
+                question.getRoundNumber();
+
+        int answeredRakePercentage =
+                run.getRakePercentageForRound(
+                        answeredRound
+                );
+
+        int nextRoundRakePercentage =
+                run.getRakePercentageForRound(
+                        answeredRound + 1
+                );
+
+        int profitAmount =
+                run.calculateProfitForRound(
+                        answer.getWagerAmount(),
+                        answeredRound
+                );
+
+        int pointChange = answer.isCorrect()
+                ? profitAmount
+                : -answer.getWagerAmount();
+
+        int balanceBeforeAnswer =
+                run.getPointBalance() - pointChange;
+
+        boolean rakeIncreasedAfterAnswer =
+                run.isActive()
+                        && nextRoundRakePercentage
+                        > answeredRakePercentage;
+
+        model.addAttribute(
+                "selectedArtworkId",
+                answer.getSelectedArtwork().getId()
+        );
+
+        model.addAttribute(
+                "correctArtworkId",
+                question.getCorrectArtwork().getId()
+        );
+
+        model.addAttribute(
+                "answerCorrect",
+                answer.isCorrect()
+        );
+
+        model.addAttribute(
+                "pointChange",
+                pointChange
+        );
+
+        model.addAttribute(
+                "balanceBeforeAnswer",
+                balanceBeforeAnswer
+        );
+
+        model.addAttribute(
+                "rakeIncreasedAfterAnswer",
+                rakeIncreasedAfterAnswer
+        );
+
+        model.addAttribute(
+                "newRakePercentage",
+                nextRoundRakePercentage
+        );
     }
 }

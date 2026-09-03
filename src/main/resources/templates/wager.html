@@ -27,20 +27,47 @@
     </p>
 </header>
 
-<main class="game-shell">
-    <section>
+<main class="game-shell wager-shell">
+    <aside class="wager-sidebar" aria-label="Wager status">
+        <div class="wager-stat">
+            <span>Chips</span>
+
+            <strong
+                    id="chip-balance"
+                    th:text="${answered
+                        ? balanceBeforeAnswer
+                        : run.pointBalance}"
+                    th:data-final-balance="${run.pointBalance}"
+                    th:data-change="${answered ? pointChange : 0}"
+            >
+                100
+            </strong>
+
+            <span
+                    id="chip-change"
+                    class="chip-change"
+                    aria-live="polite"
+            ></span>
+        </div>
+
+        <div class="wager-stat">
+            <span>House rake</span>
+            <strong th:text="|${rakePercentage}%|">0%</strong>
+        </div>
+
+        <div class="wager-stat">
+            <span>Minimum bet</span>
+            <strong th:text="${minimumWager}">5</strong>
+        </div>
+    </aside>
+
+    <section class="wager-content">
         <header class="game-heading">
             <div class="game-meta">
                 <span
                         th:text="|Round ${question.roundNumber}|"
                 >
                     Round
-                </span>
-
-                <span
-                        th:text="|Points ${run.pointBalance}|"
-                >
-                    Points
                 </span>
 
                 <span
@@ -62,10 +89,6 @@
                     ? ' outcome-banner--correct'
                     : ' outcome-banner--incorrect'"
         >
-            <p class="outcome-label">
-                Your wager
-            </p>
-
             <h2
                     th:text="${answerCorrect}
                         ? 'Correct'
@@ -74,21 +97,22 @@
                 Result
             </h2>
 
-            <p
-                    class="outcome-note"
-                    th:if="${answerCorrect}"
-                    th:text="|You won ${wagerAmount} points. Balance: ${run.pointBalance}.|"
-            >
-                Points won
+        </section>
+
+        <section
+                class="rake-increase-banner"
+                th:if="${answered
+                    and rakeIncreasedAfterAnswer}"
+        >
+            <p class="outcome-label">
+                House update
             </p>
 
-            <p
-                    class="outcome-note"
-                    th:if="${!answerCorrect}"
-                    th:text="|You lost ${wagerAmount} points. Balance: ${run.pointBalance}.|"
+            <h2
+                    th:text="|The house rake has increased to ${newRakePercentage}%.|"
             >
-                Points lost
-            </p>
+                The house rake increased.
+            </h2>
         </section>
 
         <form
@@ -105,14 +129,6 @@
             >
 
             <section class="wager-panel">
-                <div class="wager-balance">
-                    <span>Current balance</span>
-
-                    <strong th:text="${run.pointBalance}">
-                        100
-                    </strong>
-                </div>
-
                 <label class="wager-field">
                     <span
                             th:text="|Wager at least ${minimumWager} points|"
@@ -121,18 +137,21 @@
                     </span>
 
                     <input
+                            id="wager-amount"
                             class="wager-input"
                             type="number"
                             name="wagerAmount"
                             th:min="${minimumWager}"
                             th:max="${run.pointBalance}"
                             th:value="${minimumWager}"
+                            th:data-rake-percentage="${rakePercentage}"
                             min="1"
                             max="100"
                             required
                             inputmode="numeric"
                     >
                 </label>
+
             </section>
 
             <div class="matchup-grid">
@@ -341,13 +360,12 @@
                 class="round-navigation"
                 th:if="${answered}"
         >
-            <a
-                    class="primary-link"
+            <p
+                    class="auto-advance-note"
                     th:if="${run.active}"
-                    href="/wager"
             >
-                Next question
-            </a>
+                Next question loading...
+            </p>
 
             <a
                     class="primary-link"
@@ -359,5 +377,53 @@
         </nav>
     </section>
 </main>
+
+<script th:if="${answered}">
+    const balance = document.getElementById("chip-balance");
+    const change = document.getElementById("chip-change");
+    const finalBalance = Number(balance.dataset.finalBalance);
+    const pointChange = Number(balance.dataset.change);
+    const direction = pointChange >= 0 ? "gain" : "loss";
+
+    // Two frames guarantee the server-rendered starting balance is painted.
+    window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+            balance.closest(".wager-stat").classList.add(
+                `wager-stat--${direction}`
+            );
+            change.classList.add(`chip-change--${direction}`);
+            change.textContent = `${pointChange >= 0 ? "+" : ""}${pointChange}`;
+
+            const startingBalance = Number(balance.textContent.trim());
+            const duration = 900;
+            const startedAt = performance.now();
+
+            function animateBalance(now) {
+                const progress = Math.min((now - startedAt) / duration, 1);
+                balance.textContent = Math.round(
+                    startingBalance + (finalBalance - startingBalance) * progress
+                );
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(animateBalance);
+                    return;
+                }
+
+                balance.closest(".wager-stat").classList.add("wager-stat--settled");
+                window.setTimeout(function () {
+                    change.classList.add("chip-change--finished");
+                }, 650);
+            }
+
+            window.requestAnimationFrame(animateBalance);
+        });
+    });
+
+    /*[# th:if="${run.active}"]*/
+    window.setTimeout(function () {
+        window.location.assign("/wager");
+    }, 2500);
+    /*[/]*/
+</script>
 </body>
 </html>
