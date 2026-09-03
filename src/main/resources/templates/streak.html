@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Streak | Art vs Art</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/styles.css}"
+            href="/css/styles.css"
+    >
+</head>
+<body>
+<header class="site-header">
+    <h1 class="brand">
+        <a href="/">Art vs Art</a>
+    </h1>
+
+    <p class="site-description">
+        Keep going until you miss.
+    </p>
+</header>
+
+<main class="game-shell">
+    <section>
+        <header class="game-heading">
+            <div class="game-meta">
+                <span
+                        th:text="|Question ${question.roundNumber}|"
+                >
+                    Question
+                </span>
+
+                <span
+                        th:text="|Streak ${run.correctAnswers}|"
+                >
+                    Streak
+                </span>
+
+                <span
+                        th:text="|Record ${highScore}|"
+                >
+                    Record
+                </span>
+            </div>
+
+            <h2>Which artwork is older?</h2>
+        </header>
+
+        <section
+                class="outcome-banner"
+                th:if="${answered}"
+                th:classappend="${answerCorrect}
+                    ? ' outcome-banner--correct'
+                    : ' outcome-banner--incorrect'"
+        >
+            <p class="outcome-label">
+                Your answer
+            </p>
+
+            <h2
+                    th:text="${answerCorrect}
+                        ? 'Correct'
+                        : 'Streak over'"
+            >
+                Result
+            </h2>
+
+            <p
+                    class="outcome-note"
+                    th:if="${answerCorrect}"
+                    th:text="|Current streak: ${run.correctAnswers}|"
+            >
+                Current streak
+            </p>
+
+            <p
+                    class="outcome-note"
+                    th:if="${!answerCorrect}"
+                    th:text="|Final streak: ${run.correctAnswers}|"
+            >
+                Final streak
+            </p>
+        </section>
+
+        <div class="matchup-grid">
+            <form
+                    class="artwork-form"
+                    th:if="${!answered}"
+                    method="post"
+                    th:action="@{/streak/answer}"
+                    action="/streak/answer"
+            >
+                <input
+                        type="hidden"
+                        name="questionId"
+                        th:value="${question.id}"
+                >
+
+                <input
+                        type="hidden"
+                        name="artworkId"
+                        th:value="${question.artworkOne.id}"
+                >
+
+                <button
+                        class="artwork-card"
+                        type="submit"
+                        aria-label="Choose the left artwork"
+                >
+                    <span class="artwork-image-frame">
+                        <img
+                                class="artwork-image"
+                                th:src="${question.artworkOne.imageUrl}"
+                                alt="First artwork"
+                                width="800"
+                                height="600"
+                        >
+                    </span>
+                </button>
+            </form>
+
+            <article
+                    class="artwork-card"
+                    th:if="${answered}"
+                    th:classappend="${selectedArtworkId
+                        == question.artworkOne.id}
+                        ? ' artwork-card--selected'
+                        : ''"
+            >
+                <div class="artwork-image-frame">
+                    <img
+                            class="artwork-image"
+                            th:src="${question.artworkOne.imageUrl}"
+                            th:alt="|${question.artworkOne.title} by ${question.artworkOne.artistName}|"
+                            width="800"
+                            height="600"
+                    >
+
+                    <div
+                            class="rate-overlay"
+                            th:classappend="${correctArtworkId
+                                == question.artworkOne.id}
+                                ? ' rate-overlay--winner'
+                                : ' rate-overlay--loser'"
+                    >
+                        <span
+                                class="rate-result"
+                                th:text="${correctArtworkId
+                                    == question.artworkOne.id}
+                                    ? 'Older'
+                                    : 'Newer'"
+                        >
+                            Result
+                        </span>
+
+                        <strong
+                                class="rate-value"
+                                th:text="${question.artworkOne.dateDisplay}"
+                        >
+                            Artwork date
+                        </strong>
+
+                        <span class="rate-label">
+                            Artwork date
+                        </span>
+                    </div>
+                </div>
+
+                <div class="artwork-details">
+                    <h3 th:text="${question.artworkOne.title}">
+                        First artwork
+                    </h3>
+
+                    <p
+                            class="artwork-credit"
+                            th:if="${question.artworkOne.artistName != null
+                                and !#strings.isEmpty(question.artworkOne.artistName)}"
+                            th:text="${question.artworkOne.artistName}"
+                    >
+                        Artist
+                    </p>
+
+                    <span
+                            class="selected-badge"
+                            th:if="${selectedArtworkId
+                                == question.artworkOne.id}"
+                    >
+                        Your answer
+                    </span>
+                </div>
+            </article>
+
+            <div class="versus" aria-hidden="true">
+                VS
+            </div>
+
+            <form
+                    class="artwork-form"
+                    th:if="${!answered}"
+                    method="post"
+                    th:action="@{/streak/answer}"
+                    action="/streak/answer"
+            >
+                <input
+                        type="hidden"
+                        name="questionId"
+                        th:value="${question.id}"
+                >
+
+                <input
+                        type="hidden"
+                        name="artworkId"
+                        th:value="${question.artworkTwo.id}"
+                >
+
+                <button
+                        class="artwork-card"
+                        type="submit"
+                        aria-label="Choose the right artwork"
+                >
+                    <span class="artwork-image-frame">
+                        <img
+                                class="artwork-image"
+                                th:src="${question.artworkTwo.imageUrl}"
+                                alt="Second artwork"
+                                width="800"
+                                height="600"
+                        >
+                    </span>
+                </button>
+            </form>
+
+            <article
+                    class="artwork-card"
+                    th:if="${answered}"
+                    th:classappend="${selectedArtworkId
+                        == question.artworkTwo.id}
+                        ? ' artwork-card--selected'
+                        : ''"
+            >
+                <div class="artwork-image-frame">
+                    <img
+                            class="artwork-image"
+                            th:src="${question.artworkTwo.imageUrl}"
+                            th:alt="|${question.artworkTwo.title} by ${question.artworkTwo.artistName}|"
+                            width="800"
+                            height="600"
+                    >
+
+                    <div
+                            class="rate-overlay"
+                            th:classappend="${correctArtworkId
+                                == question.artworkTwo.id}
+                                ? ' rate-overlay--winner'
+                                : ' rate-overlay--loser'"
+                    >
+                        <span
+                                class="rate-result"
+                                th:text="${correctArtworkId
+                                    == question.artworkTwo.id}
+                                    ? 'Older'
+                                    : 'Newer'"
+                        >
+                            Result
+                        </span>
+
+                        <strong
+                                class="rate-value"
+                                th:text="${question.artworkTwo.dateDisplay}"
+                        >
+                            Artwork date
+                        </strong>
+
+                        <span class="rate-label">
+                            Artwork date
+                        </span>
+                    </div>
+                </div>
+
+                <div class="artwork-details">
+                    <h3 th:text="${question.artworkTwo.title}">
+                        Second artwork
+                    </h3>
+
+                    <p
+                            class="artwork-credit"
+                            th:if="${question.artworkTwo.artistName != null
+                                and !#strings.isEmpty(question.artworkTwo.artistName)}"
+                            th:text="${question.artworkTwo.artistName}"
+                    >
+                        Artist
+                    </p>
+
+                    <span
+                            class="selected-badge"
+                            th:if="${selectedArtworkId
+                                == question.artworkTwo.id}"
+                    >
+                        Your answer
+                    </span>
+                </div>
+            </article>
+        </div>
+
+        <nav
+                class="round-navigation"
+                th:if="${answered}"
+        >
+            <a
+                    class="primary-link"
+                    th:if="${answerCorrect}"
+                    href="/streak"
+            >
+                Next question
+            </a>
+
+            <a
+                    class="primary-link"
+                    th:if="${!answerCorrect}"
+                    href="/streak"
+            >
+                Start new run
+            </a>
+        </nav>
+    </section>
+</main>
+</body>
+</html>
