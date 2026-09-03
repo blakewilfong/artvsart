@@ -40,7 +40,10 @@
 @SET __MVNW_ARG0_NAME__=
 @SET MVNW_USERNAME=
 @SET MVNW_PASSWORD=
-@IF NOT "%__MVNW_CMD__%"=="" ("%__MVNW_CMD__%" %*)
+@IF NOT "%__MVNW_CMD__%"=="" (
+  @IF "%HOME%"=="" IF NOT "%USERPROFILE%"=="" SET "MAVEN_OPTS=%MAVEN_OPTS% -Duser.home=%USERPROFILE%"
+  "%__MVNW_CMD__%" %*
+)
 @echo Cannot start maven from wrapper >&2 && exit /b 1
 @GOTO :EOF
 : end batch / begin powershell #>
@@ -79,9 +82,14 @@ if ($env:MVNW_REPOURL) {
 $distributionUrlName = $distributionUrl -replace '^.*/',''
 $distributionUrlNameMain = $distributionUrlName -replace '\.[^.]*$','' -replace '-bin$',''
 
-$MAVEN_M2_PATH = "$HOME/.m2"
 if ($env:MAVEN_USER_HOME) {
   $MAVEN_M2_PATH = "$env:MAVEN_USER_HOME"
+} elseif ($env:USERPROFILE) {
+  $MAVEN_M2_PATH = "$env:USERPROFILE/.m2"
+} elseif ($HOME) {
+  $MAVEN_M2_PATH = "$HOME/.m2"
+} else {
+  Write-Error "cannot determine Maven user home"
 }
 
 if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
@@ -89,19 +97,31 @@ if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
 }
 
 $MAVEN_WRAPPER_DISTS = $null
-if ((Get-Item $MAVEN_M2_PATH).Target[0] -eq $null) {
+$MAVEN_M2_TARGET = (Get-Item $MAVEN_M2_PATH).Target
+if ($null -eq $MAVEN_M2_TARGET) {
   $MAVEN_WRAPPER_DISTS = "$MAVEN_M2_PATH/wrapper/dists"
 } else {
-  $MAVEN_WRAPPER_DISTS = (Get-Item $MAVEN_M2_PATH).Target[0] + "/wrapper/dists"
+  $MAVEN_WRAPPER_DISTS = $MAVEN_M2_TARGET[0] + "/wrapper/dists"
 }
 
 $MAVEN_HOME_PARENT = "$MAVEN_WRAPPER_DISTS/$distributionUrlNameMain"
 $MAVEN_HOME_NAME = ([System.Security.Cryptography.SHA256]::Create().ComputeHash([byte[]][char[]]$distributionUrl) | ForEach-Object {$_.ToString("x2")}) -join ''
 $MAVEN_HOME = "$MAVEN_HOME_PARENT/$MAVEN_HOME_NAME"
 
-if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
+if ((Test-Path -Path "$MAVEN_HOME" -PathType Container -ErrorAction SilentlyContinue) -and
+    (Test-Path -Path "$MAVEN_HOME/bin/$MVN_CMD" -PathType Leaf -ErrorAction SilentlyContinue)) {
   Write-Verbose "found existing MAVEN_HOME at $MAVEN_HOME"
   Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+  exit $?
+}
+
+# Wrapper 3.3.4 uses a different cache layout than older wrapper versions.
+# Reuse a matching legacy installation when one is already available.
+$LEGACY_MAVEN_HOME_PARENT = "$MAVEN_WRAPPER_DISTS/$($distributionUrlName -replace '\.zip$','')"
+$LEGACY_MAVEN_CMD = Get-ChildItem -Path $LEGACY_MAVEN_HOME_PARENT -Recurse -Filter $MVN_CMD -File -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($LEGACY_MAVEN_CMD) {
+  Write-Verbose "found existing legacy Maven installation at $($LEGACY_MAVEN_CMD.Directory.Parent.FullName)"
+  Write-Output "MVN_CMD=$($LEGACY_MAVEN_CMD.FullName)"
   exit $?
 }
 
