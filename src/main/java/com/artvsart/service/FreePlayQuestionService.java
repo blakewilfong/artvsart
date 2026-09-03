@@ -5,7 +5,6 @@ import com.artvsart.model.ArtworkAnswer;
 import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.GameMode;
 import com.artvsart.model.QuestionType;
-import com.artvsart.repository.ArtworkAnswerRepository;
 import com.artvsart.repository.ArtworkQuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,18 +20,18 @@ public class FreePlayQuestionService {
     private final ArtworkService artworkService;
     private final OlderArtworkQuestionService olderArtworkService;
     private final ArtworkQuestionRepository questionRepository;
-    private final ArtworkAnswerRepository answerRepository;
+    private final ArtworkAnswerService answerService;
 
     public FreePlayQuestionService(
             ArtworkService artworkService,
             OlderArtworkQuestionService olderArtworkService,
             ArtworkQuestionRepository questionRepository,
-            ArtworkAnswerRepository answerRepository
+            ArtworkAnswerService answerService
     ) {
         this.artworkService = artworkService;
         this.olderArtworkService = olderArtworkService;
         this.questionRepository = questionRepository;
-        this.answerRepository = answerRepository;
+        this.answerService = answerService;
     }
 
     @Transactional
@@ -63,7 +62,7 @@ public class FreePlayQuestionService {
 
         ArtworkQuestion question =
                 new ArtworkQuestion(
-                        GameMode.FREE_PLAY,
+                        GameMode.STREAK,
                         QuestionType.OLDER_ARTWORK,
                         selectedPair.artworkOne(),
                         selectedPair.artworkTwo(),
@@ -81,9 +80,9 @@ public class FreePlayQuestionService {
                         "Question does not exist"
                 ));
 
-        if (question.getGameMode() != GameMode.FREE_PLAY) {
+        if (question.getGameMode() != GameMode.STREAK) {
             throw new IllegalArgumentException(
-                    "Question is not a Free Play question"
+                    "Question is not a Streak question"
             );
         }
 
@@ -96,38 +95,14 @@ public class FreePlayQuestionService {
             Long selectedArtworkId,
             String voterId
     ) {
-        if (voterId == null || voterId.isBlank()) {
-            throw new IllegalArgumentException(
-                    "A voter ID is required"
-            );
-        }
-
         ArtworkQuestion question =
                 getQuestion(questionId);
 
-        Optional<ArtworkAnswer> existingAnswer =
-                answerRepository
-                        .findByQuestionIdAndVoterId(
-                                questionId,
-                                voterId
-                        );
-
-        if (existingAnswer.isPresent()) {
-            return existingAnswer.get();
-        }
-
-        Artwork selectedArtwork = resolveSelectedArtwork(
+        return answerService.answerQuestion(
                 question,
-                selectedArtworkId
-        );
-
-        ArtworkAnswer answer = new ArtworkAnswer(
-                question,
-                selectedArtwork,
+                selectedArtworkId,
                 voterId
         );
-
-        return answerRepository.save(answer);
     }
 
     @Transactional(readOnly = true)
@@ -135,15 +110,10 @@ public class FreePlayQuestionService {
             Long questionId,
             String voterId
     ) {
-        if (voterId == null || voterId.isBlank()) {
-            return Optional.empty();
-        }
-
-        return answerRepository
-                .findByQuestionIdAndVoterId(
-                        questionId,
-                        voterId
-                );
+        return answerService.findAnswer(
+                questionId,
+                voterId
+        );
     }
 
     private List<ArtworkPair> createEligiblePairs(
@@ -181,33 +151,6 @@ public class FreePlayQuestionService {
         }
 
         return eligiblePairs;
-    }
-
-    private Artwork resolveSelectedArtwork(
-            ArtworkQuestion question,
-            Long selectedArtworkId
-    ) {
-        if (selectedArtworkId == null) {
-            throw new IllegalArgumentException(
-                    "A selected artwork ID is required"
-            );
-        }
-
-        if (selectedArtworkId.equals(
-                question.getArtworkOne().getId()
-        )) {
-            return question.getArtworkOne();
-        }
-
-        if (selectedArtworkId.equals(
-                question.getArtworkTwo().getId()
-        )) {
-            return question.getArtworkTwo();
-        }
-
-        throw new IllegalArgumentException(
-                "Selected artwork is not part of this question"
-        );
     }
 
     private record ArtworkPair(

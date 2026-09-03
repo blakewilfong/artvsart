@@ -5,7 +5,6 @@ import com.artvsart.model.ArtworkAnswer;
 import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.GameMode;
 import com.artvsart.model.QuestionType;
-import com.artvsart.repository.ArtworkAnswerRepository;
 import com.artvsart.repository.ArtworkQuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,9 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -38,7 +35,7 @@ class FreePlayQuestionServiceTest {
     private ArtworkQuestionRepository questionRepository;
 
     @Mock
-    private ArtworkAnswerRepository answerRepository;
+    private ArtworkAnswerService answerService;
 
     private FreePlayQuestionService service;
 
@@ -48,7 +45,7 @@ class FreePlayQuestionServiceTest {
                 artworkService,
                 olderArtworkService,
                 questionRepository,
-                answerRepository
+                answerService
         );
     }
 
@@ -80,7 +77,7 @@ class FreePlayQuestionServiceTest {
                 service.createQuestion();
 
         assertSame(
-                GameMode.FREE_PLAY,
+                GameMode.STREAK,
                 question.getGameMode()
         );
 
@@ -106,93 +103,55 @@ class FreePlayQuestionServiceTest {
     }
 
     @Test
-    void recordsCorrectAnswer() {
-        Artwork older = artwork(1L);
-        Artwork newer = artwork(2L);
-
+    void delegatesAnswerRecording() {
         ArtworkQuestion question =
-                new ArtworkQuestion(
-                        GameMode.FREE_PLAY,
-                        QuestionType.OLDER_ARTWORK,
-                        older,
-                        newer,
-                        older
-                );
+                mock(ArtworkQuestion.class);
+
+        ArtworkAnswer answer =
+                mock(ArtworkAnswer.class);
+
+        when(question.getGameMode())
+                .thenReturn(GameMode.STREAK);
 
         when(questionRepository.findById(10L))
                 .thenReturn(Optional.of(question));
 
-        when(answerRepository
-                .findByQuestionIdAndVoterId(
-                        10L,
-                        VOTER_ID
-                ))
-                .thenReturn(Optional.empty());
+        when(answerService.answerQuestion(
+                question,
+                1L,
+                VOTER_ID
+        )).thenReturn(answer);
 
-        when(answerRepository.save(
-                any(ArtworkAnswer.class)
-        )).thenAnswer(
-                invocation -> invocation.getArgument(0)
-        );
-
-        ArtworkAnswer answer =
+        ArtworkAnswer result =
                 service.answerQuestion(
                         10L,
                         1L,
                         VOTER_ID
                 );
 
-        assertSame(
-                older,
-                answer.getSelectedArtwork()
-        );
-
-        assertTrue(answer.isCorrect());
+        assertSame(answer, result);
     }
 
     @Test
-    void recordsIncorrectAnswer() {
-        Artwork older = artwork(1L);
-        Artwork newer = artwork(2L);
-
-        ArtworkQuestion question =
-                new ArtworkQuestion(
-                        GameMode.FREE_PLAY,
-                        QuestionType.OLDER_ARTWORK,
-                        older,
-                        newer,
-                        older
-                );
-
-        when(questionRepository.findById(10L))
-                .thenReturn(Optional.of(question));
-
-        when(answerRepository
-                .findByQuestionIdAndVoterId(
-                        10L,
-                        VOTER_ID
-                ))
-                .thenReturn(Optional.empty());
-
-        when(answerRepository.save(
-                any(ArtworkAnswer.class)
-        )).thenAnswer(
-                invocation -> invocation.getArgument(0)
-        );
-
+    void delegatesAnswerLookup() {
         ArtworkAnswer answer =
-                service.answerQuestion(
+                mock(ArtworkAnswer.class);
+
+        when(answerService.findAnswer(
+                10L,
+                VOTER_ID
+        )).thenReturn(Optional.of(answer));
+
+        Optional<ArtworkAnswer> result =
+                service.findAnswer(
                         10L,
-                        2L,
                         VOTER_ID
                 );
 
         assertSame(
-                newer,
-                answer.getSelectedArtwork()
+                answer,
+                result.orElseThrow()
         );
-
-        assertFalse(answer.isCorrect());
     }
 
     private Artwork artwork(Long id) {
