@@ -20,11 +20,11 @@ public enum QuestionType {
             case ARTIST_BORN_EARLIER ->
                     "Which artist was born earlier?";
 
+            case ARTIST_YOUNGER_AT_CREATION ->
+                    "Which artist was younger when they created this artwork?";
+
             default ->
-                    throw new IllegalStateException(
-                            "Question type is not implemented: "
-                                    + this
-                    );
+                    throw unsupported();
         };
     }
 
@@ -36,11 +36,11 @@ public enum QuestionType {
             case ARTIST_BORN_EARLIER ->
                     "Born earlier";
 
+            case ARTIST_YOUNGER_AT_CREATION ->
+                    "Younger at creation";
+
             default ->
-                    throw new IllegalStateException(
-                            "Question type is not implemented: "
-                                    + this
-                    );
+                    throw unsupported();
         };
     }
 
@@ -52,11 +52,11 @@ public enum QuestionType {
             case ARTIST_BORN_EARLIER ->
                     "Born later";
 
+            case ARTIST_YOUNGER_AT_CREATION ->
+                    "Older at creation";
+
             default ->
-                    throw new IllegalStateException(
-                            "Question type is not implemented: "
-                                    + this
-                    );
+                    throw unsupported();
         };
     }
 
@@ -68,11 +68,11 @@ public enum QuestionType {
             case ARTIST_BORN_EARLIER ->
                     "Artist birth year";
 
+            case ARTIST_YOUNGER_AT_CREATION ->
+                    "Artist age at creation";
+
             default ->
-                    throw new IllegalStateException(
-                            "Question type is not implemented: "
-                                    + this
-                    );
+                    throw unsupported();
         };
     }
 
@@ -92,12 +92,31 @@ public enum QuestionType {
                             artwork.getArtistBeginYear()
                     );
 
+            case ARTIST_YOUNGER_AT_CREATION ->
+                    formatArtistAgeAtCreation(artwork);
+
             default ->
-                    throw new IllegalStateException(
-                            "Question type is not implemented: "
-                                    + this
-                    );
+                    throw unsupported();
         };
+    }
+
+    private String formatArtistAgeAtCreation(
+            Artwork artwork
+    ) {
+        Integer artistBirthYear =
+                artwork.getArtistBeginYear();
+
+        Integer artworkYear =
+                artwork.getObjectBeginYear();
+
+        if (artistBirthYear == null
+                || artworkYear == null) {
+            return "Unknown";
+        }
+
+        int age = artworkYear - artistBirthYear;
+
+        return age + " years old";
     }
 
     private String formatYear(Integer year) {
@@ -110,5 +129,12 @@ public enum QuestionType {
         }
 
         return Integer.toString(year);
+    }
+
+    private IllegalStateException unsupported() {
+        return new IllegalStateException(
+                "Question type is not implemented: "
+                        + this
+        );
     }
 }
