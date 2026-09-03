@@ -31,7 +31,7 @@ public class MetArtworkImportService {
     private static final String LICENSE = "CC0";
 
     private static final int
-            MAX_CANDIDATES_PER_DEPARTMENT = 1000;
+            MAX_CANDIDATES_PER_DEPARTMENT = 1500;
 
     private static final long
             REQUEST_DELAY_MILLISECONDS = 1000;
@@ -47,24 +47,12 @@ public class MetArtworkImportService {
                             "Asian Art"
                     ),
                     new MetDepartment(
-                            9,
-                            "Drawings and Prints"
-                    ),
-                    new MetDepartment(
-                            11,
-                            "European Paintings"
-                    ),
-                    new MetDepartment(
-                            14,
-                            "Islamic Art"
-                    ),
-                    new MetDepartment(
                             15,
                             "The Robert Lehman Collection"
                     ),
                     new MetDepartment(
-                            21,
-                            "Modern and Contemporary Art"
+                            11,
+                            "European Paintings"
                     )
             );
 

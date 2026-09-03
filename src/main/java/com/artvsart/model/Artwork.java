@@ -129,6 +129,9 @@ public class Artwork {
         this.originalImageUrl =
                 metadata.originalImageUrl();
 
+        this.department =
+                metadata.department();
+
         this.artistNationality =
                 metadata.artistNationality();
 
