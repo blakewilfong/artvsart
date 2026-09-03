@@ -1,10 +1,8 @@
 package com.artvsart.controller;
 
-import com.artvsart.model.Matchup;
-import com.artvsart.model.Vote;
-import com.artvsart.service.ArtworkStatisticsService;
-import com.artvsart.service.FreePlayService;
-import com.artvsart.service.VoteService;
+import com.artvsart.model.ArtworkAnswer;
+import com.artvsart.model.ArtworkQuestion;
+import com.artvsart.service.FreePlayQuestionService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,87 +17,81 @@ import java.util.Optional;
 @Controller
 public class FreePlayController {
 
-    private final FreePlayService freePlayService;
-    private final VoteService voteService;
-    private final ArtworkStatisticsService statisticsService;
+    private final FreePlayQuestionService questionService;
     private final VoterCookieManager voterCookieManager;
 
     public FreePlayController(
-            FreePlayService freePlayService,
-            VoteService voteService,
-            ArtworkStatisticsService statisticsService,
+            FreePlayQuestionService questionService,
             VoterCookieManager voterCookieManager
     ) {
-        this.freePlayService = freePlayService;
-        this.voteService = voteService;
-        this.statisticsService = statisticsService;
+        this.questionService = questionService;
         this.voterCookieManager = voterCookieManager;
     }
 
     @GetMapping("/free-play")
     public String startFreePlay() {
-        Matchup matchup = freePlayService.createMatchup();
+        ArtworkQuestion question =
+                questionService.createQuestion();
 
-        return "redirect:/free-play/" + matchup.getId();
+        return "redirect:/free-play/"
+                + question.getId();
     }
 
-    @GetMapping("/free-play/{matchupId}")
-    public String showMatchup(
-            @PathVariable Long matchupId,
+    @GetMapping("/free-play/{questionId}")
+    public String showQuestion(
+            @PathVariable Long questionId,
             @CookieValue(
                     name = VoterCookieManager.COOKIE_NAME,
                     required = false
             ) String voterId,
             Model model
     ) {
-        Matchup matchup =
-                freePlayService.getMatchup(matchupId);
+        ArtworkQuestion question =
+                questionService.getQuestion(questionId);
 
-        Optional<Vote> existingVote = Optional.empty();
+        Optional<ArtworkAnswer> existingAnswer =
+                Optional.empty();
 
         if (voterCookieManager.isValid(voterId)) {
-            existingVote = voteService.findVote(
-                    matchup.getId(),
+            existingAnswer = questionService.findAnswer(
+                    questionId,
                     voterId
             );
         }
 
-        model.addAttribute("matchup", matchup);
-        model.addAttribute("voted", existingVote.isPresent());
-        model.addAttribute("voteAction", "/free-play/vote");
+        model.addAttribute(
+                "question",
+                question
+        );
 
-        existingVote.ifPresent(vote -> {
+        model.addAttribute(
+                "answered",
+                existingAnswer.isPresent()
+        );
+
+        existingAnswer.ifPresent(answer -> {
             model.addAttribute(
                     "selectedArtworkId",
-                    vote.getSelectedArtwork().getId()
+                    answer.getSelectedArtwork().getId()
             );
 
             model.addAttribute(
-                    "outcome",
-                    vote.getOutcome()
+                    "correctArtworkId",
+                    question.getCorrectArtwork().getId()
             );
 
             model.addAttribute(
-                    "artworkOneStats",
-                    statisticsService.getStats(
-                            matchup.getArtworkOne()
-                    )
-            );
-
-            model.addAttribute(
-                    "artworkTwoStats",
-                    statisticsService.getStats(
-                            matchup.getArtworkTwo()
-                    )
+                    "answerCorrect",
+                    answer.isCorrect()
             );
         });
 
         return "free-play";
     }
 
-    @PostMapping("/free-play/vote")
-    public String vote(
-            @RequestParam Long matchupId,
+    @PostMapping("/free-play/answer")
+    public String answerQuestion(
+            @RequestParam Long questionId,
             @RequestParam Long artworkId,
             @CookieValue(
                     name = VoterCookieManager.COOKIE_NAME,
@@ -112,17 +104,15 @@ public class FreePlayController {
                 response
         );
 
-        Matchup matchup =
-                freePlayService.getMatchup(matchupId);
-
-        Vote vote = voteService.castVote(
-                matchup,
-                artworkId,
-                voterId
-        );
+        ArtworkAnswer answer =
+                questionService.answerQuestion(
+                        questionId,
+                        artworkId,
+                        voterId
+                );
 
         return "redirect:/free-play/"
-                + vote.getMatchup().getId()
+                + answer.getQuestion().getId()
                 + "?reveal=true";
     }
 }
