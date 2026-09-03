@@ -15,6 +15,10 @@ import java.time.Instant;
 @Table(name = "game_runs")
 public class GameRun {
 
+    public static final int STARTING_POINTS = 100;
+    public static final int BASE_MINIMUM_WAGER = 5;
+    public static final int WAGER_INCREASE_PER_ROUND = 5;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,6 +36,10 @@ public class GameRun {
     @Column(nullable = false)
     private int correctAnswers;
 
+    private Integer pointBalance;
+
+    private Integer highestPointBalance;
+
     @Column(nullable = false)
     private boolean active;
 
@@ -45,7 +53,8 @@ public class GameRun {
 
     private GameRun(
             GameMode gameMode,
-            String voterId
+            String voterId,
+            Integer pointBalance
     ) {
         if (gameMode == null) {
             throw new IllegalArgumentException(
@@ -63,6 +72,8 @@ public class GameRun {
         this.voterId = voterId;
         this.roundNumber = 1;
         this.correctAnswers = 0;
+        this.pointBalance = pointBalance;
+        this.highestPointBalance = pointBalance;
         this.active = true;
         this.startedAt = Instant.now();
     }
@@ -70,16 +81,24 @@ public class GameRun {
     public static GameRun startStreak(String voterId) {
         return new GameRun(
                 GameMode.STREAK,
-                voterId
+                voterId,
+                null
+        );
+    }
+
+    public static GameRun startWager(String voterId) {
+        return new GameRun(
+                GameMode.WAGER,
+                voterId,
+                STARTING_POINTS
         );
     }
 
     public void recordStreakAnswer(boolean correct) {
-        requireActiveStreakRun();
+        requireActiveMode(GameMode.STREAK);
 
         if (!correct) {
-            active = false;
-            completedAt = Instant.now();
+            completeRun();
             return;
         }
 
@@ -87,18 +106,87 @@ public class GameRun {
         roundNumber++;
     }
 
-    private void requireActiveStreakRun() {
-        if (gameMode != GameMode.STREAK) {
-            throw new IllegalStateException(
-                    "Run is not a Streak Mode run"
+    public void recordWagerAnswer(
+            boolean correct,
+            int wager
+    ) {
+        requireActiveMode(GameMode.WAGER);
+        validateWager(wager);
+
+        if (correct) {
+            pointBalance += wager;
+            correctAnswers++;
+        } else {
+            pointBalance -= wager;
+        }
+
+        highestPointBalance = Math.max(
+                highestPointBalance,
+                pointBalance
+        );
+
+        if (pointBalance == 0) {
+            completeRun();
+            return;
+        }
+
+        roundNumber++;
+    }
+
+    public int getMinimumWager() {
+        requireMode(GameMode.WAGER);
+
+        long calculatedMinimum =
+                (long) BASE_MINIMUM_WAGER
+                        + (long) (roundNumber - 1)
+                        * WAGER_INCREASE_PER_ROUND;
+
+        return (int) Math.min(
+                pointBalance,
+                calculatedMinimum
+        );
+    }
+
+    private void validateWager(int wager) {
+        int minimumWager = getMinimumWager();
+
+        if (wager < minimumWager) {
+            throw new IllegalArgumentException(
+                    "Wager must be at least "
+                            + minimumWager
             );
         }
+
+        if (wager > pointBalance) {
+            throw new IllegalArgumentException(
+                    "Wager cannot exceed the current balance"
+            );
+        }
+    }
+
+    private void requireActiveMode(GameMode requiredMode) {
+        requireMode(requiredMode);
 
         if (!active) {
             throw new IllegalStateException(
                     "Run is already complete"
             );
         }
+    }
+
+    private void requireMode(GameMode requiredMode) {
+        if (gameMode != requiredMode) {
+            throw new IllegalStateException(
+                    "Run is not a "
+                            + requiredMode
+                            + " run"
+            );
+        }
+    }
+
+    private void completeRun() {
+        active = false;
+        completedAt = Instant.now();
     }
 
     public Long getId() {
@@ -119,6 +207,18 @@ public class GameRun {
 
     public int getCorrectAnswers() {
         return correctAnswers;
+    }
+
+    public int getPointBalance() {
+        requireMode(GameMode.WAGER);
+
+        return pointBalance;
+    }
+
+    public int getHighestPointBalance() {
+        requireMode(GameMode.WAGER);
+
+        return highestPointBalance;
     }
 
     public boolean isActive() {

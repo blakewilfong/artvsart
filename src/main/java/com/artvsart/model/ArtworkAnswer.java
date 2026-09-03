@@ -45,6 +45,8 @@ public class ArtworkAnswer {
     @Column(nullable = false)
     private boolean correct;
 
+    private Integer wagerAmount;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -56,7 +58,26 @@ public class ArtworkAnswer {
             Artwork selectedArtwork,
             String voterId
     ) {
-        validate(question, selectedArtwork, voterId);
+        this(
+                question,
+                selectedArtwork,
+                voterId,
+                null
+        );
+    }
+
+    private ArtworkAnswer(
+            ArtworkQuestion question,
+            Artwork selectedArtwork,
+            String voterId,
+            Integer wagerAmount
+    ) {
+        validate(
+                question,
+                selectedArtwork,
+                voterId,
+                wagerAmount
+        );
 
         this.question = question;
         this.selectedArtwork = selectedArtwork;
@@ -64,13 +85,29 @@ public class ArtworkAnswer {
         this.correct = question.isCorrect(
                 selectedArtwork.getId()
         );
+        this.wagerAmount = wagerAmount;
         this.createdAt = Instant.now();
+    }
+
+    public static ArtworkAnswer forWager(
+            ArtworkQuestion question,
+            Artwork selectedArtwork,
+            String voterId,
+            int wagerAmount
+    ) {
+        return new ArtworkAnswer(
+                question,
+                selectedArtwork,
+                voterId,
+                wagerAmount
+        );
     }
 
     private void validate(
             ArtworkQuestion question,
             Artwork selectedArtwork,
-            String voterId
+            String voterId,
+            Integer wagerAmount
     ) {
         if (question == null) {
             throw new IllegalArgumentException(
@@ -90,6 +127,18 @@ public class ArtworkAnswer {
         if (voterId == null || voterId.isBlank()) {
             throw new IllegalArgumentException(
                     "A voter ID is required"
+            );
+        }
+
+        if (question.getGameMode() == GameMode.WAGER) {
+            if (wagerAmount == null || wagerAmount < 1) {
+                throw new IllegalArgumentException(
+                        "A positive wager is required"
+                );
+            }
+        } else if (wagerAmount != null) {
+            throw new IllegalArgumentException(
+                    "Only Wager Mode answers may contain a wager"
             );
         }
     }
@@ -112,6 +161,10 @@ public class ArtworkAnswer {
 
     public boolean isCorrect() {
         return correct;
+    }
+
+    public Integer getWagerAmount() {
+        return wagerAmount;
     }
 
     public Instant getCreatedAt() {

@@ -25,4 +25,13 @@ public interface GameRunRepository
     int findHighScoreByGameMode(
             @Param("gameMode") GameMode gameMode
     );
+
+    @Query("""
+            SELECT COALESCE(MAX(run.highestPointBalance), 0)
+            FROM GameRun run
+            WHERE run.gameMode = :gameMode
+            """)
+    int findHighestPointBalanceByGameMode(
+            @Param("gameMode") GameMode gameMode
+    );
 }

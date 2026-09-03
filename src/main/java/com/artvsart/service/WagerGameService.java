@@ -12,14 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-public class StreakGameService {
+public class WagerGameService {
 
     private final ArtworkQuestionRepository questionRepository;
     private final GameRunRepository gameRunRepository;
     private final ArtworkAnswerService answerService;
     private final OlderArtworkQuestionFactory questionFactory;
 
-    public StreakGameService(
+    public WagerGameService(
             ArtworkQuestionRepository questionRepository,
             GameRunRepository gameRunRepository,
             ArtworkAnswerService answerService,
@@ -38,10 +38,10 @@ public class StreakGameService {
         GameRun run = gameRunRepository
                 .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
                         voterId,
-                        GameMode.STREAK
+                        GameMode.WAGER
                 )
                 .orElseGet(() -> gameRunRepository.save(
-                        GameRun.startStreak(voterId)
+                        GameRun.startWager(voterId)
                 ));
 
         return questionFactory.getOrCreateForRun(run);
@@ -60,10 +60,10 @@ public class StreakGameService {
                         "Question does not exist"
                 ));
 
-        if (question.getGameMode() != GameMode.STREAK
+        if (question.getGameMode() != GameMode.WAGER
                 || !question.belongsToRun()) {
             throw new IllegalArgumentException(
-                    "Question is not a Streak Mode question"
+                    "Question is not a Wager Mode question"
             );
         }
 
@@ -82,6 +82,7 @@ public class StreakGameService {
     public ArtworkAnswer answerQuestion(
             Long questionId,
             Long selectedArtworkId,
+            int wagerAmount,
             String voterId
     ) {
         ArtworkQuestion question =
@@ -101,7 +102,7 @@ public class StreakGameService {
 
         if (!run.isActive()) {
             throw new IllegalStateException(
-                    "Streak run is already complete"
+                    "Wager run is already complete"
             );
         }
 
@@ -113,14 +114,16 @@ public class StreakGameService {
         }
 
         ArtworkAnswer answer =
-                answerService.answerQuestion(
+                answerService.answerWagerQuestion(
                         question,
                         selectedArtworkId,
-                        voterId
+                        voterId,
+                        wagerAmount
                 );
 
-        run.recordStreakAnswer(
-                answer.isCorrect()
+        run.recordWagerAnswer(
+                answer.isCorrect(),
+                answer.getWagerAmount()
         );
 
         gameRunRepository.save(run);
@@ -141,9 +144,10 @@ public class StreakGameService {
 
     @Transactional(readOnly = true)
     public int getGlobalHighScore() {
-        return gameRunRepository.findHighScoreByGameMode(
-                GameMode.STREAK
-        );
+        return gameRunRepository
+                .findHighestPointBalanceByGameMode(
+                        GameMode.WAGER
+                );
     }
 
     private void validateVoterId(String voterId) {

@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class StreakGameServiceTest {
+class WagerGameServiceTest {
 
     private static final String VOTER_ID = "voter-1";
 
@@ -37,11 +38,11 @@ class StreakGameServiceTest {
     @Mock
     private OlderArtworkQuestionFactory questionFactory;
 
-    private StreakGameService service;
+    private WagerGameService service;
 
     @BeforeEach
     void setUp() {
-        service = new StreakGameService(
+        service = new WagerGameService(
                 questionRepository,
                 gameRunRepository,
                 answerService,
@@ -50,9 +51,9 @@ class StreakGameServiceTest {
     }
 
     @Test
-    void startsNewRunAndCreatesQuestion() {
+    void startsNewWagerRunAndCreatesQuestion() {
         GameRun run =
-                GameRun.startStreak(VOTER_ID);
+                GameRun.startWager(VOTER_ID);
 
         ArtworkQuestion question =
                 mock(ArtworkQuestion.class);
@@ -60,7 +61,7 @@ class StreakGameServiceTest {
         when(gameRunRepository
                 .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
                         VOTER_ID,
-                        GameMode.STREAK
+                        GameMode.WAGER
                 ))
                 .thenReturn(Optional.empty());
 
@@ -78,9 +79,9 @@ class StreakGameServiceTest {
     }
 
     @Test
-    void resumesExistingActiveRun() {
+    void resumesExistingActiveWagerRun() {
         GameRun run =
-                GameRun.startStreak(VOTER_ID);
+                GameRun.startWager(VOTER_ID);
 
         ArtworkQuestion question =
                 mock(ArtworkQuestion.class);
@@ -88,7 +89,7 @@ class StreakGameServiceTest {
         when(gameRunRepository
                 .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
                         VOTER_ID,
-                        GameMode.STREAK
+                        GameMode.WAGER
                 ))
                 .thenReturn(Optional.of(run));
 
@@ -102,7 +103,7 @@ class StreakGameServiceTest {
     }
 
     @Test
-    void correctAnswerAdvancesStreakRun() {
+    void recordsAnswerAndAppliesWagerToRun() {
         ArtworkQuestion question =
                 mock(ArtworkQuestion.class);
 
@@ -116,7 +117,7 @@ class StreakGameServiceTest {
                 .thenReturn(Optional.of(question));
 
         when(question.getGameMode())
-                .thenReturn(GameMode.STREAK);
+                .thenReturn(GameMode.WAGER);
 
         when(question.belongsToRun())
                 .thenReturn(true);
@@ -141,30 +142,39 @@ class StreakGameServiceTest {
                 VOTER_ID
         )).thenReturn(Optional.empty());
 
-        when(answerService.answerQuestion(
+        when(answerService.answerWagerQuestion(
                 question,
                 1L,
-                VOTER_ID
+                VOTER_ID,
+                20
         )).thenReturn(answer);
 
         when(answer.isCorrect())
                 .thenReturn(true);
 
+        when(answer.getWagerAmount())
+                .thenReturn(20);
+
         ArtworkAnswer result =
                 service.answerQuestion(
                         10L,
                         1L,
+                        20,
                         VOTER_ID
                 );
 
         assertSame(answer, result);
 
-        verify(run).recordStreakAnswer(true);
+        verify(run).recordWagerAnswer(
+                true,
+                20
+        );
+
         verify(gameRunRepository).save(run);
     }
 
     @Test
-    void existingAnswerDoesNotAdvanceRunAgain() {
+    void returnsExistingAnswerWithoutApplyingWagerAgain() {
         ArtworkQuestion question =
                 mock(ArtworkQuestion.class);
 
@@ -178,7 +188,7 @@ class StreakGameServiceTest {
                 .thenReturn(Optional.of(question));
 
         when(question.getGameMode())
-                .thenReturn(GameMode.STREAK);
+                .thenReturn(GameMode.WAGER);
 
         when(question.belongsToRun())
                 .thenReturn(true);
@@ -198,9 +208,24 @@ class StreakGameServiceTest {
                 service.answerQuestion(
                         10L,
                         1L,
+                        20,
                         VOTER_ID
                 );
 
         assertSame(existingAnswer, result);
+    }
+
+    @Test
+    void returnsGlobalHighestBankroll() {
+        when(gameRunRepository
+                .findHighestPointBalanceByGameMode(
+                        GameMode.WAGER
+                ))
+                .thenReturn(425);
+
+        int highScore =
+                service.getGlobalHighScore();
+
+        assertEquals(425, highScore);
     }
 }

@@ -26,6 +26,53 @@ public class ArtworkAnswerService {
             Long selectedArtworkId,
             String voterId
     ) {
+        return recordAnswer(
+                question,
+                selectedArtworkId,
+                voterId,
+                null
+        );
+    }
+
+    @Transactional
+    public ArtworkAnswer answerWagerQuestion(
+            ArtworkQuestion question,
+            Long selectedArtworkId,
+            String voterId,
+            int wagerAmount
+    ) {
+        return recordAnswer(
+                question,
+                selectedArtworkId,
+                voterId,
+                wagerAmount
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ArtworkAnswer> findAnswer(
+            Long questionId,
+            String voterId
+    ) {
+        if (questionId == null
+                || voterId == null
+                || voterId.isBlank()) {
+            return Optional.empty();
+        }
+
+        return answerRepository
+                .findByQuestionIdAndVoterId(
+                        questionId,
+                        voterId
+                );
+    }
+
+    private ArtworkAnswer recordAnswer(
+            ArtworkQuestion question,
+            Long selectedArtworkId,
+            String voterId,
+            Integer wagerAmount
+    ) {
         if (question == null || question.getId() == null) {
             throw new IllegalArgumentException(
                     "A saved question is required"
@@ -54,31 +101,24 @@ public class ArtworkAnswerService {
                 selectedArtworkId
         );
 
-        ArtworkAnswer answer = new ArtworkAnswer(
-                question,
-                selectedArtwork,
-                voterId
-        );
+        ArtworkAnswer answer;
 
-        return answerRepository.save(answer);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<ArtworkAnswer> findAnswer(
-            Long questionId,
-            String voterId
-    ) {
-        if (questionId == null
-                || voterId == null
-                || voterId.isBlank()) {
-            return Optional.empty();
+        if (wagerAmount == null) {
+            answer = new ArtworkAnswer(
+                    question,
+                    selectedArtwork,
+                    voterId
+            );
+        } else {
+            answer = ArtworkAnswer.forWager(
+                    question,
+                    selectedArtwork,
+                    voterId,
+                    wagerAmount
+            );
         }
 
-        return answerRepository
-                .findByQuestionIdAndVoterId(
-                        questionId,
-                        voterId
-                );
+        return answerRepository.save(answer);
     }
 
     private Artwork resolveSelectedArtwork(
