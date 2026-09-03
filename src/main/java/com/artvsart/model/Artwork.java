@@ -1,12 +1,22 @@
 package com.artvsart.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 @Entity
 @Table(
@@ -37,11 +47,14 @@ public class Artwork {
     )
     private String sourceArtworkId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2048)
     private String title;
 
+    @Column(length = 512)
     private String artistName;
     private String department;
+
+    @Column(length = 256)
     private String dateDisplay;
 
     @Column(nullable = false, length = 1000)
@@ -73,8 +86,16 @@ public class Artwork {
 
     private String country;
 
-    @Column(length = 1000)
+    @Column(length = 2048)
     private String medium;
+
+    @OneToMany(
+            mappedBy = "artwork",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
+    )
+    private List<ArtworkStyle> styles = new ArrayList<>();
 
     protected Artwork() {
     }
@@ -192,6 +213,20 @@ public class Artwork {
         return sourceUrl;
     }
 
+    public String getSourceCredit() {
+        if (source == null) {
+            return null;
+        }
+
+        return switch (source.toLowerCase(Locale.ROOT)) {
+            case "met" ->
+                    "Source: The Metropolitan Museum of Art";
+            case "nga" ->
+                    "Courtesy National Gallery of Art, Washington";
+            default -> "Source: " + source;
+        };
+    }
+
     public String getLicense() {
         return license;
     }
@@ -226,5 +261,92 @@ public class Artwork {
 
     public String getMedium() {
         return medium;
+    }
+
+    public void replaceStyles(
+            Collection<StyleDefinition> definitions
+    ) {
+        if (definitions == null) {
+            throw new IllegalArgumentException(
+                    "Artwork styles are required"
+            );
+        }
+
+        styles.clear();
+        addStyles(definitions);
+    }
+
+    public void replaceStylesFromSource(
+            String source,
+            Collection<StyleDefinition> definitions
+    ) {
+        if (source == null || source.isBlank()) {
+            throw new IllegalArgumentException(
+                    "An artwork style source is required"
+            );
+        }
+
+        if (definitions == null) {
+            throw new IllegalArgumentException(
+                    "Artwork styles are required"
+            );
+        }
+
+        boolean containsAnotherSource = definitions.stream()
+                .anyMatch(definition -> !source.equalsIgnoreCase(
+                        definition.source()
+                ));
+
+        if (containsAnotherSource) {
+            throw new IllegalArgumentException(
+                    "Artwork style definitions must match their source"
+            );
+        }
+
+        styles.removeIf(style -> source.equalsIgnoreCase(
+                style.getSource()
+        ));
+        addStyles(definitions);
+    }
+
+    private void addStyles(
+            Collection<StyleDefinition> definitions
+    ) {
+
+        definitions.stream()
+                .distinct()
+                .map(definition -> new ArtworkStyle(
+                        this,
+                        definition.type(),
+                        definition.label(),
+                        definition.source()
+                ))
+                .forEach(styles::add);
+    }
+
+    public List<ArtworkStyle> getStyles() {
+        return styles.stream()
+                .sorted(Comparator.comparing(
+                        ArtworkStyle::getDisplayLabel,
+                        String.CASE_INSENSITIVE_ORDER
+                ))
+                .toList();
+    }
+
+    public Optional<String> findStyleDisplayLabel(
+            String normalizedLabel
+    ) {
+        return styles.stream()
+                .filter(style -> style.getNormalizedLabel()
+                        .equals(normalizedLabel))
+                .map(ArtworkStyle::getDisplayLabel)
+                .findFirst();
+    }
+
+    public record StyleDefinition(
+            ArtworkStyleType type,
+            String label,
+            String source
+    ) {
     }
 }

@@ -17,4 +17,12 @@ public interface ArtworkQuestionStrategy {
             Artwork artworkOne,
             Artwork artworkTwo
     );
+
+    default String getQuestionParameter(
+            Artwork artworkOne,
+            Artwork artworkTwo,
+            int roundNumber
+    ) {
+        return null;
+    }
 }

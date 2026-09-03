@@ -18,9 +18,11 @@
 </head>
 <body
         class="streak-page"
-        th:classappend="${answered}
+        th:classappend="|${answered
             ? ' streak-page--answered'
-            : ''"
+            : ''}${!run.active
+            ? ' streak-page--complete'
+            : ''}|"
 >
 <header class="site-header">
     <h1 class="brand">
@@ -49,13 +51,19 @@
                 </span>
 
                 <span
-                        th:text="|Record ${highScore}|"
+                        th:text="|Today ${dailyHighScore}|"
                 >
-                    Record
+                    Today's record
+                </span>
+
+                <span
+                        th:text="|All time ${highScore}|"
+                >
+                    All-time record
                 </span>
             </div>
 
-            <h2 th:text="${question.questionType.prompt}">
+            <h2 th:text="${question.prompt}">
                 Question
             </h2>
         </header>
@@ -161,15 +169,15 @@
                                 class="rate-result"
                                 th:text="${correctArtworkId
                                     == question.artworkOne.id
-                                    ? question.questionType.correctAnswerLabel
-                                    : question.questionType.incorrectAnswerLabel}"
+                                    ? question.correctAnswerLabel
+                                    : question.incorrectAnswerLabel}"
                         >
                             Result
                         </span>
 
                         <strong
                                 class="rate-value"
-                                th:text="${question.questionType.displayValue(
+                                th:text="${question.displayValue(
                                     question.artworkOne
                                 )}"
                         >
@@ -178,7 +186,7 @@
 
                         <span
                                 class="rate-label"
-                                th:text="${question.questionType.valueLabel}"
+                                th:text="${question.valueLabel}"
                         >
                             Answer value
                         </span>
@@ -198,6 +206,18 @@
                     >
                         Artist
                     </p>
+
+                    <a
+                            class="artwork-source-link"
+                            th:if="${question.artworkOne.sourceUrl != null
+                                and !#strings.isEmpty(question.artworkOne.sourceUrl)}"
+                            th:href="${question.artworkOne.sourceUrl}"
+                            th:text="${question.artworkOne.sourceCredit}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                    >
+                        Artwork source
+                    </a>
 
                     <span
                             class="selected-badge"
@@ -277,15 +297,15 @@
                                 class="rate-result"
                                 th:text="${correctArtworkId
                                     == question.artworkTwo.id
-                                    ? question.questionType.correctAnswerLabel
-                                    : question.questionType.incorrectAnswerLabel}"
+                                    ? question.correctAnswerLabel
+                                    : question.incorrectAnswerLabel}"
                         >
                             Result
                         </span>
 
                         <strong
                                 class="rate-value"
-                                th:text="${question.questionType.displayValue(
+                                th:text="${question.displayValue(
                                     question.artworkTwo
                                 )}"
                         >
@@ -294,7 +314,7 @@
 
                         <span
                                 class="rate-label"
-                                th:text="${question.questionType.valueLabel}"
+                                th:text="${question.valueLabel}"
                         >
                             Answer value
                         </span>
@@ -315,6 +335,18 @@
                         Artist
                     </p>
 
+                    <a
+                            class="artwork-source-link"
+                            th:if="${question.artworkTwo.sourceUrl != null
+                                and !#strings.isEmpty(question.artworkTwo.sourceUrl)}"
+                            th:href="${question.artworkTwo.sourceUrl}"
+                            th:text="${question.artworkTwo.sourceCredit}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                    >
+                        Artwork source
+                    </a>
+
                     <span
                             class="selected-badge"
                             th:if="${selectedArtworkId
@@ -326,9 +358,162 @@
             </article>
         </div>
 
+        <section
+                class="leaderboard-panel"
+                th:if="${leaderboard != null}"
+                aria-labelledby="final-score-heading"
+        >
+            <header class="leaderboard-summary">
+                <p class="outcome-label">Run complete</p>
+
+                <h2 id="final-score-heading">
+                    Final score
+                    <strong th:text="${leaderboard.finalScore}">0</strong>
+                </h2>
+
+                <div class="record-badges">
+                    <span th:if="${leaderboard.newDailyRecord}">
+                        New daily record
+                    </span>
+
+                    <span th:if="${leaderboard.newAllTimeRecord}">
+                        New all-time record
+                    </span>
+                </div>
+
+                <form
+                        class="score-name-form"
+                        th:if="${leaderboard.nameEligible
+                            and !leaderboard.named}"
+                        method="post"
+                        th:action="@{/streak/score/name}"
+                        action="/streak/score/name"
+                >
+                    <input
+                            type="hidden"
+                            name="questionId"
+                            th:value="${question.id}"
+                    >
+
+                    <input
+                            type="hidden"
+                            name="runId"
+                            th:value="${run.id}"
+                    >
+
+                    <label for="displayName">
+                        You made a top 10. Add your name.
+                    </label>
+
+                    <div>
+                        <input
+                                id="displayName"
+                                name="displayName"
+                                type="text"
+                                maxlength="24"
+                                autocomplete="nickname"
+                                required
+                        >
+
+                        <button type="submit">Save name</button>
+                    </div>
+                </form>
+
+                <p class="player-best">
+                    <span>Your best</span>
+                    <strong th:text="${leaderboard.playerBest.score}">0</strong>
+                    <span
+                            th:text="|on ${#temporals.format(
+                                leaderboard.playerBest.achievedOn,
+                                'MMM d, yyyy'
+                            )}|"
+                    >
+                        on Jan 1, 2026
+                    </span>
+                </p>
+
+                <a
+                        class="primary-link leaderboard-restart"
+                        href="/streak"
+                >
+                    Start new run
+                </a>
+            </header>
+
+            <div class="leaderboard-lists">
+                <section>
+                    <h3>Today's top 10</h3>
+                    <p class="leaderboard-record">
+                        High score:
+                        <strong
+                                th:text="${leaderboard.dailyHighScore}"
+                        >
+                            0
+                        </strong>
+                    </p>
+
+                    <ol class="score-list">
+                        <li
+                                th:each="row : ${leaderboard.dailyScores}"
+                                th:classappend="${row.currentRun}
+                                    ? ' score-list__current'
+                                    : ''"
+                        >
+                            <span
+                                    class="score-rank"
+                                    th:text="|${row.rank}.|"
+                            >
+                                1.
+                            </span>
+
+                            <span th:text="${row.playerName}">
+                                Anonymous
+                            </span>
+
+                            <strong th:text="${row.score}">0</strong>
+                        </li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3>All-time top 10</h3>
+                    <p class="leaderboard-record">
+                        High score:
+                        <strong
+                                th:text="${leaderboard.allTimeHighScore}"
+                        >
+                            0
+                        </strong>
+                    </p>
+
+                    <ol class="score-list">
+                        <li
+                                th:each="row : ${leaderboard.allTimeScores}"
+                                th:classappend="${row.currentRun}
+                                    ? ' score-list__current'
+                                    : ''"
+                        >
+                            <span
+                                    class="score-rank"
+                                    th:text="|${row.rank}.|"
+                            >
+                                1.
+                            </span>
+
+                            <span th:text="${row.playerName}">
+                                Anonymous
+                            </span>
+
+                            <strong th:text="${row.score}">0</strong>
+                        </li>
+                    </ol>
+                </section>
+            </div>
+        </section>
+
         <nav
                 class="round-navigation"
-                th:if="${answered}"
+                th:if="${answered and run.active}"
         >
             <a
                     class="primary-link"
@@ -338,13 +523,6 @@
                 Next question
             </a>
 
-            <a
-                    class="primary-link"
-                    th:if="${!answerCorrect}"
-                    href="/streak"
-            >
-                Start new run
-            </a>
         </nav>
     </section>
 </main>

@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -109,8 +110,14 @@ class ArtworkQuestionFactoryTest {
 
         when(strategy.getQuestionType())
                 .thenReturn(
-                        QuestionType.OLDER_ARTWORK
+                        QuestionType.ARTIST_NATIONALITY
                 );
+
+        when(strategy.getQuestionParameter(
+                artworkOne,
+                artworkTwo,
+                1
+        )).thenReturn("French");
 
         when(questionRepository.save(
                 any(ArtworkQuestion.class)
@@ -129,9 +136,11 @@ class ArtworkQuestionFactoryTest {
                 factory.getOrCreateForRun(run);
 
         assertSame(
-                QuestionType.OLDER_ARTWORK,
+                QuestionType.ARTIST_NATIONALITY,
                 question.getQuestionType()
         );
+
+        assertEquals("French", question.getQuestionParameter());
 
         assertSame(
                 artworkOne,

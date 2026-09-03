@@ -77,7 +77,7 @@
                 </span>
             </div>
 
-            <h2 th:text="${question.questionType.prompt}">
+            <h2 th:text="${question.prompt}">
                 Question
             </h2>
         </header>
@@ -228,15 +228,15 @@
                                 class="rate-result"
                                 th:text="${correctArtworkId
                                     == question.artworkOne.id
-                                    ? question.questionType.correctAnswerLabel
-                                    : question.questionType.incorrectAnswerLabel}"
+                                    ? question.correctAnswerLabel
+                                    : question.incorrectAnswerLabel}"
                         >
                             Result
                         </span>
 
                         <strong
                                 class="rate-value"
-                                th:text="${question.questionType.displayValue(
+                                th:text="${question.displayValue(
                                     question.artworkOne
                                 )}"
                         >
@@ -245,7 +245,7 @@
 
                         <span
                                 class="rate-label"
-                                th:text="${question.questionType.valueLabel}"
+                                th:text="${question.valueLabel}"
                         >
                             Answer value
                         </span>
@@ -265,6 +265,18 @@
                     >
                         Artist
                     </p>
+
+                    <a
+                            class="artwork-source-link"
+                            th:if="${question.artworkOne.sourceUrl != null
+                                and !#strings.isEmpty(question.artworkOne.sourceUrl)}"
+                            th:href="${question.artworkOne.sourceUrl}"
+                            th:text="${question.artworkOne.sourceCredit}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                    >
+                        Artwork source
+                    </a>
 
                     <span
                             class="selected-badge"
@@ -307,15 +319,15 @@
                                 class="rate-result"
                                 th:text="${correctArtworkId
                                     == question.artworkTwo.id
-                                    ? question.questionType.correctAnswerLabel
-                                    : question.questionType.incorrectAnswerLabel}"
+                                    ? question.correctAnswerLabel
+                                    : question.incorrectAnswerLabel}"
                         >
                             Result
                         </span>
 
                         <strong
                                 class="rate-value"
-                                th:text="${question.questionType.displayValue(
+                                th:text="${question.displayValue(
                                     question.artworkTwo
                                 )}"
                         >
@@ -324,7 +336,7 @@
 
                         <span
                                 class="rate-label"
-                                th:text="${question.questionType.valueLabel}"
+                                th:text="${question.valueLabel}"
                         >
                             Answer value
                         </span>
@@ -344,6 +356,18 @@
                     >
                         Artist
                     </p>
+
+                    <a
+                            class="artwork-source-link"
+                            th:if="${question.artworkTwo.sourceUrl != null
+                                and !#strings.isEmpty(question.artworkTwo.sourceUrl)}"
+                            th:href="${question.artworkTwo.sourceUrl}"
+                            th:text="${question.artworkTwo.sourceCredit}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                    >
+                        Artwork source
+                    </a>
 
                     <span
                             class="selected-badge"

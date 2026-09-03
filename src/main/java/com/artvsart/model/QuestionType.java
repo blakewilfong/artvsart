@@ -9,10 +9,15 @@ public enum QuestionType {
     ARTWORK_CULTURE,
     ARTWORK_MEDIUM,
     ARTWORK_SUBJECT,
+    ARTWORK_STYLE,
     LARGER_ARTWORK,
     BEFORE_HISTORICAL_EVENT;
 
     public String getPrompt() {
+        return getPrompt(null);
+    }
+
+    public String getPrompt(String parameter) {
         return switch (this) {
             case OLDER_ARTWORK ->
                     "Which artwork is older?";
@@ -22,6 +27,28 @@ public enum QuestionType {
 
             case ARTIST_YOUNGER_AT_CREATION ->
                     "Which artist was younger when they created this artwork?";
+
+            case ARTIST_NATIONALITY ->
+                    "Which artwork was created by "
+                            + indefiniteArticle(parameter)
+                            + " "
+                            + required(parameter)
+                            + " artist?";
+
+            case ARTWORK_MEDIUM ->
+                    "Which artwork was made with "
+                            + medium(parameter).getDisplayName()
+                            + "?";
+
+            case ARTWORK_STYLE ->
+                    "Which artwork is associated with the "
+                            + required(parameter)
+                            + " tradition?";
+
+            case BEFORE_HISTORICAL_EVENT ->
+                    "Which artwork was created before "
+                            + event(parameter).getDisplayName()
+                            + "?";
 
             default ->
                     throw unsupported();
@@ -39,6 +66,12 @@ public enum QuestionType {
             case ARTIST_YOUNGER_AT_CREATION ->
                     "Younger at creation";
 
+            case ARTIST_NATIONALITY,
+                 ARTWORK_MEDIUM,
+                 ARTWORK_STYLE -> "Matches";
+
+            case BEFORE_HISTORICAL_EVENT -> "Before";
+
             default ->
                     throw unsupported();
         };
@@ -54,6 +87,12 @@ public enum QuestionType {
 
             case ARTIST_YOUNGER_AT_CREATION ->
                     "Older at creation";
+
+            case ARTIST_NATIONALITY,
+                 ARTWORK_MEDIUM,
+                 ARTWORK_STYLE -> "Does not match";
+
+            case BEFORE_HISTORICAL_EVENT -> "Not before";
 
             default ->
                     throw unsupported();
@@ -71,12 +110,27 @@ public enum QuestionType {
             case ARTIST_YOUNGER_AT_CREATION ->
                     "Artist age at creation";
 
+            case ARTIST_NATIONALITY -> "Artist nationality";
+
+            case ARTWORK_MEDIUM -> "Medium";
+
+            case ARTWORK_STYLE -> "Style or school";
+
+            case BEFORE_HISTORICAL_EVENT -> "Artwork date";
+
             default ->
                     throw unsupported();
         };
     }
 
     public String displayValue(Artwork artwork) {
+        return displayValue(artwork, null);
+    }
+
+    public String displayValue(
+            Artwork artwork,
+            String parameter
+    ) {
         if (artwork == null) {
             throw new IllegalArgumentException(
                     "An artwork is required"
@@ -95,9 +149,69 @@ public enum QuestionType {
             case ARTIST_YOUNGER_AT_CREATION ->
                     formatArtistAgeAtCreation(artwork);
 
+            case ARTIST_NATIONALITY ->
+                    valueOrUnknown(artwork.getArtistNationality());
+
+            case ARTWORK_MEDIUM ->
+                    valueOrUnknown(artwork.getMedium());
+
+            case ARTWORK_STYLE -> artwork.getStyles().isEmpty()
+                    ? "No style recorded"
+                    : artwork.getStyles().stream()
+                    .map(ArtworkStyle::getDisplayLabel)
+                    .distinct()
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .reduce((first, second) -> first + ", " + second)
+                    .orElse("No style recorded");
+
+            case BEFORE_HISTORICAL_EVENT ->
+                    artwork.getDateDisplay();
+
             default ->
                     throw unsupported();
         };
+    }
+
+    public boolean requiresParameter() {
+        return this == ARTIST_NATIONALITY
+                || this == ARTWORK_MEDIUM
+                || this == ARTWORK_STYLE
+                || this == BEFORE_HISTORICAL_EVENT;
+    }
+
+    private ArtworkMediumCategory medium(String parameter) {
+        return ArtworkMediumCategory.valueOf(required(parameter));
+    }
+
+    private HistoricalEvent event(String parameter) {
+        return HistoricalEvent.valueOf(required(parameter));
+    }
+
+    private String required(String parameter) {
+        if (parameter == null || parameter.isBlank()) {
+            throw new IllegalStateException(
+                    "Question type requires a parameter: " + this
+            );
+        }
+
+        return parameter;
+    }
+
+    private String indefiniteArticle(String value) {
+        String requiredValue = required(value);
+        char firstLetter = Character.toLowerCase(
+                requiredValue.charAt(0)
+        );
+
+        return "aeiou".indexOf(firstLetter) >= 0
+                ? "an"
+                : "a";
+    }
+
+    private String valueOrUnknown(String value) {
+        return value == null || value.isBlank()
+                ? "Unknown"
+                : value;
     }
 
     private String formatArtistAgeAtCreation(

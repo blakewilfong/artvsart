@@ -75,4 +75,37 @@ class ArtworkTest {
                 artwork.getMedium()
         );
     }
+
+    @Test
+    void providesTheMetSourceCredit() {
+        Artwork artwork = artworkFrom("met");
+
+        assertEquals(
+                "Source: The Metropolitan Museum of Art",
+                artwork.getSourceCredit()
+        );
+    }
+
+    @Test
+    void providesNgaRequestedSourceCredit() {
+        Artwork artwork = artworkFrom("nga");
+
+        assertEquals(
+                "Courtesy National Gallery of Art, Washington",
+                artwork.getSourceCredit()
+        );
+    }
+
+    private Artwork artworkFrom(String source) {
+        return new Artwork(
+                source,
+                "123",
+                "Example Artwork",
+                "Example Artist",
+                "1875",
+                "small-image.jpg",
+                "https://example.com/artwork",
+                "CC0"
+        );
+    }
 }

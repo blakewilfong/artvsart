@@ -11,6 +11,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(
@@ -36,8 +38,12 @@ public class ArtworkQuestion {
     private GameMode gameMode;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 40)
     private QuestionType questionType;
+
+    @Column(name = "question_parameter", length = 256)
+    private String questionParameter;
 
     @ManyToOne
     @JoinColumn(name = "game_run_id")
@@ -75,7 +81,8 @@ public class ArtworkQuestion {
                 null,
                 artworkOne,
                 artworkTwo,
-                correctArtwork
+                correctArtwork,
+                null
         );
     }
 
@@ -86,7 +93,8 @@ public class ArtworkQuestion {
             Integer roundNumber,
             Artwork artworkOne,
             Artwork artworkTwo,
-            Artwork correctArtwork
+            Artwork correctArtwork,
+            String questionParameter
     ) {
         validate(
                 gameMode,
@@ -95,7 +103,8 @@ public class ArtworkQuestion {
                 roundNumber,
                 artworkOne,
                 artworkTwo,
-                correctArtwork
+                correctArtwork,
+                questionParameter
         );
 
         this.gameMode = gameMode;
@@ -105,6 +114,7 @@ public class ArtworkQuestion {
         this.artworkOne = artworkOne;
         this.artworkTwo = artworkTwo;
         this.correctArtwork = correctArtwork;
+        this.questionParameter = questionParameter;
     }
 
     public static ArtworkQuestion forRun(
@@ -113,7 +123,8 @@ public class ArtworkQuestion {
             QuestionType questionType,
             Artwork artworkOne,
             Artwork artworkTwo,
-            Artwork correctArtwork
+            Artwork correctArtwork,
+            String questionParameter
     ) {
         if (gameRun == null) {
             throw new IllegalArgumentException(
@@ -128,7 +139,8 @@ public class ArtworkQuestion {
                 roundNumber,
                 artworkOne,
                 artworkTwo,
-                correctArtwork
+                correctArtwork,
+                questionParameter
         );
     }
 
@@ -162,7 +174,8 @@ public class ArtworkQuestion {
             Integer roundNumber,
             Artwork artworkOne,
             Artwork artworkTwo,
-            Artwork correctArtwork
+            Artwork correctArtwork,
+            String questionParameter
     ) {
         if (gameMode == null) {
             throw new IllegalArgumentException(
@@ -179,6 +192,14 @@ public class ArtworkQuestion {
         if (questionType == null) {
             throw new IllegalArgumentException(
                     "A question type is required"
+            );
+        }
+
+        if (questionType.requiresParameter()
+                && (questionParameter == null
+                || questionParameter.isBlank())) {
+            throw new IllegalArgumentException(
+                    "This question type requires a parameter"
             );
         }
 
@@ -246,6 +267,33 @@ public class ArtworkQuestion {
 
     public QuestionType getQuestionType() {
         return questionType;
+    }
+
+    public String getQuestionParameter() {
+        return questionParameter;
+    }
+
+    public String getPrompt() {
+        return questionType.getPrompt(questionParameter);
+    }
+
+    public String getCorrectAnswerLabel() {
+        return questionType.getCorrectAnswerLabel();
+    }
+
+    public String getIncorrectAnswerLabel() {
+        return questionType.getIncorrectAnswerLabel();
+    }
+
+    public String getValueLabel() {
+        return questionType.getValueLabel();
+    }
+
+    public String displayValue(Artwork artwork) {
+        return questionType.displayValue(
+                artwork,
+                questionParameter
+        );
     }
 
     public GameRun getGameRun() {

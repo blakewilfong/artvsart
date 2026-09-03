@@ -100,6 +100,13 @@ public class ArtworkQuestionFactory {
                             selectedPair.artworkTwo()
                     );
 
+            String questionParameter =
+                    strategy.getQuestionParameter(
+                            selectedPair.artworkOne(),
+                            selectedPair.artworkTwo(),
+                            run.getRoundNumber()
+                    );
+
             ArtworkQuestion question =
                     ArtworkQuestion.forRun(
                             run,
@@ -107,7 +114,8 @@ public class ArtworkQuestionFactory {
                             strategy.getQuestionType(),
                             selectedPair.artworkOne(),
                             selectedPair.artworkTwo(),
-                            correctArtwork
+                            correctArtwork,
+                            questionParameter
                     );
 
             return questionRepository.save(question);
