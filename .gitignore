@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local repository context
+AGENTS.md
+docs/PRODUCT_VISION.md
