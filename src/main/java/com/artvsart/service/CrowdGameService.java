@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
-public class FreePlayService {
+public class CrowdGameService {
 
     private final ArtworkService artworkService;
     private final MatchupRepository matchupRepository;
 
-    public FreePlayService(
+    public CrowdGameService(
             ArtworkService artworkService,
             MatchupRepository matchupRepository
     ) {
@@ -46,7 +46,7 @@ public class FreePlayService {
             secondIndex++;
         }
 
-        Matchup matchup = Matchup.forFreePlay(
+        Matchup matchup = Matchup.forCrowd(
                 artworks.get(firstIndex),
                 artworks.get(secondIndex)
         );
@@ -56,18 +56,10 @@ public class FreePlayService {
 
     @Transactional(readOnly = true)
     public Matchup getMatchup(Long matchupId) {
-        Matchup matchup = matchupRepository
+        return matchupRepository
                 .findById(matchupId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Matchup does not exist"
                 ));
-
-        if (matchup.isDailyGameMatchup()) {
-            throw new IllegalArgumentException(
-                    "Matchup is not a free-play matchup"
-            );
-        }
-
-        return matchup;
     }
 }
