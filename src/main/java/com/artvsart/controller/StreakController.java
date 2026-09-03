@@ -94,6 +94,11 @@ public class StreakController {
         );
 
         model.addAttribute(
+                "dailyHighScore",
+                streakGameService.getDailyHighScore()
+        );
+
+        model.addAttribute(
                 "answered",
                 existingAnswer.isPresent()
         );
@@ -113,6 +118,16 @@ public class StreakController {
                     "answerCorrect",
                     answer.isCorrect()
             );
+
+            if (!run.isActive()) {
+                model.addAttribute(
+                        "leaderboard",
+                        streakGameService.getLeaderboard(
+                                run.getId(),
+                                voterId
+                        )
+                );
+            }
         });
 
         return "streak";
@@ -141,5 +156,28 @@ public class StreakController {
         return "redirect:/streak/"
                 + answer.getQuestion().getId()
                 + "?reveal=true";
+    }
+
+    @PostMapping("/streak/score/name")
+    public String nameScore(
+            @RequestParam Long questionId,
+            @RequestParam Long runId,
+            @RequestParam String displayName,
+            @CookieValue(
+                    name = VoterCookieManager.COOKIE_NAME,
+                    required = false
+            ) String voterId
+    ) {
+        if (!voterCookieManager.isValid(voterId)) {
+            return "redirect:/streak";
+        }
+
+        streakGameService.nameScore(
+                runId,
+                voterId,
+                displayName
+        );
+
+        return "redirect:/streak/" + questionId;
     }
 }

@@ -18,17 +18,23 @@ public class StreakGameService {
     private final GameRunRepository gameRunRepository;
     private final ArtworkAnswerService answerService;
     private final ArtworkQuestionFactory questionFactory;
+    private final LeaderboardService leaderboardService;
+    private final StreakLeaderboardScoreProvider scoreProvider;
 
     public StreakGameService(
             ArtworkQuestionRepository questionRepository,
             GameRunRepository gameRunRepository,
             ArtworkAnswerService answerService,
-            ArtworkQuestionFactory questionFactory
+            ArtworkQuestionFactory questionFactory,
+            LeaderboardService leaderboardService,
+            StreakLeaderboardScoreProvider scoreProvider
     ) {
         this.questionRepository = questionRepository;
         this.gameRunRepository = gameRunRepository;
         this.answerService = answerService;
         this.questionFactory = questionFactory;
+        this.leaderboardService = leaderboardService;
+        this.scoreProvider = scoreProvider;
     }
 
     @Transactional
@@ -125,6 +131,13 @@ public class StreakGameService {
 
         gameRunRepository.save(run);
 
+        if (!answer.isCorrect()) {
+            leaderboardService.recordCompletedRun(
+                    run,
+                    scoreProvider.getScore(run)
+            );
+        }
+
         return answer;
     }
 
@@ -141,8 +154,43 @@ public class StreakGameService {
 
     @Transactional(readOnly = true)
     public int getGlobalHighScore() {
-        return gameRunRepository.findHighScoreByGameMode(
+        return leaderboardService.getAllTimeHighScore(
                 GameMode.STREAK
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public int getDailyHighScore() {
+        return leaderboardService.getDailyHighScore(
+                GameMode.STREAK
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public LeaderboardView getLeaderboard(
+            Long runId,
+            String voterId
+    ) {
+        validateVoterId(voterId);
+        return leaderboardService.getView(
+                GameMode.STREAK,
+                voterId,
+                runId
+        );
+    }
+
+    @Transactional
+    public void nameScore(
+            Long runId,
+            String voterId,
+            String displayName
+    ) {
+        validateVoterId(voterId);
+        leaderboardService.nameScore(
+                GameMode.STREAK,
+                runId,
+                voterId,
+                displayName
         );
     }
 

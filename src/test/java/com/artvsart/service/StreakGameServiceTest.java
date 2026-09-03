@@ -37,6 +37,12 @@ class StreakGameServiceTest {
     @Mock
     private ArtworkQuestionFactory questionFactory;
 
+    @Mock
+    private LeaderboardService leaderboardService;
+
+    @Mock
+    private StreakLeaderboardScoreProvider scoreProvider;
+
     private StreakGameService service;
 
     @BeforeEach
@@ -45,7 +51,9 @@ class StreakGameServiceTest {
                 questionRepository,
                 gameRunRepository,
                 answerService,
-                questionFactory
+                questionFactory,
+                leaderboardService,
+                scoreProvider
         );
     }
 
@@ -202,5 +210,37 @@ class StreakGameServiceTest {
                 );
 
         assertSame(existingAnswer, result);
+    }
+
+    @Test
+    void incorrectAnswerRecordsCompletedStreakScore() {
+        ArtworkQuestion question = mock(ArtworkQuestion.class);
+        ArtworkAnswer answer = mock(ArtworkAnswer.class);
+        GameRun run = mock(GameRun.class);
+
+        when(questionRepository.findById(10L))
+                .thenReturn(Optional.of(question));
+        when(question.getGameMode()).thenReturn(GameMode.STREAK);
+        when(question.belongsToRun()).thenReturn(true);
+        when(question.getGameRun()).thenReturn(run);
+        when(question.getRoundNumber()).thenReturn(4);
+        when(run.getVoterId()).thenReturn(VOTER_ID);
+        when(run.isActive()).thenReturn(true);
+        when(run.getRoundNumber()).thenReturn(4);
+        when(answerService.findAnswer(10L, VOTER_ID))
+                .thenReturn(Optional.empty());
+        when(answerService.answerQuestion(
+                question,
+                1L,
+                VOTER_ID
+        )).thenReturn(answer);
+        when(answer.isCorrect()).thenReturn(false);
+        when(scoreProvider.getScore(run)).thenReturn(3);
+
+        service.answerQuestion(10L, 1L, VOTER_ID);
+
+        verify(run).recordStreakAnswer(false);
+        verify(gameRunRepository).save(run);
+        verify(leaderboardService).recordCompletedRun(run, 3);
     }
 }
