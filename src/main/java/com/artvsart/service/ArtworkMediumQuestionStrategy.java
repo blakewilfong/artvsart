@@ -43,6 +43,11 @@ public class ArtworkMediumQuestionStrategy
     }
 
     @Override
+    public boolean usesArtistPopularityDifficulty() {
+        return true;
+    }
+
+    @Override
     public String getQuestionParameter(
             Artwork artworkOne,
             Artwork artworkTwo,

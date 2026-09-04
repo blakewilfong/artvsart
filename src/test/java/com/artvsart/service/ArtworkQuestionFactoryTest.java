@@ -156,6 +156,64 @@ class ArtworkQuestionFactoryTest {
     }
 
     @Test
+    void usesArtistPopularityForCategoricalStreakQuestions() {
+        GameRun run = run(10L, 1, GameMode.STREAK);
+        Artwork popularOne = artwork(1L);
+        Artwork popularTwo = artwork(2L);
+        Artwork obscure = mock(Artwork.class);
+        ArtworkQuestionStrategy strategy =
+                mock(ArtworkQuestionStrategy.class);
+
+        when(popularOne.getArtistPopularityRank()).thenReturn(5);
+        when(popularTwo.getArtistPopularityRank()).thenReturn(10);
+        when(obscure.getArtistPopularityRank()).thenReturn(90);
+        when(questionRepository
+                .findByGameRunIdAndRoundNumber(10L, 1))
+                .thenReturn(Optional.empty());
+        when(questionRepository
+                .findAllByGameRunIdOrderByRoundNumberAsc(10L))
+                .thenReturn(List.of());
+        when(artworkService.getBalancedQuestionCandidates(240))
+                .thenReturn(List.of(
+                        popularOne,
+                        popularTwo,
+                        obscure
+                ));
+        when(strategy.getQuestionType())
+                .thenReturn(QuestionType.ARTWORK_MEDIUM);
+        when(strategy.usesArtistPopularityDifficulty())
+                .thenReturn(true);
+        when(strategy.isEligiblePair(popularOne, popularTwo, run))
+                .thenReturn(true);
+        when(strategy.isEligiblePair(popularOne, obscure, run))
+                .thenReturn(true);
+        when(strategy.isEligiblePair(popularTwo, obscure, run))
+                .thenReturn(true);
+        when(strategy.getCorrectArtwork(popularOne, popularTwo))
+                .thenReturn(popularOne);
+        when(strategy.getQuestionParameter(
+                popularOne,
+                popularTwo,
+                1
+        )).thenReturn("OIL");
+        when(questionRepository.save(any(ArtworkQuestion.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ArtworkQuestionFactory factory =
+                new ArtworkQuestionFactory(
+                        artworkService,
+                        questionRepository,
+                        List.of(strategy),
+                        new StreakDifficultyPolicy()
+                );
+
+        ArtworkQuestion question = factory.getOrCreateForRun(run);
+
+        assertSame(popularOne, question.getArtworkOne());
+        assertSame(popularTwo, question.getArtworkTwo());
+    }
+
+    @Test
     void usesAvailableStrategyWhenAnotherHasNoPairs() {
         GameRun run = run(
                 10L,

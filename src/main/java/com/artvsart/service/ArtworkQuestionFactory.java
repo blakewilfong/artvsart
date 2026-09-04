@@ -172,6 +172,11 @@ public class ArtworkQuestionFactory {
                         artworkOne,
                         artworkTwo,
                         run
+                ) && isEligibleForStreakDifficulty(
+                        artworkOne,
+                        artworkTwo,
+                        strategy,
+                        run
                 )) {
                     eligiblePairs.add(
                             new ArtworkPair(
@@ -184,6 +189,21 @@ public class ArtworkQuestionFactory {
         }
 
         return eligiblePairs;
+    }
+
+    private boolean isEligibleForStreakDifficulty(
+            Artwork artworkOne,
+            Artwork artworkTwo,
+            ArtworkQuestionStrategy strategy,
+            GameRun run
+    ) {
+        return run.getGameMode() != GameMode.STREAK
+                || !strategy.usesArtistPopularityDifficulty()
+                || streakDifficultyPolicy.isArtistPopularityEligible(
+                        artworkOne,
+                        artworkTwo,
+                        run.getRoundNumber()
+                );
     }
 
     private record ArtworkPair(

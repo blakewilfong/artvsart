@@ -37,6 +37,10 @@ public interface ArtworkQuestionStrategy {
             Artwork artworkTwo
     );
 
+    default boolean usesArtistPopularityDifficulty() {
+        return false;
+    }
+
     default String getQuestionParameter(
             Artwork artworkOne,
             Artwork artworkTwo,

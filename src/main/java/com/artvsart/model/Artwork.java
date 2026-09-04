@@ -82,6 +82,9 @@ public class Artwork {
 
     private Integer artistEndYear;
 
+    @Column(name = "artist_popularity_rank")
+    private Integer artistPopularityRank;
+
     private Integer objectBeginYear;
 
     private Integer objectEndYear;
@@ -255,6 +258,24 @@ public class Artwork {
 
     public Integer getArtistEndYear() {
         return artistEndYear;
+    }
+
+    public Integer getArtistPopularityRank() {
+        return artistPopularityRank;
+    }
+
+    public void rankArtistPopularity(int rank) {
+        if (rank < 1 || rank > 100) {
+            throw new IllegalArgumentException(
+                    "Artist popularity rank must be between 1 and 100"
+            );
+        }
+
+        this.artistPopularityRank = rank;
+    }
+
+    public void clearArtistPopularityRank() {
+        this.artistPopularityRank = null;
     }
 
     public Integer getObjectBeginYear() {

@@ -1,5 +1,6 @@
 package com.artvsart.service;
 
+import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.QuestionType;
 import org.springframework.stereotype.Component;
@@ -147,6 +148,31 @@ public class StreakDifficultyPolicy {
         );
     }
 
+    public boolean isArtistPopularityEligible(
+            Artwork artworkOne,
+            Artwork artworkTwo,
+            int roundNumber
+    ) {
+        if (artworkOne == null || artworkTwo == null) {
+            throw new IllegalArgumentException(
+                    "Two artworks are required"
+            );
+        }
+
+        int lessPopularRank = Math.max(
+                popularityRank(artworkOne),
+                popularityRank(artworkTwo)
+        );
+
+        double pairDifficulty =
+                (lessPopularRank - 1) / 99.0;
+
+        return Math.abs(
+                pairDifficulty
+                        - getDifficultyForRound(roundNumber)
+        ) <= PAIR_DIFFICULTY_TOLERANCE;
+    }
+
     public double getDifficultyForRound(int roundNumber) {
         if (roundNumber < 1) {
             throw new IllegalArgumentException(
@@ -183,6 +209,12 @@ public class StreakDifficultyPolicy {
                 pairDifficulty
                         - getDifficultyForRound(roundNumber)
         ) <= PAIR_DIFFICULTY_TOLERANCE;
+    }
+
+    private int popularityRank(Artwork artwork) {
+        Integer rank = artwork.getArtistPopularityRank();
+
+        return rank == null ? 100 : Math.clamp(rank, 1, 100);
     }
 
     private List<ArtworkQuestionStrategy> weightedOrder(

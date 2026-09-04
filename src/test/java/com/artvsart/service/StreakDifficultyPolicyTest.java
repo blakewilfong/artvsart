@@ -1,5 +1,6 @@
 package com.artvsart.service;
 
+import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.QuestionType;
 import org.junit.jupiter.api.Test;
@@ -121,6 +122,34 @@ class StreakDifficultyPolicyTest {
     }
 
     @Test
+    void movesFromPopularArtistsToObscureArtists() {
+        Artwork veryPopular = artworkWithPopularityRank(5);
+        Artwork popular = artworkWithPopularityRank(10);
+        Artwork obscure = artworkWithPopularityRank(80);
+
+        assertTrue(policy.isArtistPopularityEligible(
+                veryPopular,
+                popular,
+                1
+        ));
+        assertFalse(policy.isArtistPopularityEligible(
+                veryPopular,
+                obscure,
+                1
+        ));
+        assertTrue(policy.isArtistPopularityEligible(
+                veryPopular,
+                obscure,
+                27
+        ));
+        assertFalse(policy.isArtistPopularityEligible(
+                veryPopular,
+                popular,
+                27
+        ));
+    }
+
+    @Test
     void excludesThePreviousQuestionType() {
         ArtworkQuestionStrategy older = strategy(
                 QuestionType.OLDER_ARTWORK
@@ -175,6 +204,12 @@ class StreakDifficultyPolicyTest {
         when(strategy.getQuestionType()).thenReturn(questionType);
 
         return strategy;
+    }
+
+    private Artwork artworkWithPopularityRank(int rank) {
+        Artwork artwork = mock(Artwork.class);
+        when(artwork.getArtistPopularityRank()).thenReturn(rank);
+        return artwork;
     }
 
     private ArtworkQuestion question(QuestionType questionType) {
