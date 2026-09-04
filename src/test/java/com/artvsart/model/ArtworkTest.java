@@ -96,6 +96,16 @@ class ArtworkTest {
         );
     }
 
+    @Test
+    void providesTheClevelandMuseumSourceCredit() {
+        Artwork artwork = artworkFrom("cma");
+
+        assertEquals(
+                "Source: The Cleveland Museum of Art",
+                artwork.getSourceCredit()
+        );
+    }
+
     private Artwork artworkFrom(String source) {
         return new Artwork(
                 source,

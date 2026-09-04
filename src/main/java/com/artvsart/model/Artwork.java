@@ -223,6 +223,8 @@ public class Artwork {
                     "Source: The Metropolitan Museum of Art";
             case "nga" ->
                     "Courtesy National Gallery of Art, Washington";
+            case "cma" ->
+                    "Source: The Cleveland Museum of Art";
             default -> "Source: " + source;
         };
     }
