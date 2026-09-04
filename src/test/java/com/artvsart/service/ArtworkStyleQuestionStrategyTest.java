@@ -44,6 +44,25 @@ class ArtworkStyleQuestionStrategyTest {
         assertFalse(strategy.isEligiblePair(first, second, 1));
     }
 
+    @Test
+    void rejectsPairWhenEitherArtworkHasNoRecordedStyle() {
+        Artwork impressionist = artwork("1", "Impressionism");
+        Artwork missing = new Artwork(
+                "nga",
+                "2",
+                "Title",
+                "Artist",
+                "1870",
+                "image.jpg"
+        );
+
+        assertFalse(strategy.isEligiblePair(
+                impressionist,
+                missing,
+                1
+        ));
+    }
+
     private Artwork artwork(String id, String style) {
         Artwork artwork = new Artwork(
                 "nga", id, "Title", "Artist", "1870", "image.jpg"

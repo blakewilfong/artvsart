@@ -73,6 +73,10 @@ public class ArtworkMediumQuestionStrategy
             Artwork artworkOne,
             Artwork artworkTwo
     ) {
+        if (!hasMedium(artworkOne) || !hasMedium(artworkTwo)) {
+            return null;
+        }
+
         List<ArtworkMediumCategory> categories = Arrays.stream(
                         ArtworkMediumCategory.values()
                 )
@@ -84,5 +88,11 @@ public class ArtworkMediumQuestionStrategy
                 .toList();
 
         return categories.isEmpty() ? null : categories.getFirst();
+    }
+
+    private boolean hasMedium(Artwork artwork) {
+        return artwork != null
+                && artwork.getMedium() != null
+                && !artwork.getMedium().isBlank();
     }
 }

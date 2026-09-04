@@ -69,6 +69,11 @@ public class ArtworkStyleQuestionStrategy
     ) {
         Map<String, String> first = styles(artworkOne);
         Map<String, String> second = styles(artworkTwo);
+
+        if (first.isEmpty() || second.isEmpty()) {
+            return null;
+        }
+
         Map<String, String> exclusive = new TreeMap<>();
 
         first.forEach((key, label) -> {

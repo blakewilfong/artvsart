@@ -42,6 +42,14 @@ class BeforeHistoricalEventQuestionStrategyTest {
     }
 
     @Test
+    void rejectsPairWhenEitherArtworkDateIsMissing() {
+        Artwork dated = artwork("1", 1800);
+        Artwork missing = artwork("2", null);
+
+        assertFalse(strategy.isEligiblePair(dated, missing, 1));
+    }
+
+    @Test
     void coversEveryArtworkDecadeInTheCurrentDatabaseRange() {
         Set<Integer> eventDecades = Arrays.stream(
                         HistoricalEvent.values()
@@ -65,10 +73,11 @@ class BeforeHistoricalEventQuestionStrategyTest {
         return Math.floorDiv(year, 10) * 10;
     }
 
-    private Artwork artwork(String id, int year) {
+    private Artwork artwork(String id, Integer year) {
         Artwork artwork = new Artwork(
                 "test", id, "Title", "Artist",
-                Integer.toString(year), "image.jpg"
+                year == null ? "Unknown" : Integer.toString(year),
+                "image.jpg"
         );
         artwork.updateMetadata(new ArtworkMetadata(
                 null, null, null, null, null,

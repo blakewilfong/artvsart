@@ -35,6 +35,14 @@ class ArtworkMediumQuestionStrategyTest {
         assertFalse(strategy.isEligiblePair(first, second, 1));
     }
 
+    @Test
+    void rejectsPairWhenEitherMediumIsMissing() {
+        Artwork oil = artwork("Oil on canvas", 1870);
+        Artwork missing = artwork(null, 1880);
+
+        assertFalse(strategy.isEligiblePair(oil, missing, 1));
+    }
+
     private Artwork artwork(String medium, int year) {
         Artwork artwork = new Artwork(
                 "test", Integer.toString(year), "Title", "Artist",
