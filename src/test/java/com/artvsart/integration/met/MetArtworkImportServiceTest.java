@@ -28,7 +28,8 @@ class MetArtworkImportServiceTest {
                 repository,
                 new MetArtworkEligibilityPolicy(classifier),
                 classifier,
-                new BalancedPoolSelector()
+                new BalancedPoolSelector(),
+                0
         );
 
         when(client.fetchArtwork(10L)).thenReturn(artwork());

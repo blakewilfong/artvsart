@@ -7,6 +7,7 @@ import com.artvsart.service.ArtworkGenreClassifier;
 import com.artvsart.service.BalancedPoolSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
@@ -35,9 +36,6 @@ public class MetArtworkImportService {
     private static final int
             MAX_CANDIDATES_PER_DEPARTMENT = 1500;
 
-    private static final long
-            REQUEST_DELAY_MILLISECONDS = 1000;
-
     private static final List<MetDepartment> DEPARTMENTS =
             List.of(
                     new MetDepartment(
@@ -64,19 +62,29 @@ public class MetArtworkImportService {
             eligibilityPolicy;
     private final ArtworkGenreClassifier genreClassifier;
     private final BalancedPoolSelector balancedPoolSelector;
+    private final long requestDelayMilliseconds;
 
     public MetArtworkImportService(
             MetArtworkClient metArtworkClient,
             ArtworkRepository artworkRepository,
             MetArtworkEligibilityPolicy eligibilityPolicy,
             ArtworkGenreClassifier genreClassifier,
-            BalancedPoolSelector balancedPoolSelector
+            BalancedPoolSelector balancedPoolSelector,
+            @Value("${artvsart.import.met.request-delay-milliseconds:1000}")
+            long requestDelayMilliseconds
     ) {
+        if (requestDelayMilliseconds < 0) {
+            throw new IllegalArgumentException(
+                    "Met request delay cannot be negative"
+            );
+        }
+
         this.metArtworkClient = metArtworkClient;
         this.artworkRepository = artworkRepository;
         this.eligibilityPolicy = eligibilityPolicy;
         this.genreClassifier = genreClassifier;
         this.balancedPoolSelector = balancedPoolSelector;
+        this.requestDelayMilliseconds = requestDelayMilliseconds;
     }
 
     public int importPaintingPool(int targetSize) {
@@ -129,7 +137,7 @@ public class MetArtworkImportService {
             }
 
             LOGGER.info(
-                    "Loading object IDs for {}",
+                    "Loading painting object IDs for {}",
                     department.name()
             );
 
@@ -140,7 +148,7 @@ public class MetArtworkImportService {
             try {
                 departmentObjects =
                         metArtworkClient
-                                .listDepartmentObjects(
+                                .searchDepartmentPaintings(
                                         department.id()
                                 );
             } catch (
@@ -501,9 +509,13 @@ public class MetArtworkImportService {
     }
 
     private void pauseBeforeRequest() {
+        if (requestDelayMilliseconds == 0) {
+            return;
+        }
+
         try {
             Thread.sleep(
-                    REQUEST_DELAY_MILLISECONDS
+                    requestDelayMilliseconds
             );
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();

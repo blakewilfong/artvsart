@@ -34,7 +34,7 @@ public class MetArtworkClient {
         return requireResponse(response);
     }
 
-    public MetSearchResponse listDepartmentObjects(
+    public MetSearchResponse searchDepartmentPaintings(
             int departmentId
     ) {
         validateDepartmentId(departmentId);
@@ -42,11 +42,14 @@ public class MetArtworkClient {
         MetSearchResponse response = restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/objects")
+                        .path("/search")
                         .queryParam(
-                                "departmentIds",
+                                "departmentId",
                                 departmentId
                         )
+                        .queryParam("hasImages", true)
+                        .queryParam("medium", "Paintings")
+                        .queryParam("q", "painting")
                         .build()
                 )
                 .retrieve()
