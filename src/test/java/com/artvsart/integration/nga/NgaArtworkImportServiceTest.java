@@ -2,6 +2,8 @@ package com.artvsart.integration.nga;
 
 import com.artvsart.model.Artwork;
 import com.artvsart.repository.ArtworkRepository;
+import com.artvsart.service.ArtworkGenreClassifier;
+import com.artvsart.service.BalancedPoolSelector;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -39,6 +41,10 @@ class NgaArtworkImportServiceTest {
                         "published_images.csv",
                         "depictstmsobjectid,openaccess,viewtype,iiifurl,iiifthumburl\n"
                                 + "1,1,primary,https://api.nga.gov/iiif/abc,https://example.test/thumb.jpg\n"
+                        ,
+                        "terms.csv",
+                        "objectID,termType,term,visualBrowserTheme\n"
+                                + "1,Theme,Landscape,landscape\n"
                 )
         );
 
@@ -67,6 +73,10 @@ class NgaArtworkImportServiceTest {
         assertEquals(1860, artwork.getArtistBeginYear());
         assertEquals(1890, artwork.getObjectBeginYear());
         assertEquals("PP", artwork.getDepartment());
+        assertEquals(
+                com.artvsart.model.ArtworkGenre.LANDSCAPE,
+                artwork.getGenre()
+        );
         assertEquals(
                 "https://api.nga.gov/iiif/abc/full/!1600,1600/0/default.jpg",
                 artwork.getImageUrl()
@@ -143,11 +153,16 @@ class NgaArtworkImportServiceTest {
         return new NgaArtworkImportService(
                 client,
                 repository,
-                new NgaArtworkEligibilityPolicy(),
+                new NgaArtworkEligibilityPolicy(
+                        new ArtworkGenreClassifier()
+                ),
+                new ArtworkGenreClassifier(),
+                new BalancedPoolSelector(),
                 "objects.csv",
                 "constituents.csv",
                 "objects_constituents.csv",
-                "published_images.csv"
+                "published_images.csv",
+                "terms.csv"
         );
     }
 
@@ -162,7 +177,10 @@ class NgaArtworkImportServiceTest {
                             invocation.getArgument(1);
 
                     return handler.read(
-                            new StringReader(datasets.get(url))
+                            new StringReader(datasets.getOrDefault(
+                                    url,
+                                    "objectID,termType,term,visualBrowserTheme\n"
+                            ))
                     );
                 });
     }

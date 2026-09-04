@@ -1,5 +1,6 @@
 package com.artvsart.integration.nga;
 
+import com.artvsart.service.ArtworkGenreClassifier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class NgaArtworkEligibilityPolicyTest {
 
     private final NgaArtworkEligibilityPolicy policy =
-            new NgaArtworkEligibilityPolicy();
+            new NgaArtworkEligibilityPolicy(
+                    new ArtworkGenreClassifier()
+            );
 
     @Test
     void acceptsDatedPainting() {
@@ -48,6 +51,20 @@ class NgaArtworkEligibilityPolicyTest {
                 null,
                 null,
                 "Painted bronze",
+                false
+        ));
+    }
+
+    @Test
+    void rejectsSketchesEvenWhenClassifiedAsPaintings() {
+        assertFalse(policy.isEligible(
+                "Sketch for a portrait",
+                "1900",
+                1900,
+                "Painting",
+                null,
+                null,
+                "Oil on canvas",
                 false
         ));
     }

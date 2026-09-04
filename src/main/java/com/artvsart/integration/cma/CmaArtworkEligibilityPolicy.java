@@ -1,9 +1,18 @@
 package com.artvsart.integration.cma;
 
+import com.artvsart.service.ArtworkGenreClassifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CmaArtworkEligibilityPolicy {
+
+    private final ArtworkGenreClassifier genreClassifier;
+
+    public CmaArtworkEligibilityPolicy(
+            ArtworkGenreClassifier genreClassifier
+    ) {
+        this.genreClassifier = genreClassifier;
+    }
 
     public boolean isEligible(
             CmaArtworkResponse artwork,
@@ -21,7 +30,12 @@ public class CmaArtworkEligibilityPolicy {
                 || artwork.creationDateEarliest() <= createdAfterYear
                 || !hasText(artwork.webImageUrl())
                 || !hasText(artwork.url())
-                || artwork.primaryArtist().isEmpty()) {
+                || artwork.primaryArtist().isEmpty()
+                || genreClassifier.isSketch(
+                artwork.title(),
+                artwork.technique(),
+                artwork.description()
+        )) {
             return false;
         }
 

@@ -3,6 +3,8 @@ package com.artvsart.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -88,6 +90,10 @@ public class Artwork {
 
     @Column(length = 2048)
     private String medium;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private ArtworkGenre genre = ArtworkGenre.OTHER;
 
     @OneToMany(
             mappedBy = "artwork",
@@ -263,6 +269,20 @@ public class Artwork {
 
     public String getMedium() {
         return medium;
+    }
+
+    public ArtworkGenre getGenre() {
+        return genre == null ? ArtworkGenre.OTHER : genre;
+    }
+
+    public void classifyGenre(ArtworkGenre genre) {
+        if (genre == null) {
+            throw new IllegalArgumentException(
+                    "An artwork genre is required"
+            );
+        }
+
+        this.genre = genre;
     }
 
     public void replaceStyles(

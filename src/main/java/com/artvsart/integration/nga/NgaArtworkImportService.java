@@ -3,6 +3,8 @@ package com.artvsart.integration.nga;
 import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkMetadata;
 import com.artvsart.repository.ArtworkRepository;
+import com.artvsart.service.ArtworkGenreClassifier;
+import com.artvsart.service.BalancedPoolSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,15 +37,20 @@ public class NgaArtworkImportService {
     private final NgaOpenDataClient client;
     private final ArtworkRepository repository;
     private final NgaArtworkEligibilityPolicy eligibilityPolicy;
+    private final ArtworkGenreClassifier genreClassifier;
+    private final BalancedPoolSelector balancedPoolSelector;
     private final String objectsUrl;
     private final String constituentsUrl;
     private final String linksUrl;
     private final String imagesUrl;
+    private final String termsUrl;
 
     public NgaArtworkImportService(
             NgaOpenDataClient client,
             ArtworkRepository repository,
             NgaArtworkEligibilityPolicy eligibilityPolicy,
+            ArtworkGenreClassifier genreClassifier,
+            BalancedPoolSelector balancedPoolSelector,
             @Value("${artvsart.import.nga.objects-url}")
             String objectsUrl,
             @Value("${artvsart.import.nga.constituents-url}")
@@ -51,15 +58,20 @@ public class NgaArtworkImportService {
             @Value("${artvsart.import.nga.object-constituents-url}")
             String linksUrl,
             @Value("${artvsart.import.nga.images-url}")
-            String imagesUrl
+            String imagesUrl,
+            @Value("${artvsart.import.nga.terms-url}")
+            String termsUrl
     ) {
         this.client = client;
         this.repository = repository;
         this.eligibilityPolicy = eligibilityPolicy;
+        this.genreClassifier = genreClassifier;
+        this.balancedPoolSelector = balancedPoolSelector;
         this.objectsUrl = objectsUrl;
         this.constituentsUrl = constituentsUrl;
         this.linksUrl = linksUrl;
         this.imagesUrl = imagesUrl;
+        this.termsUrl = termsUrl;
     }
 
     public int importPaintingPool(int targetSize) {
@@ -105,6 +117,12 @@ public class NgaArtworkImportService {
                 this::readImagesByObject
         );
 
+        LOGGER.info("Loading NGA genre metadata");
+        Map<String, List<String>> genresByObject = client.read(
+                termsUrl,
+                this::readGenresByObject
+        );
+
         int remaining = targetSize - existingArtworks.size();
 
         LOGGER.info(
@@ -118,6 +136,7 @@ public class NgaArtworkImportService {
                         reader,
                         artistsByObject,
                         imagesByObject,
+                        genresByObject,
                         existingIds,
                         remaining
                 )
@@ -286,15 +305,15 @@ public class NgaArtworkImportService {
             Reader reader,
             Map<String, Artist> artistsByObject,
             Map<String, Image> imagesByObject,
+            Map<String, List<String>> genresByObject,
             Set<String> existingIds,
             int limit
     ) throws IOException {
         NgaCsvReader csv = new NgaCsvReader(reader);
-        List<Artwork> artworks = new ArrayList<>();
+        List<Artwork> candidates = new ArrayList<>();
         NgaCsvReader.Row row;
 
-        while (artworks.size() < limit
-                && (row = csv.next()) != null) {
+        while ((row = csv.next()) != null) {
             String id = clean(row.get("objectID"));
 
             if (id == null || existingIds.contains(id)) {
@@ -352,10 +371,60 @@ public class NgaArtworkImportService {
                     )
             );
 
-            artworks.add(artwork);
+            List<String> genreDescriptions = new ArrayList<>(
+                    genresByObject.getOrDefault(id, List.of())
+            );
+            genreDescriptions.add(title);
+            genreDescriptions.add(medium);
+            genreDescriptions.add(clean(row.get("classification")));
+            genreDescriptions.add(clean(row.get("subClassification")));
+            genreDescriptions.add(clean(
+                    row.get("visualBrowserClassification")
+            ));
+            artwork.classifyGenre(
+                    genreClassifier.classify(genreDescriptions)
+            );
+
+            candidates.add(artwork);
         }
 
-        return artworks;
+        return balancedPoolSelector.select(
+                candidates,
+                limit,
+                Artwork::getGenre
+        );
+    }
+
+    private Map<String, List<String>> readGenresByObject(
+            Reader reader
+    ) throws IOException {
+        NgaCsvReader csv = new NgaCsvReader(reader);
+        Map<String, List<String>> genres = new HashMap<>();
+        NgaCsvReader.Row row;
+
+        while ((row = csv.next()) != null) {
+            if (!"theme".equalsIgnoreCase(
+                    clean(row.get("termType"))
+            )) {
+                continue;
+            }
+
+            String objectId = clean(row.get("objectID"));
+            String term = clean(row.get("visualBrowserTheme"));
+
+            if (term == null) {
+                term = clean(row.get("term"));
+            }
+
+            if (objectId != null && term != null) {
+                genres.computeIfAbsent(
+                        objectId,
+                        ignored -> new ArrayList<>()
+                ).add(term);
+            }
+        }
+
+        return genres;
     }
 
     private String iiifImageUrl(

@@ -16,6 +16,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class ArtworkQuestionFactory {
 
+    private static final int MAXIMUM_QUESTION_CANDIDATES = 240;
+
     private final ArtworkService artworkService;
     private final ArtworkQuestionRepository questionRepository;
     private final List<ArtworkQuestionStrategy> strategies;
@@ -64,7 +66,9 @@ public class ArtworkQuestionFactory {
         }
 
         List<Artwork> artworks =
-                artworkService.getPlayableArtworks();
+                artworkService.getBalancedQuestionCandidates(
+                        MAXIMUM_QUESTION_CANDIDATES
+                );
 
         List<ArtworkQuestionStrategy> shuffledStrategies =
                 new ArrayList<>(strategies);

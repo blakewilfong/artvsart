@@ -1,5 +1,6 @@
 package com.artvsart.integration.met;
 
+import com.artvsart.service.ArtworkGenreClassifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -7,6 +8,14 @@ import java.util.Locale;
 
 @Component
 public class MetArtworkEligibilityPolicy {
+
+    private final ArtworkGenreClassifier genreClassifier;
+
+    public MetArtworkEligibilityPolicy(
+            ArtworkGenreClassifier genreClassifier
+    ) {
+        this.genreClassifier = genreClassifier;
+    }
 
     private static final List<String>
             ALLOWED_CLASSIFICATION_TERMS =
@@ -49,6 +58,15 @@ public class MetArtworkEligibilityPolicy {
 
         String objectName =
                 normalize(artwork.objectName());
+
+        if (genreClassifier.isSketch(
+                artwork.title(),
+                artwork.classification(),
+                artwork.objectName(),
+                artwork.medium()
+        )) {
+            return false;
+        }
 
         if (containsAny(
                 classification,

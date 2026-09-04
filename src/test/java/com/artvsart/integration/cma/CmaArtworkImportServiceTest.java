@@ -2,6 +2,8 @@ package com.artvsart.integration.cma;
 
 import com.artvsart.model.Artwork;
 import com.artvsart.repository.ArtworkRepository;
+import com.artvsart.service.ArtworkGenreClassifier;
+import com.artvsart.service.BalancedPoolSelector;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -24,7 +26,11 @@ class CmaArtworkImportServiceTest {
         CmaArtworkImportService service = new CmaArtworkImportService(
                 client,
                 repository,
-                new CmaArtworkEligibilityPolicy()
+                new CmaArtworkEligibilityPolicy(
+                        new ArtworkGenreClassifier()
+                ),
+                new ArtworkGenreClassifier(),
+                new BalancedPoolSelector()
         );
 
         when(repository.findAllBySourceOrderByIdAsc("cma"))
@@ -89,7 +95,11 @@ class CmaArtworkImportServiceTest {
         CmaArtworkImportService service = new CmaArtworkImportService(
                 client,
                 repository,
-                new CmaArtworkEligibilityPolicy()
+                new CmaArtworkEligibilityPolicy(
+                        new ArtworkGenreClassifier()
+                ),
+                new ArtworkGenreClassifier(),
+                new BalancedPoolSelector()
         );
 
         assertEquals(0, service.importModernPaintingPool(
@@ -139,6 +149,7 @@ class CmaArtworkImportServiceTest {
                                 "https://example.test/" + id + "-print.jpg"
                         )
                 ),
+                null,
                 "object"
         );
     }

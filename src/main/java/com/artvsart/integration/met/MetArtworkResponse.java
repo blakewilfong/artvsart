@@ -3,6 +3,8 @@ package com.artvsart.integration.met;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record MetArtworkResponse(
 
@@ -61,7 +63,9 @@ public record MetArtworkResponse(
         String objectUrl,
 
         @JsonProperty("objectWikidata_URL")
-        String objectWikidataUrl
+        String objectWikidataUrl,
+
+        List<Tag> tags
 ) {
 
     public boolean isUsable() {
@@ -77,5 +81,9 @@ public record MetArtworkResponse(
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Tag(String term) {
     }
 }

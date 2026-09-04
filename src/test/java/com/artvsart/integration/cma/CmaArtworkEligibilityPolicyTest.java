@@ -1,5 +1,6 @@
 package com.artvsart.integration.cma;
 
+import com.artvsart.service.ArtworkGenreClassifier;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -10,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CmaArtworkEligibilityPolicyTest {
 
     private final CmaArtworkEligibilityPolicy policy =
-            new CmaArtworkEligibilityPolicy();
+            new CmaArtworkEligibilityPolicy(
+                    new ArtworkGenreClassifier()
+            );
 
     @Test
     void acceptsCc0PaintingWithArtistDateAndImage() {
@@ -44,11 +47,40 @@ class CmaArtworkEligibilityPolicyTest {
         ));
     }
 
+    @Test
+    void rejectsSketchesListedAsPaintings() {
+        CmaArtworkResponse artwork = artwork(
+                "CC0",
+                "Painting",
+                "object",
+                true,
+                "Sketch for a mural"
+        );
+
+        assertFalse(policy.isEligible(artwork, 1850));
+    }
+
     private CmaArtworkResponse artwork(
             String license,
             String type,
             String recordType,
             boolean includeArtist
+    ) {
+        return artwork(
+                license,
+                type,
+                recordType,
+                includeArtist,
+                "Modern painting"
+        );
+    }
+
+    private CmaArtworkResponse artwork(
+            String license,
+            String type,
+            String recordType,
+            boolean includeArtist,
+            String title
     ) {
         List<CmaArtworkResponse.Creator> creators = includeArtist
                 ? List.of(new CmaArtworkResponse.Creator(
@@ -64,7 +96,7 @@ class CmaArtworkEligibilityPolicyTest {
         return new CmaArtworkResponse(
                 10L,
                 license,
-                "Modern painting",
+                title,
                 "1900",
                 1900,
                 1900,
@@ -80,6 +112,7 @@ class CmaArtworkEligibilityPolicyTest {
                         ),
                         null
                 ),
+                null,
                 recordType
         );
     }

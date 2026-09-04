@@ -89,7 +89,7 @@ class ArtworkQuestionFactoryTest {
                 ))
                 .thenReturn(Optional.empty());
 
-        when(artworkService.getPlayableArtworks())
+        when(artworkService.getBalancedQuestionCandidates(240))
                 .thenReturn(
                         List.of(
                                 artworkOne,
@@ -180,7 +180,7 @@ class ArtworkQuestionFactoryTest {
                 ))
                 .thenReturn(Optional.empty());
 
-        when(artworkService.getPlayableArtworks())
+        when(artworkService.getBalancedQuestionCandidates(240))
                 .thenReturn(
                         List.of(
                                 artworkOne,

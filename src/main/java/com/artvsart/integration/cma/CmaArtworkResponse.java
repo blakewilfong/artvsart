@@ -26,6 +26,7 @@ public record CmaArtworkResponse(
         String type,
         String url,
         Images images,
+        String description,
         @JsonProperty("record_type")
         String recordType
 ) {

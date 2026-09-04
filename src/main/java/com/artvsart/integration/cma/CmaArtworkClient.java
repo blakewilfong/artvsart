@@ -24,6 +24,7 @@ public class CmaArtworkClient {
             "type",
             "url",
             "images",
+            "description",
             "record_type"
     );
 

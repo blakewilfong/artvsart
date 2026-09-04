@@ -3,6 +3,8 @@ package com.artvsart.integration.met;
 import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkMetadata;
 import com.artvsart.repository.ArtworkRepository;
+import com.artvsart.service.ArtworkGenreClassifier;
+import com.artvsart.service.BalancedPoolSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -60,15 +62,21 @@ public class MetArtworkImportService {
     private final ArtworkRepository artworkRepository;
     private final MetArtworkEligibilityPolicy
             eligibilityPolicy;
+    private final ArtworkGenreClassifier genreClassifier;
+    private final BalancedPoolSelector balancedPoolSelector;
 
     public MetArtworkImportService(
             MetArtworkClient metArtworkClient,
             ArtworkRepository artworkRepository,
-            MetArtworkEligibilityPolicy eligibilityPolicy
+            MetArtworkEligibilityPolicy eligibilityPolicy,
+            ArtworkGenreClassifier genreClassifier,
+            BalancedPoolSelector balancedPoolSelector
     ) {
         this.metArtworkClient = metArtworkClient;
         this.artworkRepository = artworkRepository;
         this.eligibilityPolicy = eligibilityPolicy;
+        this.genreClassifier = genreClassifier;
+        this.balancedPoolSelector = balancedPoolSelector;
     }
 
     public int importPaintingPool(int targetSize) {
@@ -207,11 +215,15 @@ public class MetArtworkImportService {
             );
 
             int checkedCount = 0;
-            int departmentImportedCount = 0;
+            boolean stopImport = false;
+            List<Artwork> eligibleCandidates = new ArrayList<>();
+            int candidateTarget = Math.min(
+                    MAX_CANDIDATES_PER_DEPARTMENT,
+                    neededCount * 2
+            );
 
             for (Long objectId : candidateIds) {
-                if (departmentImportedCount
-                        >= neededCount) {
+                if (eligibleCandidates.size() >= candidateTarget) {
                     break;
                 }
 
@@ -237,17 +249,10 @@ public class MetArtworkImportService {
                 pauseBeforeRequest();
 
                 try {
-                    Optional<Artwork> importedArtwork =
-                            importArtwork(objectId);
+                    Optional<Artwork> candidate =
+                            loadArtwork(objectId);
 
-                    if (importedArtwork.isPresent()) {
-                        importedObjectIds.add(
-                                sourceArtworkId
-                        );
-
-                        importedCount++;
-                        departmentImportedCount++;
-                    }
+                    candidate.ifPresent(eligibleCandidates::add);
                 } catch (
                         RestClientResponseException exception
                 ) {
@@ -262,8 +267,8 @@ public class MetArtworkImportService {
                                 "Met returned HTTP {}. Stopping import.",
                                 statusCode
                         );
-
-                        break departmentLoop;
+                        stopImport = true;
+                        break;
                     }
 
                     LOGGER.warn(
@@ -280,6 +285,19 @@ public class MetArtworkImportService {
                 }
             }
 
+            List<Artwork> selected = balancedPoolSelector.select(
+                    eligibleCandidates,
+                    neededCount,
+                    Artwork::getGenre
+            );
+            artworkRepository.saveAll(selected);
+            selected.stream()
+                    .map(Artwork::getSourceArtworkId)
+                    .forEach(importedObjectIds::add);
+
+            int departmentImportedCount = selected.size();
+            importedCount += departmentImportedCount;
+
             LOGGER.info(
                     "Imported {} of {} requested artworks from {} after checking {} candidates",
                     departmentImportedCount,
@@ -287,6 +305,10 @@ public class MetArtworkImportService {
                     department.name(),
                     checkedCount
             );
+
+            if (stopImport) {
+                break departmentLoop;
+            }
         }
 
         long finalArtworkCount =
@@ -370,6 +392,10 @@ public class MetArtworkImportService {
 
     @Transactional
     public Optional<Artwork> importArtwork(long objectId) {
+        return loadArtwork(objectId).map(artworkRepository::save);
+    }
+
+    private Optional<Artwork> loadArtwork(long objectId) {
         MetArtworkResponse response =
                 metArtworkClient.fetchArtwork(objectId);
 
@@ -399,10 +425,29 @@ public class MetArtworkImportService {
         artwork.updateMetadata(
                 createMetadata(response)
         );
-
-        return Optional.of(
-                artworkRepository.save(artwork)
+        List<String> genreDescriptions = new ArrayList<>();
+        Collections.addAll(
+                genreDescriptions,
+                optionalText(response.title()),
+                optionalText(response.classification()),
+                optionalText(response.objectName()),
+                optionalText(response.medium()),
+                optionalText(response.department())
         );
+
+        if (response.tags() != null) {
+            response.tags().stream()
+                    .filter(Objects::nonNull)
+                    .map(MetArtworkResponse.Tag::term)
+                    .filter(Objects::nonNull)
+                    .forEach(genreDescriptions::add);
+        }
+
+        artwork.classifyGenre(
+                genreClassifier.classify(genreDescriptions)
+        );
+
+        return Optional.of(artwork);
     }
 
     private ArtworkMetadata createMetadata(

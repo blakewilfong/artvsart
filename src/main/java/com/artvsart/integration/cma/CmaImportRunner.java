@@ -28,11 +28,11 @@ public class CmaImportRunner implements ApplicationRunner {
 
     public CmaImportRunner(
             CmaArtworkImportService importService,
-            @Value("${artvsart.import.cma.target-size:200}")
+            @Value("${artvsart.import.cma.target-size:600}")
             int targetSize,
-            @Value("${artvsart.import.cma.created-after:1850}")
+            @Value("${artvsart.import.cma.created-after:1750}")
             int createdAfterYear,
-            @Value("${artvsart.import.cma.max-per-artist:3}")
+            @Value("${artvsart.import.cma.max-per-artist:5}")
             int maximumWorksPerArtist
     ) {
         this.importService = importService;

@@ -27,7 +27,7 @@ public class NgaImportRunner implements ApplicationRunner {
     public NgaImportRunner(
             NgaArtworkImportService service,
             NgaArtworkStyleImportService styleImportService,
-            @Value("${artvsart.import.nga.target-size:500}")
+            @Value("${artvsart.import.nga.target-size:700}")
             int targetSize
     ) {
         this.service = service;

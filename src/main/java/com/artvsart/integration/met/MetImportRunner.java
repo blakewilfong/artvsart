@@ -28,7 +28,7 @@ public class MetImportRunner implements ApplicationRunner {
 
     public MetImportRunner(
             MetArtworkImportService importService,
-            @Value("${artvsart.import.met.target-size:200}")
+            @Value("${artvsart.import.met.target-size:700}")
             int targetSize,
             @Value("${artvsart.import.met.refresh-metadata:false}")
             boolean refreshMetadata

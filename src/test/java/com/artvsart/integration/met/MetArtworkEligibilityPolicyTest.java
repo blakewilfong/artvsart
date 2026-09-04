@@ -1,6 +1,9 @@
 package com.artvsart.integration.met;
 
+import com.artvsart.service.ArtworkGenreClassifier;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MetArtworkEligibilityPolicyTest {
 
     private final MetArtworkEligibilityPolicy policy =
-            new MetArtworkEligibilityPolicy();
+            new MetArtworkEligibilityPolicy(
+                    new ArtworkGenreClassifier()
+            );
 
     @Test
     void acceptsPaintingClassification() {
@@ -66,6 +71,17 @@ class MetArtworkEligibilityPolicyTest {
     }
 
     @Test
+    void rejectsSketchesEvenWhenTheyAreDrawings() {
+        MetArtworkResponse artwork = createArtwork(
+                "Sketch",
+                "Drawings",
+                "Graphite on paper"
+        );
+
+        assertFalse(policy.isEligible(artwork));
+    }
+
+    @Test
     void rejectsArtworkWithoutRequiredApiData() {
         MetArtworkResponse artwork =
                 new MetArtworkResponse(
@@ -94,7 +110,8 @@ class MetArtworkEligibilityPolicyTest {
                         "Paintings",
                         null,
                         "https://example.com/artwork",
-                        null
+                        null,
+                        List.of()
                 );
 
         assertFalse(policy.isEligible(artwork));
@@ -131,7 +148,8 @@ class MetArtworkEligibilityPolicyTest {
                 classification,
                 null,
                 "https://example.com/artwork",
-                null
+                null,
+                List.of()
         );
     }
 }

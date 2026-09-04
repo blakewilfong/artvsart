@@ -1,5 +1,6 @@
 package com.artvsart.integration.nga;
 
+import com.artvsart.service.ArtworkGenreClassifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -7,6 +8,14 @@ import java.util.Locale;
 
 @Component
 public class NgaArtworkEligibilityPolicy {
+
+    private final ArtworkGenreClassifier genreClassifier;
+
+    public NgaArtworkEligibilityPolicy(
+            ArtworkGenreClassifier genreClassifier
+    ) {
+        this.genreClassifier = genreClassifier;
+    }
 
     private static final List<String> ALLOWED_TYPES =
             List.of("painting", "collage");
@@ -45,6 +54,16 @@ public class NgaArtworkEligibilityPolicy {
         );
 
         String description = normalize(type, medium);
+
+        if (genreClassifier.isSketch(
+                title,
+                classification,
+                subClassification,
+                visualClassification,
+                medium
+        )) {
+            return false;
+        }
 
         if (EXCLUDED_TERMS.stream()
                 .anyMatch(description::contains)) {
