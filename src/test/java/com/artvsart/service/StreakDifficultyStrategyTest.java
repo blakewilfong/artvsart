@@ -89,6 +89,30 @@ class StreakDifficultyStrategyTest {
         assertTrue(strategy.isEligiblePair(younger, older, run));
     }
 
+    @Test
+    void appliesTheCurveToCenturyPairs() {
+        ArtworkCenturyQuestionStrategy strategy =
+                new ArtworkCenturyQuestionStrategy(policy);
+
+        Artwork first = artwork(1L, "First", null, 1700);
+        Artwork second = artwork(2L, "Second", null, 2031);
+        when(first.getSource()).thenReturn("test");
+        when(first.getSourceArtworkId()).thenReturn("1");
+        when(first.getObjectEndYear()).thenReturn(1700);
+        when(first.getDateDisplay()).thenReturn("1700");
+        when(second.getSource()).thenReturn("test");
+        when(second.getSourceArtworkId()).thenReturn("2");
+        when(second.getObjectEndYear()).thenReturn(2031);
+        when(second.getDateDisplay()).thenReturn("2031");
+        GameRun run = GameRun.startStreak("player");
+
+        assertFalse(strategy.isEligiblePair(first, second, run));
+
+        run.recordStreakAnswer(true);
+
+        assertTrue(strategy.isEligiblePair(first, second, run));
+    }
+
     private Artwork artwork(
             Long id,
             String artistName,

@@ -56,12 +56,17 @@ class StreakDifficultyPolicyTest {
                 QuestionType.BEFORE_HISTORICAL_EVENT,
                 1
         );
+        int centuryWeight = policy.getQuestionTypeWeight(
+                QuestionType.ARTWORK_CENTURY,
+                1
+        );
         int styleWeight = policy.getQuestionTypeWeight(
                 QuestionType.ARTWORK_STYLE,
                 1
         );
 
         assertEquals(100, olderArtworkWeight);
+        assertTrue(centuryWeight > historicalEventWeight);
         assertEquals(3, historicalEventWeight);
         assertEquals(1, styleWeight);
     }

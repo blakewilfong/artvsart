@@ -11,7 +11,9 @@ public enum QuestionType {
     ARTWORK_SUBJECT,
     ARTWORK_STYLE,
     LARGER_ARTWORK,
-    BEFORE_HISTORICAL_EVENT;
+    BEFORE_HISTORICAL_EVENT,
+    ARTIST_ALIVE_DURING_EVENT,
+    ARTWORK_CENTURY;
 
     public String getPrompt() {
         return getPrompt(null);
@@ -45,8 +47,24 @@ public enum QuestionType {
                             + required(parameter)
                             + " tradition?";
 
+            case ARTWORK_CULTURE ->
+                    "Which artwork is associated with "
+                            + culturalOrigin(parameter)
+                            .getPromptSubject()
+                            + "?";
+
+            case ARTWORK_CENTURY ->
+                    "Which artwork was created in the "
+                            + required(parameter)
+                            + "?";
+
             case BEFORE_HISTORICAL_EVENT ->
                     "Which artwork was created closer in time to this event: "
+                            + event(parameter).getDisplayName()
+                            + "?";
+
+            case ARTIST_ALIVE_DURING_EVENT ->
+                    "Which artist was alive for this event: "
                             + event(parameter).getDisplayName()
                             + "?";
 
@@ -67,10 +85,14 @@ public enum QuestionType {
                     "Younger at creation";
 
             case ARTIST_NATIONALITY,
+                 ARTWORK_CULTURE,
                  ARTWORK_MEDIUM,
-                 ARTWORK_STYLE -> "Matches";
+                 ARTWORK_STYLE,
+                 ARTWORK_CENTURY -> "Matches";
 
             case BEFORE_HISTORICAL_EVENT -> "Closer";
+
+            case ARTIST_ALIVE_DURING_EVENT -> "Alive then";
 
             default ->
                     throw unsupported();
@@ -89,10 +111,14 @@ public enum QuestionType {
                     "Older at creation";
 
             case ARTIST_NATIONALITY,
+                 ARTWORK_CULTURE,
                  ARTWORK_MEDIUM,
-                 ARTWORK_STYLE -> "Does not match";
+                 ARTWORK_STYLE,
+                 ARTWORK_CENTURY -> "Does not match";
 
             case BEFORE_HISTORICAL_EVENT -> "Farther away";
+
+            case ARTIST_ALIVE_DURING_EVENT -> "Not alive then";
 
             default ->
                     throw unsupported();
@@ -112,11 +138,16 @@ public enum QuestionType {
 
             case ARTIST_NATIONALITY -> "Artist nationality";
 
+            case ARTWORK_CULTURE -> "Cultural origin";
+
             case ARTWORK_MEDIUM -> "Medium";
 
             case ARTWORK_STYLE -> "Style or school";
 
-            case BEFORE_HISTORICAL_EVENT -> "Artwork date";
+            case BEFORE_HISTORICAL_EVENT,
+                 ARTWORK_CENTURY -> "Artwork date";
+
+            case ARTIST_ALIVE_DURING_EVENT -> "Artist lifespan";
 
             default ->
                     throw unsupported();
@@ -152,6 +183,9 @@ public enum QuestionType {
             case ARTIST_NATIONALITY ->
                     valueOrUnknown(artwork.getArtistNationality());
 
+            case ARTWORK_CULTURE ->
+                    culturalOrigin(parameter).displayValue(artwork);
+
             case ARTWORK_MEDIUM ->
                     valueOrUnknown(artwork.getMedium());
 
@@ -164,8 +198,12 @@ public enum QuestionType {
                     .reduce((first, second) -> first + ", " + second)
                     .orElse("No style recorded");
 
-            case BEFORE_HISTORICAL_EVENT ->
+            case BEFORE_HISTORICAL_EVENT,
+                 ARTWORK_CENTURY ->
                     artwork.getDateDisplay();
+
+            case ARTIST_ALIVE_DURING_EVENT ->
+                    formatArtistLifespan(artwork);
 
             default ->
                     throw unsupported();
@@ -178,7 +216,8 @@ public enum QuestionType {
     ) {
         return switch (this) {
             case OLDER_ARTWORK,
-                 BEFORE_HISTORICAL_EVENT ->
+                 BEFORE_HISTORICAL_EVENT,
+                 ARTWORK_CENTURY ->
                     "Created " + displayValue(artwork, parameter);
 
             case ARTIST_BORN_EARLIER -> {
@@ -192,8 +231,11 @@ public enum QuestionType {
                     formatArtistAgeCaption(artwork);
 
             case ARTIST_NATIONALITY,
+                 ARTWORK_CULTURE,
                  ARTWORK_MEDIUM,
-                 ARTWORK_STYLE -> displayValue(artwork, parameter);
+                 ARTWORK_STYLE,
+                 ARTIST_ALIVE_DURING_EVENT ->
+                    displayValue(artwork, parameter);
 
             default -> throw unsupported();
         };
@@ -201,7 +243,8 @@ public enum QuestionType {
 
     public String getAnswerContext(String parameter) {
         return switch (this) {
-            case BEFORE_HISTORICAL_EVENT ->
+            case BEFORE_HISTORICAL_EVENT,
+                 ARTIST_ALIVE_DURING_EVENT ->
                     Integer.toString(event(parameter).getYear());
 
             default -> null;
@@ -210,13 +253,24 @@ public enum QuestionType {
 
     public boolean requiresParameter() {
         return this == ARTIST_NATIONALITY
+                || this == ARTWORK_CULTURE
                 || this == ARTWORK_MEDIUM
                 || this == ARTWORK_STYLE
-                || this == BEFORE_HISTORICAL_EVENT;
+                || this == BEFORE_HISTORICAL_EVENT
+                || this == ARTIST_ALIVE_DURING_EVENT
+                || this == ARTWORK_CENTURY;
     }
 
     private ArtworkMediumCategory medium(String parameter) {
         return ArtworkMediumCategory.valueOf(required(parameter));
+    }
+
+    private ArtworkCulturalOrigin culturalOrigin(
+            String parameter
+    ) {
+        return ArtworkCulturalOrigin.fromParameter(
+                required(parameter)
+        );
     }
 
     private HistoricalEvent event(String parameter) {
@@ -280,6 +334,19 @@ public enum QuestionType {
         }
 
         return "Age " + (artworkYear - artistBirthYear);
+    }
+
+    private String formatArtistLifespan(Artwork artwork) {
+        Integer birthYear = artwork.getArtistBeginYear();
+        Integer deathYear = artwork.getArtistEndYear();
+
+        if (birthYear == null || deathYear == null) {
+            return "Lifespan unknown";
+        }
+
+        return formatYear(birthYear)
+                + "–"
+                + formatYear(deathYear);
     }
 
     private String formatYear(Integer year) {
