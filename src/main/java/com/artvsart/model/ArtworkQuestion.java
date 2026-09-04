@@ -303,6 +303,12 @@ public class ArtworkQuestion {
         );
     }
 
+    public String getAnswerContext() {
+        return questionType.getAnswerContext(
+                questionParameter
+        );
+    }
+
     public GameRun getGameRun() {
         return gameRun;
     }

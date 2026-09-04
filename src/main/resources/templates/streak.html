@@ -63,8 +63,19 @@
                 </span>
             </div>
 
-            <h2 th:text="${question.prompt}">
-                Question
+            <h2>
+                <span th:text="${question.prompt}">
+                    Question
+                </span>
+
+                <span
+                        class="question-answer-context"
+                        th:if="${answered
+                            and question.answerContext != null}"
+                        th:text="|(${question.answerContext})|"
+                >
+                    (1874)
+                </span>
             </h2>
         </header>
 

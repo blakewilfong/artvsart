@@ -335,6 +335,14 @@ button.artwork-card:focus-visible .choice-label {
     line-height: 1.1;
 }
 
+.question-answer-context {
+    display: inline-block;
+    margin-left: 0.25em;
+    color: var(--muted);
+    font-size: 0.72em;
+    white-space: nowrap;
+}
+
 @keyframes reveal-rate {
     from {
         opacity: 0;

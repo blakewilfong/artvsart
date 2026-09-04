@@ -46,7 +46,7 @@ public enum QuestionType {
                             + " tradition?";
 
             case BEFORE_HISTORICAL_EVENT ->
-                    "Which artwork was created closer to when "
+                    "Which artwork was created closer in time to this event: "
                             + event(parameter).getDisplayName()
                             + "?";
 
@@ -196,6 +196,15 @@ public enum QuestionType {
                  ARTWORK_STYLE -> displayValue(artwork, parameter);
 
             default -> throw unsupported();
+        };
+    }
+
+    public String getAnswerContext(String parameter) {
+        return switch (this) {
+            case BEFORE_HISTORICAL_EVENT ->
+                    Integer.toString(event(parameter).getYear());
+
+            default -> null;
         };
     }
 

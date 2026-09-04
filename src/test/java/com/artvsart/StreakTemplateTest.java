@@ -111,6 +111,9 @@ class StreakTemplateTest {
                                 ),
                                 org.hamcrest.Matchers.containsString(
                                         "Created 1900"
+                                ),
+                                org.hamcrest.Matchers.containsString(
+                                        "(1874)"
                                 )
                         )
                 ));
@@ -169,6 +172,9 @@ class StreakTemplateTest {
                                 org.hamcrest.Matchers.containsString(
                                         "Created 1900"
                                 ),
+                                org.hamcrest.Matchers.containsString(
+                                        "(1874)"
+                                ),
                                 org.hamcrest.Matchers.not(
                                         org.hamcrest.Matchers.containsString(
                                                 "Final score"
@@ -190,7 +196,10 @@ class StreakTemplateTest {
         ArtworkQuestion question = mock(ArtworkQuestion.class);
         when(question.getId()).thenReturn(12L);
         when(question.getRoundNumber()).thenReturn(8);
-        when(question.getPrompt()).thenReturn("Which artwork is older?");
+        when(question.getPrompt()).thenReturn(
+                "Which artwork was created closer in time to this event: the first Impressionist exhibition?"
+        );
+        when(question.getAnswerContext()).thenReturn("1874");
         when(question.getArtworkOne()).thenReturn(artworkOne);
         when(question.getArtworkTwo()).thenReturn(artworkTwo);
         when(question.getCorrectArtwork()).thenReturn(artworkTwo);

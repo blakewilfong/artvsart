@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class QuestionTypeTest {
 
@@ -85,9 +86,15 @@ class QuestionTypeTest {
                         )
         );
         assertEquals(
-                "Which artwork was created closer to when the Mongols sacked Baghdad?",
+                "Which artwork was created closer in time to this event: the Mongols sacked Baghdad?",
                 QuestionType.BEFORE_HISTORICAL_EVENT.getPrompt(
                         HistoricalEvent.MONGOLS_SACKED_BAGHDAD.name()
+                )
+        );
+        assertEquals(
+                "Which artwork was created closer in time to this event: the first Impressionist exhibition?",
+                QuestionType.BEFORE_HISTORICAL_EVENT.getPrompt(
+                        HistoricalEvent.FIRST_IMPRESSIONIST_EXHIBITION.name()
                 )
         );
         assertEquals(
@@ -99,6 +106,19 @@ class QuestionTypeTest {
                 "Farther away",
                 QuestionType.BEFORE_HISTORICAL_EVENT
                         .getIncorrectAnswerLabel()
+        );
+        assertEquals(
+                "1874",
+                QuestionType.BEFORE_HISTORICAL_EVENT
+                        .getAnswerContext(
+                                HistoricalEvent
+                                        .FIRST_IMPRESSIONIST_EXHIBITION
+                                        .name()
+                        )
+        );
+        assertNull(
+                QuestionType.OLDER_ARTWORK
+                        .getAnswerContext(null)
         );
     }
 }
