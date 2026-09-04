@@ -165,7 +165,9 @@
                     <span class="artwork-image-frame">
                         <img
                                 class="artwork-image"
-                                th:src="${question.artworkOne.imageUrl}"
+                                th:src="@{/artworks/{artworkId}/image(
+                                    artworkId=${question.artworkOne.id}
+                                )}"
                                 alt="First artwork"
                                 width="800"
                                 height="600"
@@ -187,7 +189,9 @@
                     <span class="artwork-image-frame">
                         <img
                                 class="artwork-image"
-                                th:src="${question.artworkTwo.imageUrl}"
+                                th:src="@{/artworks/{artworkId}/image(
+                                    artworkId=${question.artworkTwo.id}
+                                )}"
                                 alt="Second artwork"
                                 width="800"
                                 height="600"
@@ -211,7 +215,9 @@
                 <div class="artwork-image-frame">
                     <img
                             class="artwork-image"
-                            th:src="${question.artworkOne.imageUrl}"
+                            th:src="@{/artworks/{artworkId}/image(
+                                artworkId=${question.artworkOne.id}
+                            )}"
                             th:alt="|${question.artworkOne.title} by ${question.artworkOne.artistName}|"
                             width="800"
                             height="600"
@@ -302,7 +308,9 @@
                 <div class="artwork-image-frame">
                     <img
                             class="artwork-image"
-                            th:src="${question.artworkTwo.imageUrl}"
+                            th:src="@{/artworks/{artworkId}/image(
+                                artworkId=${question.artworkTwo.id}
+                            )}"
                             th:alt="|${question.artworkTwo.title} by ${question.artworkTwo.artistName}|"
                             width="800"
                             height="600"

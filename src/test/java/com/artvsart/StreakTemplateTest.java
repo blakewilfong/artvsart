@@ -105,6 +105,9 @@ class StreakTemplateTest {
                                 ),
                                 org.hamcrest.Matchers.containsString(
                                         "Sep 3, 2026"
+                                ),
+                                org.hamcrest.Matchers.containsString(
+                                        "src=\"/artworks/1/image\""
                                 )
                         )
                 ));
