@@ -163,6 +163,12 @@ public class GameRun {
         rerollsRemaining = getRerollsRemaining() - 1;
     }
 
+    public void abandon() {
+        if (active) {
+            completeRun();
+        }
+    }
+
     public int getMinimumWager() {
         requireMode(GameMode.WAGER);
 

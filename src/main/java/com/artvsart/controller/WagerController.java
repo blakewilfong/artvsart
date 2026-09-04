@@ -30,7 +30,7 @@ public class WagerController {
     }
 
     @GetMapping("/wager")
-    public String startOrResumeWager(
+    public String startNewWager(
             @CookieValue(
                     name = VoterCookieManager.COOKIE_NAME,
                     required = false
@@ -43,9 +43,27 @@ public class WagerController {
         );
 
         ArtworkQuestion question =
-                wagerGameService.startOrResume(
+                wagerGameService.startNew(
                         voterId
                 );
+
+        return "redirect:/wager/"
+                + question.getId();
+    }
+
+    @GetMapping("/wager/continue")
+    public String continueWager(
+            @CookieValue(
+                    name = VoterCookieManager.COOKIE_NAME,
+                    required = false
+            ) String voterId
+    ) {
+        if (!voterCookieManager.isValid(voterId)) {
+            return "redirect:/wager";
+        }
+
+        ArtworkQuestion question =
+                wagerGameService.continueRun(voterId);
 
         return "redirect:/wager/"
                 + question.getId();

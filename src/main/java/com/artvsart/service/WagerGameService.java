@@ -16,6 +16,7 @@ public class WagerGameService {
 
     private final ArtworkQuestionRepository questionRepository;
     private final GameRunRepository gameRunRepository;
+    private final GameRunLifecycleService runLifecycleService;
     private final ArtworkAnswerService answerService;
     private final ArtworkQuestionFactory questionFactory;
     private final ArtworkQuestionRerollService rerollService;
@@ -23,29 +24,39 @@ public class WagerGameService {
     public WagerGameService(
             ArtworkQuestionRepository questionRepository,
             GameRunRepository gameRunRepository,
+            GameRunLifecycleService runLifecycleService,
             ArtworkAnswerService answerService,
             ArtworkQuestionFactory questionFactory,
             ArtworkQuestionRerollService rerollService
     ) {
         this.questionRepository = questionRepository;
         this.gameRunRepository = gameRunRepository;
+        this.runLifecycleService = runLifecycleService;
         this.answerService = answerService;
         this.questionFactory = questionFactory;
         this.rerollService = rerollService;
     }
 
     @Transactional
-    public ArtworkQuestion startOrResume(String voterId) {
+    public ArtworkQuestion startNew(String voterId) {
         validateVoterId(voterId);
 
-        GameRun run = gameRunRepository
-                .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
-                        voterId,
-                        GameMode.WAGER
-                )
-                .orElseGet(() -> gameRunRepository.save(
-                        GameRun.startWager(voterId)
-                ));
+        GameRun run = runLifecycleService.startNew(
+                voterId,
+                GameMode.WAGER
+        );
+
+        return questionFactory.getOrCreateForRun(run);
+    }
+
+    @Transactional
+    public ArtworkQuestion continueRun(String voterId) {
+        validateVoterId(voterId);
+
+        GameRun run = runLifecycleService.resumeOrStart(
+                voterId,
+                GameMode.WAGER
+        );
 
         return questionFactory.getOrCreateForRun(run);
     }

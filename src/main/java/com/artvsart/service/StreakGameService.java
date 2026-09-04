@@ -16,6 +16,7 @@ public class StreakGameService {
 
     private final ArtworkQuestionRepository questionRepository;
     private final GameRunRepository gameRunRepository;
+    private final GameRunLifecycleService runLifecycleService;
     private final ArtworkAnswerService answerService;
     private final ArtworkQuestionFactory questionFactory;
     private final LeaderboardService leaderboardService;
@@ -25,6 +26,7 @@ public class StreakGameService {
     public StreakGameService(
             ArtworkQuestionRepository questionRepository,
             GameRunRepository gameRunRepository,
+            GameRunLifecycleService runLifecycleService,
             ArtworkAnswerService answerService,
             ArtworkQuestionFactory questionFactory,
             LeaderboardService leaderboardService,
@@ -33,6 +35,7 @@ public class StreakGameService {
     ) {
         this.questionRepository = questionRepository;
         this.gameRunRepository = gameRunRepository;
+        this.runLifecycleService = runLifecycleService;
         this.answerService = answerService;
         this.questionFactory = questionFactory;
         this.leaderboardService = leaderboardService;
@@ -41,17 +44,25 @@ public class StreakGameService {
     }
 
     @Transactional
-    public ArtworkQuestion startOrResume(String voterId) {
+    public ArtworkQuestion startNew(String voterId) {
         validateVoterId(voterId);
 
-        GameRun run = gameRunRepository
-                .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
-                        voterId,
-                        GameMode.STREAK
-                )
-                .orElseGet(() -> gameRunRepository.save(
-                        GameRun.startStreak(voterId)
-                ));
+        GameRun run = runLifecycleService.startNew(
+                voterId,
+                GameMode.STREAK
+        );
+
+        return questionFactory.getOrCreateForRun(run);
+    }
+
+    @Transactional
+    public ArtworkQuestion continueRun(String voterId) {
+        validateVoterId(voterId);
+
+        GameRun run = runLifecycleService.resumeOrStart(
+                voterId,
+                GameMode.STREAK
+        );
 
         return questionFactory.getOrCreateForRun(run);
     }

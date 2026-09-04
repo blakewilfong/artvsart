@@ -30,7 +30,7 @@ public class StreakController {
     }
 
     @GetMapping("/streak")
-    public String startOrResumeStreak(
+    public String startNewStreak(
             @CookieValue(
                     name = VoterCookieManager.COOKIE_NAME,
                     required = false
@@ -43,9 +43,27 @@ public class StreakController {
         );
 
         ArtworkQuestion question =
-                streakGameService.startOrResume(
+                streakGameService.startNew(
                         voterId
                 );
+
+        return "redirect:/streak/"
+                + question.getId();
+    }
+
+    @GetMapping("/streak/continue")
+    public String continueStreak(
+            @CookieValue(
+                    name = VoterCookieManager.COOKIE_NAME,
+                    required = false
+            ) String voterId
+    ) {
+        if (!voterCookieManager.isValid(voterId)) {
+            return "redirect:/streak";
+        }
+
+        ArtworkQuestion question =
+                streakGameService.continueRun(voterId);
 
         return "redirect:/streak/"
                 + question.getId();

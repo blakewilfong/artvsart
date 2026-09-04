@@ -310,6 +310,18 @@ class GameRunTest {
     }
 
     @Test
+    void abandoningARunCompletesItWithoutChangingTheScore() {
+        GameRun run = GameRun.startStreak("voter-1");
+        run.recordStreakAnswer(true);
+
+        run.abandon();
+
+        assertFalse(run.isActive());
+        assertEquals(1, run.getCorrectAnswers());
+        assertNotNull(run.getCompletedAt());
+    }
+
+    @Test
     void wagerRunEarnsRerollAfterThirdCompletedRound() {
         GameRun run = GameRun.startWager("voter-1");
 

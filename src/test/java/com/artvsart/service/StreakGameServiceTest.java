@@ -15,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +29,9 @@ class StreakGameServiceTest {
 
     @Mock
     private GameRunRepository gameRunRepository;
+
+    @Mock
+    private GameRunLifecycleService runLifecycleService;
 
     @Mock
     private ArtworkAnswerService answerService;
@@ -53,6 +55,7 @@ class StreakGameServiceTest {
         service = new StreakGameService(
                 questionRepository,
                 gameRunRepository,
+                runLifecycleService,
                 answerService,
                 questionFactory,
                 leaderboardService,
@@ -69,22 +72,16 @@ class StreakGameServiceTest {
         ArtworkQuestion question =
                 mock(ArtworkQuestion.class);
 
-        when(gameRunRepository
-                .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
-                        VOTER_ID,
-                        GameMode.STREAK
-                ))
-                .thenReturn(Optional.empty());
-
-        when(gameRunRepository.save(
-                any(GameRun.class)
+        when(runLifecycleService.startNew(
+                VOTER_ID,
+                GameMode.STREAK
         )).thenReturn(run);
 
         when(questionFactory.getOrCreateForRun(run))
                 .thenReturn(question);
 
         ArtworkQuestion result =
-                service.startOrResume(VOTER_ID);
+                service.startNew(VOTER_ID);
 
         assertSame(question, result);
     }
@@ -97,18 +94,16 @@ class StreakGameServiceTest {
         ArtworkQuestion question =
                 mock(ArtworkQuestion.class);
 
-        when(gameRunRepository
-                .findFirstByVoterIdAndGameModeAndActiveTrueOrderByStartedAtDesc(
-                        VOTER_ID,
-                        GameMode.STREAK
-                ))
-                .thenReturn(Optional.of(run));
+        when(runLifecycleService.resumeOrStart(
+                VOTER_ID,
+                GameMode.STREAK
+        )).thenReturn(run);
 
         when(questionFactory.getOrCreateForRun(run))
                 .thenReturn(question);
 
         ArtworkQuestion result =
-                service.startOrResume(VOTER_ID);
+                service.continueRun(VOTER_ID);
 
         assertSame(question, result);
     }
