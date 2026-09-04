@@ -88,12 +88,18 @@ public class ArtistYoungerAtCreationQuestionService {
             Artwork artwork
     ) {
         if (artwork == null
-                || artwork.getArtistBeginYear() == null
-                || artwork.getObjectBeginYear() == null) {
+                || artwork.getArtistBeginYear() == null) {
             return null;
         }
 
-        int age = artwork.getObjectBeginYear()
+        Integer creationYear = artwork.findSingleCreationYear()
+                .orElse(null);
+
+        if (creationYear == null) {
+            return null;
+        }
+
+        int age = creationYear
                 - artwork.getArtistBeginYear();
 
         if (age < MINIMUM_PLAUSIBLE_AGE

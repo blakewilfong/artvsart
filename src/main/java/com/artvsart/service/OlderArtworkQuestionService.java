@@ -18,11 +18,13 @@ public class OlderArtworkQuestionService {
             return false;
         }
 
-        Integer firstYear =
-                artworkOne.getObjectBeginYear();
+        Integer firstYear = artworkOne
+                .findSingleCreationYear()
+                .orElse(null);
 
-        Integer secondYear =
-                artworkTwo.getObjectBeginYear();
+        Integer secondYear = artworkTwo
+                .findSingleCreationYear()
+                .orElse(null);
 
         if (firstYear == null || secondYear == null) {
             return false;
@@ -47,8 +49,8 @@ public class OlderArtworkQuestionService {
             );
         }
 
-        if (artworkOne.getObjectBeginYear()
-                < artworkTwo.getObjectBeginYear()) {
+        if (artworkOne.findSingleCreationYear().orElseThrow()
+                < artworkTwo.findSingleCreationYear().orElseThrow()) {
             return artworkOne;
         }
 

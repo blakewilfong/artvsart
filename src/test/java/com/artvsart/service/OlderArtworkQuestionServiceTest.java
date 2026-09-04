@@ -3,6 +3,8 @@ package com.artvsart.service;
 import com.artvsart.model.Artwork;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,6 +46,17 @@ class OlderArtworkQuestionServiceTest {
     }
 
     @Test
+    void rejectsArtworkWithADateRange() {
+        Artwork exactArtwork = artwork(1L, 1855);
+        Artwork rangedArtwork = artwork(2L, 1800, 1900);
+
+        assertFalse(service.isEligiblePair(
+                exactArtwork,
+                rangedArtwork
+        ));
+    }
+
+    @Test
     void returnsArtworkWithEarlierBeginningYear() {
         Artwork newer = artwork(1L, 1900);
         Artwork older = artwork(2L, 1750);
@@ -79,10 +92,22 @@ class OlderArtworkQuestionServiceTest {
     }
 
     private Artwork artwork(Long id, Integer year) {
+        return artwork(id, year, year);
+    }
+
+    private Artwork artwork(
+            Long id,
+            Integer beginYear,
+            Integer endYear
+    ) {
         Artwork artwork = mock(Artwork.class);
 
         when(artwork.getId()).thenReturn(id);
-        when(artwork.getObjectBeginYear()).thenReturn(year);
+        when(artwork.findSingleCreationYear()).thenReturn(
+                beginYear != null && beginYear.equals(endYear)
+                        ? Optional.of(beginYear)
+                        : Optional.empty()
+        );
 
         return artwork;
     }

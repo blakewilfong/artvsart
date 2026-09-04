@@ -76,6 +76,14 @@ class BeforeHistoricalEventQuestionStrategyTest {
     }
 
     @Test
+    void rejectsArtworkDateRanges() {
+        Artwork exact = artwork("1", 1855);
+        Artwork range = artwork("2", 1800, 1900);
+
+        assertFalse(strategy.isEligiblePair(exact, range, 1));
+    }
+
+    @Test
     void coversEveryArtworkDecadeInTheCurrentDatabaseRange() {
         Set<Integer> eventDecades = Arrays.stream(
                         HistoricalEvent.values()
@@ -100,14 +108,24 @@ class BeforeHistoricalEventQuestionStrategyTest {
     }
 
     private Artwork artwork(String id, Integer year) {
+        return artwork(id, year, year);
+    }
+
+    private Artwork artwork(
+            String id,
+            Integer beginYear,
+            Integer endYear
+    ) {
         Artwork artwork = new Artwork(
                 "test", id, "Title", "Artist",
-                year == null ? "Unknown" : Integer.toString(year),
+                beginYear == null
+                        ? "Unknown"
+                        : Integer.toString(beginYear),
                 "image.jpg"
         );
         artwork.updateMetadata(new ArtworkMetadata(
                 null, null, null, null, null,
-                year, year, null, null, "Oil"
+                beginYear, endYear, null, null, "Oil"
         ));
         return artwork;
     }

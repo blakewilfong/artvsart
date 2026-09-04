@@ -4,6 +4,8 @@ import com.artvsart.model.Artwork;
 import com.artvsart.model.GameRun;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -125,6 +127,9 @@ class StreakDifficultyStrategyTest {
         when(artwork.getArtistName()).thenReturn(artistName);
         when(artwork.getArtistBeginYear()).thenReturn(artistBirthYear);
         when(artwork.getObjectBeginYear()).thenReturn(artworkYear);
+        when(artwork.findSingleCreationYear()).thenReturn(
+                Optional.ofNullable(artworkYear)
+        );
 
         return artwork;
     }

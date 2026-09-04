@@ -111,6 +111,26 @@ class ArtistYoungerAtCreationQuestionServiceTest {
     }
 
     @Test
+    void rejectsArtworkWithADateRange() {
+        Artwork exactArtwork = artwork(
+                "Exact Artist",
+                1800,
+                1840
+        );
+        Artwork rangedArtwork = artwork(
+                "Ranged Artist",
+                1800,
+                1840,
+                1860
+        );
+
+        assertFalse(service.isEligiblePair(
+                exactArtwork,
+                rangedArtwork
+        ));
+    }
+
+    @Test
     void returnsArtworkCreatedByYoungerArtist() {
         Artwork createdAtSixty =
                 artwork(
@@ -155,15 +175,29 @@ class ArtistYoungerAtCreationQuestionServiceTest {
             Integer artistBirthYear,
             Integer artworkYear
     ) {
+        return artwork(
+                artistName,
+                artistBirthYear,
+                artworkYear,
+                artworkYear
+        );
+    }
+
+    private Artwork artwork(
+            String artistName,
+            Integer artistBirthYear,
+            Integer artworkBeginYear,
+            Integer artworkEndYear
+    ) {
         Artwork artwork = new Artwork(
                 "met",
-                artistName + "-" + artworkYear,
+                artistName + "-" + artworkBeginYear,
                 "Example Artwork",
                 artistName,
                 Integer.toString(
-                        artworkYear == null
+                        artworkBeginYear == null
                                 ? 0
-                                : artworkYear
+                                : artworkBeginYear
                 ),
                 "image.jpg"
         );
@@ -175,8 +209,8 @@ class ArtistYoungerAtCreationQuestionServiceTest {
                         null,
                         artistBirthYear,
                         null,
-                        artworkYear,
-                        artworkYear,
+                        artworkBeginYear,
+                        artworkEndYear,
                         null,
                         null,
                         "Oil on canvas"

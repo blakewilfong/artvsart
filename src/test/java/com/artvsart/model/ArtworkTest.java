@@ -3,11 +3,32 @@ package com.artvsart.model;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ArtworkTest {
+
+    @Test
+    void findsOnlyOneUnambiguousCreationYear() {
+        Artwork exact = artworkFrom("met");
+        exact.updateMetadata(new ArtworkMetadata(
+                null, null, null, null, null,
+                1855, 1855, null, null, "Oil"
+        ));
+        Artwork range = artworkFrom("nga");
+        range.updateMetadata(new ArtworkMetadata(
+                null, null, null, null, null,
+                1800, 1900, null, null, "Oil"
+        ));
+
+        assertEquals(
+                Optional.of(1855),
+                exact.findSingleCreationYear()
+        );
+        assertEquals(Optional.empty(), range.findSingleCreationYear());
+    }
 
     @Test
     void updatesAllArtworkMetadata() {

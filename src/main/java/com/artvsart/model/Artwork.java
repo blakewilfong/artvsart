@@ -286,6 +286,21 @@ public class Artwork {
         return objectEndYear;
     }
 
+    public Optional<Integer> findSingleCreationYear() {
+        if (objectBeginYear == null
+                || objectEndYear == null
+                || !objectBeginYear.equals(objectEndYear)
+                || objectBeginYear == 0
+                || dateDisplay == null
+                || dateDisplay.isBlank()
+                || dateDisplay.equalsIgnoreCase("unknown")
+                || dateDisplay.equalsIgnoreCase("date unknown")) {
+            return Optional.empty();
+        }
+
+        return Optional.of(objectBeginYear);
+    }
+
     public String getCulture() {
         return culture;
     }

@@ -73,6 +73,7 @@ class ArtworkCenturyQuestionStrategyTest {
         Artwork crossesBoundary = artwork("3", 1890, 1910);
         Artwork sameCentury = artwork("4", 1870, 1890);
         Artwork yearZero = artwork("5", 0, 0);
+        Artwork oneCenturyRange = artwork("6", 1700, 1799);
 
         assertFalse(strategy.isEligiblePair(known, missingEnd, 1));
         assertFalse(strategy.isEligiblePair(
@@ -82,6 +83,11 @@ class ArtworkCenturyQuestionStrategyTest {
         ));
         assertFalse(strategy.isEligiblePair(known, sameCentury, 1));
         assertFalse(strategy.isEligiblePair(known, yearZero, 1));
+        assertFalse(strategy.isEligiblePair(
+                known,
+                oneCenturyRange,
+                1
+        ));
     }
 
     private Artwork artwork(

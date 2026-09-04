@@ -140,36 +140,13 @@ public class ArtworkCenturyQuestionStrategy
     }
 
     private Integer centuryOf(Artwork artwork) {
-        if (artwork == null
-                || artwork.getObjectBeginYear() == null
-                || artwork.getObjectEndYear() == null
-                || !hasKnownDateDisplay(artwork)
-                || artwork.getObjectBeginYear() == 0
-                || artwork.getObjectEndYear() == 0
-                || artwork.getObjectBeginYear()
-                > artwork.getObjectEndYear()) {
+        if (artwork == null) {
             return null;
         }
 
-        int beginCentury = centuryOfYear(
-                artwork.getObjectBeginYear()
-        );
-        int endCentury = centuryOfYear(
-                artwork.getObjectEndYear()
-        );
-
-        return beginCentury == endCentury
-                ? beginCentury
-                : null;
-    }
-
-    private boolean hasKnownDateDisplay(Artwork artwork) {
-        String dateDisplay = artwork.getDateDisplay();
-
-        return dateDisplay != null
-                && !dateDisplay.isBlank()
-                && !dateDisplay.equalsIgnoreCase("unknown")
-                && !dateDisplay.equalsIgnoreCase("date unknown");
+        return artwork.findSingleCreationYear()
+                .map(this::centuryOfYear)
+                .orElse(null);
     }
 
     private int centuryOfYear(int year) {

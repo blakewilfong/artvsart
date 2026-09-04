@@ -37,10 +37,10 @@ public class BeforeHistoricalEventQuestionStrategy
         );
 
         return distanceFromEvent(
-                artworkOne.getObjectBeginYear(),
+                singleYearOf(artworkOne),
                 event
         ) < distanceFromEvent(
-                artworkTwo.getObjectBeginYear(),
+                singleYearOf(artworkTwo),
                 event
         )
                 ? artworkOne
@@ -75,8 +75,12 @@ public class BeforeHistoricalEventQuestionStrategy
             Artwork artworkOne,
             Artwork artworkTwo
     ) {
-        Integer firstYear = artworkOne.getObjectBeginYear();
-        Integer secondYear = artworkTwo.getObjectBeginYear();
+        Integer firstYear = artworkOne == null
+                ? null
+                : artworkOne.findSingleCreationYear().orElse(null);
+        Integer secondYear = artworkTwo == null
+                ? null
+                : artworkTwo.findSingleCreationYear().orElse(null);
 
         if (firstYear == null || secondYear == null
                 || firstYear.equals(secondYear)) {
@@ -95,6 +99,14 @@ public class BeforeHistoricalEventQuestionStrategy
                                 event
                         )))
                 .orElse(null);
+    }
+
+    private int singleYearOf(Artwork artwork) {
+        return artwork.findSingleCreationYear().orElseThrow(() ->
+                new IllegalArgumentException(
+                        "Artwork must have one creation year"
+                )
+        );
     }
 
     private long differenceBetweenDistances(
