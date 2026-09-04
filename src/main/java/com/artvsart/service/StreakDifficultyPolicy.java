@@ -86,8 +86,10 @@ public class StreakDifficultyPolicy {
 
         double exponent = switch (questionType) {
             case OLDER_ARTWORK -> 0.0;
+            case ARTIST_LAST_NAME -> 0.1;
             case ARTWORK_CENTURY -> 0.2;
             case ARTIST_BORN_EARLIER -> 0.25;
+            case ARTWORK_TITLE_WORD -> 0.35;
             case ARTWORK_MEDIUM -> 0.5;
             case ARTWORK_CULTURE -> 0.6;
             case ARTIST_NATIONALITY -> 0.65;

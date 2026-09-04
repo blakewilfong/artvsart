@@ -13,7 +13,9 @@ public enum QuestionType {
     LARGER_ARTWORK,
     BEFORE_HISTORICAL_EVENT,
     ARTIST_ALIVE_DURING_EVENT,
-    ARTWORK_CENTURY;
+    ARTWORK_CENTURY,
+    ARTIST_LAST_NAME,
+    ARTWORK_TITLE_WORD;
 
     public String getPrompt() {
         return getPrompt(null);
@@ -68,6 +70,16 @@ public enum QuestionType {
                             + event(parameter).getDisplayName()
                             + "?";
 
+            case ARTIST_LAST_NAME ->
+                    "Which artwork is by "
+                            + required(parameter)
+                            + "?";
+
+            case ARTWORK_TITLE_WORD ->
+                    "Which artwork has \""
+                            + required(parameter)
+                            + "\" in its title?";
+
             default ->
                     throw unsupported();
         };
@@ -88,7 +100,9 @@ public enum QuestionType {
                  ARTWORK_CULTURE,
                  ARTWORK_MEDIUM,
                  ARTWORK_STYLE,
-                 ARTWORK_CENTURY -> "Matches";
+                 ARTWORK_CENTURY,
+                 ARTIST_LAST_NAME,
+                 ARTWORK_TITLE_WORD -> "Matches";
 
             case BEFORE_HISTORICAL_EVENT -> "Closer";
 
@@ -114,7 +128,9 @@ public enum QuestionType {
                  ARTWORK_CULTURE,
                  ARTWORK_MEDIUM,
                  ARTWORK_STYLE,
-                 ARTWORK_CENTURY -> "Does not match";
+                 ARTWORK_CENTURY,
+                 ARTIST_LAST_NAME,
+                 ARTWORK_TITLE_WORD -> "Does not match";
 
             case BEFORE_HISTORICAL_EVENT -> "Farther away";
 
@@ -148,6 +164,10 @@ public enum QuestionType {
                  ARTWORK_CENTURY -> "Artwork date";
 
             case ARTIST_ALIVE_DURING_EVENT -> "Artist lifespan";
+
+            case ARTIST_LAST_NAME -> "Artist";
+
+            case ARTWORK_TITLE_WORD -> "Artwork title";
 
             default ->
                     throw unsupported();
@@ -205,6 +225,12 @@ public enum QuestionType {
             case ARTIST_ALIVE_DURING_EVENT ->
                     formatArtistLifespan(artwork);
 
+            case ARTIST_LAST_NAME ->
+                    valueOrUnknown(artwork.getArtistName());
+
+            case ARTWORK_TITLE_WORD ->
+                    valueOrUnknown(artwork.getTitle());
+
             default ->
                     throw unsupported();
         };
@@ -234,7 +260,9 @@ public enum QuestionType {
                  ARTWORK_CULTURE,
                  ARTWORK_MEDIUM,
                  ARTWORK_STYLE,
-                 ARTIST_ALIVE_DURING_EVENT ->
+                 ARTIST_ALIVE_DURING_EVENT,
+                 ARTIST_LAST_NAME,
+                 ARTWORK_TITLE_WORD ->
                     displayValue(artwork, parameter);
 
             default -> throw unsupported();
@@ -258,7 +286,9 @@ public enum QuestionType {
                 || this == ARTWORK_STYLE
                 || this == BEFORE_HISTORICAL_EVENT
                 || this == ARTIST_ALIVE_DURING_EVENT
-                || this == ARTWORK_CENTURY;
+                || this == ARTWORK_CENTURY
+                || this == ARTIST_LAST_NAME
+                || this == ARTWORK_TITLE_WORD;
     }
 
     private ArtworkMediumCategory medium(String parameter) {

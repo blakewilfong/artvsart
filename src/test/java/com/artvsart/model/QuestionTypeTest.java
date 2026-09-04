@@ -110,6 +110,20 @@ class QuestionTypeTest {
                 )
         );
         assertEquals(
+                "Artist",
+                QuestionType.ARTIST_LAST_NAME.getAnswerCaption(
+                        artwork,
+                        "Artist"
+                )
+        );
+        assertEquals(
+                "Example",
+                QuestionType.ARTWORK_TITLE_WORD.getAnswerCaption(
+                        artwork,
+                        "Example"
+                )
+        );
+        assertEquals(
                 "Which artwork was created closer in time to this event: the Mongols sacked Baghdad?",
                 QuestionType.BEFORE_HISTORICAL_EVENT.getPrompt(
                         HistoricalEvent.MONGOLS_SACKED_BAGHDAD.name()
@@ -137,6 +151,16 @@ class QuestionTypeTest {
                 "Which artwork was created in the 19th century?",
                 QuestionType.ARTWORK_CENTURY.getPrompt(
                         "19th century"
+                )
+        );
+        assertEquals(
+                "Which artwork is by Monet?",
+                QuestionType.ARTIST_LAST_NAME.getPrompt("Monet")
+        );
+        assertEquals(
+                "Which artwork has \"Footbridge\" in its title?",
+                QuestionType.ARTWORK_TITLE_WORD.getPrompt(
+                        "Footbridge"
                 )
         );
         assertEquals(
