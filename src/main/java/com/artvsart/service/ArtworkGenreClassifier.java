@@ -19,7 +19,17 @@ public class ArtworkGenreClassifier {
     ) {
         String text = normalize(descriptions);
 
-        if (containsAny(text, "still life", "nature morte")) {
+        if (containsAny(
+                text,
+                "still life",
+                "nature morte",
+                "flowers",
+                "flower piece",
+                "fruit",
+                "bouquet",
+                "vase of",
+                "bowl of"
+        )) {
             return ArtworkGenre.STILL_LIFE;
         }
         if (containsAny(
@@ -36,7 +46,26 @@ public class ArtworkGenreClassifier {
                 "landscape",
                 "seascape",
                 "cityscape",
-                "topographical"
+                "topographical",
+                "coast",
+                "harbor",
+                "harbour",
+                "waterfall",
+                "mountain",
+                "valley",
+                "river view",
+                "river scene",
+                "lake view",
+                "by the lake",
+                "by the sea",
+                "road to the sea",
+                "beach",
+                "dunes",
+                "forest",
+                "woodland",
+                "country house",
+                "winter landscape",
+                "moonlight"
         )) {
             return ArtworkGenre.LANDSCAPE;
         }
@@ -45,7 +74,12 @@ public class ArtworkGenreClassifier {
                 "non-representational",
                 "nonrepresentational",
                 "abstract",
-                "abstraction"
+                "abstraction",
+                "color field",
+                "colour field",
+                "geometric composition",
+                "constructivist",
+                "suprematist"
         )) {
             return ArtworkGenre.ABSTRACT;
         }
@@ -53,7 +87,19 @@ public class ArtworkGenreClassifier {
                 text,
                 "daily life",
                 "genre scene",
-                "domestic life"
+                "domestic life",
+                "street scene",
+                "market scene",
+                "cafe scene",
+                "café scene",
+                "tavern scene",
+                "workers",
+                "washerwomen",
+                "at play",
+                "circus",
+                "household",
+                "school interior",
+                "people dancing"
         )) {
             return ArtworkGenre.DAILY_LIFE;
         }
@@ -61,7 +107,19 @@ public class ArtworkGenreClassifier {
                 text,
                 "mythology",
                 "mythological",
-                "classical myth"
+                "classical myth",
+                "ariadne",
+                "aphrodite",
+                "artemis",
+                "athena",
+                "bacchus",
+                "dionysus",
+                "hercules",
+                "heracles",
+                "odysseus",
+                "achilles",
+                "centaur",
+                "nymph"
         )) {
             return ArtworkGenre.MYTHOLOGY;
         }
@@ -76,7 +134,24 @@ public class ArtworkGenreClassifier {
                 "saint",
                 "buddha",
                 "buddhist",
-                "hindu"
+                "hindu",
+                "christ",
+                "jesus",
+                "virgin mary",
+                "holy family",
+                "nativity",
+                "annunciation",
+                "resurrection",
+                "good samaritan",
+                "parable",
+                "apostle",
+                "bodhisattva",
+                "guanyin",
+                "ganesha",
+                "sutra",
+                "mandala",
+                "arhat",
+                "luohan"
         )) {
             return ArtworkGenre.RELIGIOUS;
         }

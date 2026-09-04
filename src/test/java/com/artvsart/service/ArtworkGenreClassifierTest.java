@@ -51,6 +51,30 @@ class ArtworkGenreClassifierTest {
     }
 
     @Test
+    void classifiesMuseumSubjectTermsWithoutGenericGenreLabels() {
+        assertEquals(
+                ArtworkGenre.STILL_LIFE,
+                classifier.classify("Fruits and Flowers")
+        );
+        assertEquals(
+                ArtworkGenre.LANDSCAPE,
+                classifier.classify("Maine Coast")
+        );
+        assertEquals(
+                ArtworkGenre.DAILY_LIFE,
+                classifier.classify("Café Scene")
+        );
+        assertEquals(
+                ArtworkGenre.MYTHOLOGY,
+                classifier.classify("Ariadne")
+        );
+        assertEquals(
+                ArtworkGenre.RELIGIOUS,
+                classifier.classify("Christ Appearing to His Mother")
+        );
+    }
+
+    @Test
     void detectsSketchesAcrossMuseumMetadata() {
         assertTrue(classifier.isSketch(
                 "Study",
