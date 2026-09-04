@@ -15,13 +15,13 @@ public interface LeaderboardEntryRepository
     Optional<LeaderboardEntry> findByGameRunId(Long gameRunId);
 
     List<LeaderboardEntry>
-    findByGameModeOrderByScoreDescAchievedAtAscIdAsc(
+    findByGameModeAndDisplayNameIsNotNullOrderByScoreDescAchievedAtAscIdAsc(
             GameMode gameMode,
             Pageable pageable
     );
 
     List<LeaderboardEntry>
-    findByGameModeAndAchievedAtGreaterThanEqualAndAchievedAtLessThanOrderByScoreDescAchievedAtAscIdAsc(
+    findByGameModeAndDisplayNameIsNotNullAndAchievedAtGreaterThanEqualAndAchievedAtLessThanOrderByScoreDescAchievedAtAscIdAsc(
             GameMode gameMode,
             Instant start,
             Instant end,

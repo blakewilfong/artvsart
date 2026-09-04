@@ -75,28 +75,24 @@ class LeaderboardServiceTest {
                 .thenAnswer(invocation -> {
                     LeaderboardEntry saved = invocation.getArgument(0);
                     ReflectionTestUtils.setField(saved, "id", 2L);
-                    savedEntry = saved;
                     return saved;
                 });
 
         when(entryRepository
-                .findByGameModeAndAchievedAtGreaterThanEqualAndAchievedAtLessThanOrderByScoreDescAchievedAtAscIdAsc(
+                .findByGameModeAndDisplayNameIsNotNullAndAchievedAtGreaterThanEqualAndAchievedAtLessThanOrderByScoreDescAchievedAtAscIdAsc(
                         eq(GameMode.STREAK),
                         any(Instant.class),
                         any(Instant.class),
                         any(Pageable.class)
                 ))
-                .thenAnswer(invocation -> List.of(
-                        betterDaily,
-                        currentSavedEntry()
-                ));
+                .thenReturn(List.of(betterDaily));
 
         when(entryRepository
-                .findByGameModeOrderByScoreDescAchievedAtAscIdAsc(
+                .findByGameModeAndDisplayNameIsNotNullOrderByScoreDescAchievedAtAscIdAsc(
                         eq(GameMode.STREAK),
                         any(Pageable.class)
                 ))
-                .thenAnswer(invocation -> List.of(currentSavedEntry()));
+                .thenReturn(List.of());
 
         when(entryRepository.save(any(LeaderboardEntry.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -107,12 +103,6 @@ class LeaderboardServiceTest {
         assertFalse(result.isDailyRecordAtAchievement());
         assertTrue(result.isAllTimeRecordAtAchievement());
         verify(entryRepository).save(result);
-    }
-
-    private LeaderboardEntry savedEntry;
-
-    private LeaderboardEntry currentSavedEntry() {
-        return savedEntry;
     }
 
     private LeaderboardEntry entry(

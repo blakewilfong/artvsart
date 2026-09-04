@@ -132,7 +132,7 @@ class StreakTemplateTest {
         LeaderboardView.LeaderboardRow row =
                 new LeaderboardView.LeaderboardRow(
                         1,
-                        "Anonymous",
+                        "Blake",
                         7,
                         achievedOn,
                         true,

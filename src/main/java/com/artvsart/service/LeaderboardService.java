@@ -12,13 +12,14 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class LeaderboardService {
 
     private static final int LEADERBOARD_SIZE = 10;
-    private static final String ANONYMOUS_NAME = "Anonymous";
 
     private final LeaderboardEntryRepository entryRepository;
     private final Clock clock;
@@ -54,7 +55,7 @@ public class LeaderboardService {
                 new LeaderboardEntry(run, score)
         );
 
-        int dailyRank = rankOf(
+        int dailyRank = rankAmongNamedEntries(
                 getDailyEntries(
                         run.getGameMode(),
                         localDateOf(run.getCompletedAt())
@@ -62,7 +63,7 @@ public class LeaderboardService {
                 entry
         );
 
-        int allTimeRank = rankOf(
+        int allTimeRank = rankAmongNamedEntries(
                 getAllTimeEntries(run.getGameMode()),
                 entry
         );
@@ -172,7 +173,7 @@ public class LeaderboardService {
                 .toInstant();
 
         return entryRepository
-                .findByGameModeAndAchievedAtGreaterThanEqualAndAchievedAtLessThanOrderByScoreDescAchievedAtAscIdAsc(
+                .findByGameModeAndDisplayNameIsNotNullAndAchievedAtGreaterThanEqualAndAchievedAtLessThanOrderByScoreDescAchievedAtAscIdAsc(
                         gameMode,
                         start,
                         end,
@@ -184,10 +185,28 @@ public class LeaderboardService {
             GameMode gameMode
     ) {
         return entryRepository
-                .findByGameModeOrderByScoreDescAchievedAtAscIdAsc(
+                .findByGameModeAndDisplayNameIsNotNullOrderByScoreDescAchievedAtAscIdAsc(
                         gameMode,
                         PageRequest.of(0, LEADERBOARD_SIZE)
                 );
+    }
+
+    private int rankAmongNamedEntries(
+            List<LeaderboardEntry> namedEntries,
+            LeaderboardEntry target
+    ) {
+        List<LeaderboardEntry> candidates = new ArrayList<>(
+                namedEntries
+        );
+        candidates.add(target);
+        candidates.sort(
+                Comparator.comparingInt(LeaderboardEntry::getScore)
+                        .reversed()
+                        .thenComparing(LeaderboardEntry::getAchievedAt)
+                        .thenComparing(LeaderboardEntry::getId)
+        );
+
+        return rankOf(candidates, target);
     }
 
     private int rankOf(
@@ -216,13 +235,10 @@ public class LeaderboardService {
                 .range(0, entries.size())
                 .mapToObj(index -> {
                     LeaderboardEntry entry = entries.get(index);
-                    String playerName = entry.getDisplayName() == null
-                            ? ANONYMOUS_NAME
-                            : entry.getDisplayName();
 
                     return new LeaderboardView.LeaderboardRow(
                             index + 1,
-                            playerName,
+                            entry.getDisplayName(),
                             entry.getScore(),
                             localDateOf(entry.getAchievedAt()),
                             entry.getVoterId().equals(voterId),

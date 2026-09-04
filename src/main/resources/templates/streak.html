@@ -443,7 +443,12 @@
             <div class="leaderboard-lists">
                 <section>
                     <h3>Today's top 10</h3>
-                    <p class="leaderboard-record">
+                    <p
+                            class="leaderboard-record"
+                            th:if="${!#lists.isEmpty(
+                                leaderboard.dailyScores
+                            )}"
+                    >
                         High score:
                         <strong
                                 th:text="${leaderboard.dailyHighScore}"
@@ -477,7 +482,12 @@
 
                 <section>
                     <h3>All-time top 10</h3>
-                    <p class="leaderboard-record">
+                    <p
+                            class="leaderboard-record"
+                            th:if="${!#lists.isEmpty(
+                                leaderboard.allTimeScores
+                            )}"
+                    >
                         High score:
                         <strong
                                 th:text="${leaderboard.allTimeHighScore}"
