@@ -58,6 +58,10 @@ public class StreakController {
                     name = VoterCookieManager.COOKIE_NAME,
                     required = false
             ) String voterId,
+            @RequestParam(
+                    name = "reveal",
+                    defaultValue = "false"
+            ) boolean reveal,
             Model model
     ) {
         if (!voterCookieManager.isValid(voterId)) {
@@ -119,7 +123,7 @@ public class StreakController {
                     answer.isCorrect()
             );
 
-            if (!run.isActive()) {
+            if (!run.isActive() && !reveal) {
                 model.addAttribute(
                         "leaderboard",
                         streakGameService.getLeaderboard(

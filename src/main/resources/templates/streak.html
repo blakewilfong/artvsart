@@ -536,5 +536,19 @@
         </nav>
     </section>
 </main>
+
+<div
+        id="auto-advance"
+        th:if="${answered and !run.active and leaderboard == null}"
+        th:data-next-url="@{/streak/{questionId}(
+            questionId=${question.id}
+        )}"
+        hidden
+></div>
+
+<script
+        th:src="@{/js/game.js}"
+        src="/js/game.js"
+></script>
 </body>
 </html>

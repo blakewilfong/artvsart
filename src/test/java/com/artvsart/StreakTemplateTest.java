@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -106,6 +108,70 @@ class StreakTemplateTest {
                                 )
                         )
                 ));
+    }
+
+    @Test
+    void delaysTheLeaderboardWhileTheFinalAnswerIsVisible()
+            throws Exception {
+        Artwork artworkOne = artwork(
+                1L,
+                "First work",
+                "First artist"
+        );
+        Artwork artworkTwo = artwork(
+                2L,
+                "Second work",
+                "Second artist"
+        );
+        ArtworkQuestion question = question(
+                artworkOne,
+                artworkTwo
+        );
+
+        GameRun run = mock(GameRun.class);
+        when(run.getId()).thenReturn(7L);
+        when(run.getCorrectAnswers()).thenReturn(7);
+        when(run.isActive()).thenReturn(false);
+        when(question.getGameRun()).thenReturn(run);
+
+        ArtworkAnswer answer = mock(ArtworkAnswer.class);
+        when(answer.getSelectedArtwork()).thenReturn(artworkOne);
+        when(answer.isCorrect()).thenReturn(false);
+
+        when(streakGameService.getQuestion(12L, VOTER_ID))
+                .thenReturn(question);
+        when(streakGameService.findAnswer(12L, VOTER_ID))
+                .thenReturn(Optional.of(answer));
+
+        mockMvc.perform(
+                        get("/streak/12")
+                                .param("reveal", "true")
+                                .cookie(new Cookie(
+                                        VoterCookieManager.COOKIE_NAME,
+                                        VOTER_ID
+                                ))
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        org.hamcrest.Matchers.allOf(
+                                org.hamcrest.Matchers.containsString(
+                                        "Streak over"
+                                ),
+                                org.hamcrest.Matchers.containsString(
+                                        "data-next-url=\"/streak/12\""
+                                ),
+                                org.hamcrest.Matchers.not(
+                                        org.hamcrest.Matchers.containsString(
+                                                "Final score"
+                                        )
+                                )
+                        )
+                ));
+
+        verify(streakGameService, never()).getLeaderboard(
+                7L,
+                VOTER_ID
+        );
     }
 
     private ArtworkQuestion question(
