@@ -61,12 +61,12 @@ public enum QuestionType {
                             + "?";
 
             case BEFORE_HISTORICAL_EVENT ->
-                    "Which artwork was created closer in time to this event: "
+                    "Which artwork was created closer in time to "
                             + event(parameter).getDisplayName()
                             + "?";
 
             case ARTIST_ALIVE_DURING_EVENT ->
-                    "Which artist was alive for this event: "
+                    "Which artist was alive for "
                             + event(parameter).getDisplayName()
                             + "?";
 

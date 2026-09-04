@@ -71,20 +71,19 @@ class StreakDifficultyStrategyTest {
     }
 
     @Test
-    void appliesTheCurveToArtistAgePairs() {
+    void delaysArtistAgeQuestionsUntilRoundSixteen() {
         ArtistYoungerAtCreationQuestionStrategy strategy =
                 new ArtistYoungerAtCreationQuestionStrategy(
                         new ArtistYoungerAtCreationQuestionService(),
                         policy
                 );
 
-        Artwork younger = artwork(1L, "Younger", 1880, 1900);
-        Artwork older = artwork(2L, "Older", 1850, 1900);
+        Artwork younger = artwork(1L, "Younger", 1877, 1900);
+        Artwork older = artwork(2L, "Older", 1854, 1900);
         GameRun run = GameRun.startStreak("player");
 
-        assertFalse(strategy.isEligiblePair(younger, older, run));
-
-        for (int answer = 0; answer < 4; answer++) {
+        for (int answer = 0; answer < 15; answer++) {
+            assertFalse(strategy.isEligiblePair(younger, older, run));
             run.recordStreakAnswer(true);
         }
 

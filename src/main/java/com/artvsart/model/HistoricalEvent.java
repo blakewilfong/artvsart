@@ -3,11 +3,11 @@ package com.artvsart.model;
 public enum HistoricalEvent {
     DOMESDAY_BOOK_COMPLETED(
             1086,
-            "the Domesday Book was completed"
+            "the completion of the Domesday Book"
     ),
     FIRST_CRUSADE_BEGAN(
             1096,
-            "the First Crusade began"
+            "the beginning of the First Crusade"
     ),
     BATTLE_OF_TINCHEBRAY(
             1106,
@@ -15,55 +15,55 @@ public enum HistoricalEvent {
     ),
     KNIGHTS_TEMPLAR_FOUNDED(
             1119,
-            "the Knights Templar were founded"
+            "the founding of the Knights Templar"
     ),
     CONCORDAT_OF_WORMS(
             1122,
-            "the Concordat of Worms"
+            "the signing of the Concordat of Worms"
     ),
     LOUIS_VII_BECAME_KING(
             1137,
-            "Louis VII became king of France"
+            "Louis VII's accession to the French throne"
     ),
     SECOND_CRUSADE_BEGAN(
             1147,
-            "the Second Crusade began"
+            "the beginning of the Second Crusade"
     ),
     FREDERICK_BARBAROSSA_ELECTED(
             1152,
-            "Frederick Barbarossa was elected king of Germany"
+            "Frederick Barbarossa's election as king of Germany"
     ),
     NOTRE_DAME_CONSTRUCTION_BEGAN(
             1163,
-            "construction of Notre-Dame de Paris began"
+            "the beginning of construction on Notre-Dame de Paris"
     ),
     THOMAS_BECKET_MURDERED(
             1170,
-            "Thomas Becket was murdered"
+            "the murder of Thomas Becket"
     ),
     SALADIN_CAPTURED_JERUSALEM(
             1187,
-            "Saladin captured Jerusalem"
+            "Saladin's capture of Jerusalem"
     ),
     THIRD_CRUSADE_ENDED(
             1192,
-            "the Third Crusade ended"
+            "the end of the Third Crusade"
     ),
     SACK_OF_CONSTANTINOPLE(
             1204,
-            "the Fourth Crusade sacked Constantinople"
+            "the Fourth Crusade's sack of Constantinople"
     ),
     MAGNA_CARTA(
             1215,
-            "Magna Carta was sealed"
+            "the sealing of Magna Carta"
     ),
     AMIENS_CATHEDRAL_CONSTRUCTION_BEGAN(
             1220,
-            "construction of Amiens Cathedral began"
+            "the beginning of construction on Amiens Cathedral"
     ),
     CORDOBA_CAPTURED(
             1236,
-            "Ferdinand III captured Cordoba"
+            "Ferdinand III's capture of Cordoba"
     ),
     BATTLE_OF_MOHI(
             1241,
@@ -71,7 +71,7 @@ public enum HistoricalEvent {
     ),
     MONGOLS_SACKED_BAGHDAD(
             1258,
-            "the Mongols sacked Baghdad"
+            "the Mongol sack of Baghdad"
     ),
     BATTLE_OF_AIN_JALUT(
             1260,
@@ -79,7 +79,7 @@ public enum HistoricalEvent {
     ),
     MARCO_POLO_JOURNEY_BEGAN(
             1271,
-            "Marco Polo began his journey to Asia"
+            "the beginning of Marco Polo's journey to Asia"
     ),
     SICILIAN_VESPERS(
             1282,
@@ -91,35 +91,35 @@ public enum HistoricalEvent {
     ),
     KNIGHTS_TEMPLAR_ARRESTED(
             1307,
-            "the Knights Templar were arrested in France"
+            "the arrest of the Knights Templar in France"
     ),
     GREAT_FAMINE_OF_EUROPE(
             1315,
-            "the Great Famine began in Europe"
+            "the beginning of the Great Famine in Europe"
     ),
     MANSA_MUSA_PILGRIMAGE(
             1324,
-            "Mansa Musa made his pilgrimage to Mecca"
+            "Mansa Musa's pilgrimage to Mecca"
     ),
     HUNDRED_YEARS_WAR_BEGAN(
             1337,
-            "the Hundred Years' War began"
+            "the beginning of the Hundred Years' War"
     ),
     BLACK_DEATH_IN_EUROPE(
             1347,
-            "the Black Death reached Europe"
+            "the arrival of the Black Death in Europe"
     ),
     GOLDEN_BULL_ISSUED(
             1356,
-            "the Golden Bull was issued"
+            "the issuance of the Golden Bull"
     ),
     MING_DYNASTY_ESTABLISHED(
             1368,
-            "the Ming dynasty was established"
+            "the establishment of the Ming dynasty"
     ),
     WESTERN_SCHISM_BEGAN(
             1378,
-            "the Western Schism began"
+            "the beginning of the Western Schism"
     ),
     PEASANTS_REVOLT(
             1381,
@@ -127,11 +127,11 @@ public enum HistoricalEvent {
     ),
     JOSEON_DYNASTY_FOUNDED(
             1392,
-            "the Joseon dynasty was founded"
+            "the founding of the Joseon dynasty"
     ),
     ZHENG_HE_FIRST_VOYAGE(
             1405,
-            "Zheng He began his first voyage"
+            "the beginning of Zheng He's first voyage"
     ),
     BATTLE_OF_AGINCOURT(
             1415,
@@ -139,11 +139,11 @@ public enum HistoricalEvent {
     ),
     SIEGE_OF_ORLEANS_LIFTED(
             1429,
-            "Joan of Arc helped lift the siege of Orleans"
+            "Joan of Arc's lifting of the siege of Orleans"
     ),
     MEDICI_RETURNED_TO_FLORENCE(
             1434,
-            "Cosimo de' Medici returned to power in Florence"
+            "Cosimo de' Medici's return to power in Florence"
     ),
     BATTLE_OF_VARNA(
             1444,
@@ -155,43 +155,43 @@ public enum HistoricalEvent {
     ),
     FERDINAND_AND_ISABELLA_MARRIED(
             1469,
-            "Ferdinand of Aragon and Isabella of Castile married"
+            "the marriage of Ferdinand of Aragon and Isabella of Castile"
     ),
     SPANISH_INQUISITION_ESTABLISHED(
             1478,
-            "the Spanish Inquisition was established"
+            "the establishment of the Spanish Inquisition"
     ),
     DIAS_ROUNDED_CAPE_OF_GOOD_HOPE(
             1488,
-            "Bartolomeu Dias rounded the Cape of Good Hope"
+            "Bartolomeu Dias's rounding of the Cape of Good Hope"
     ),
     COLUMBUS_REACHED_AMERICAS(
             1492,
-            "Columbus reached the Americas"
+            "Columbus's arrival in the Americas"
     ),
     SAFAVID_DYNASTY_ESTABLISHED(
             1501,
-            "the Safavid dynasty was established"
+            "the establishment of the Safavid dynasty"
     ),
     PROTESTANT_REFORMATION(
             1517,
-            "the Protestant Reformation began"
+            "the beginning of the Protestant Reformation"
     ),
     AZTEC_EMPIRE_FELL(
             1521,
-            "the Aztec Empire fell"
+            "the fall of the Aztec Empire"
     ),
     ACT_OF_SUPREMACY(
             1534,
-            "the English Act of Supremacy"
+            "the passage of the English Act of Supremacy"
     ),
     COPERNICUS_PUBLISHED_HELIOCENTRIC_MODEL(
             1543,
-            "Copernicus published his heliocentric model"
+            "Copernicus's publication of his heliocentric model"
     ),
     PEACE_OF_AUGSBURG(
             1555,
-            "the Peace of Augsburg"
+            "the signing of the Peace of Augsburg"
     ),
     GREAT_SIEGE_OF_MALTA(
             1565,
@@ -203,35 +203,35 @@ public enum HistoricalEvent {
     ),
     SPANISH_ARMADA_DEFEATED(
             1588,
-            "the Spanish Armada was defeated"
+            "the defeat of the Spanish Armada"
     ),
     EDICT_OF_NANTES(
             1598,
-            "the Edict of Nantes"
+            "the issuance of the Edict of Nantes"
     ),
     JAMESTOWN_FOUNDED(
             1607,
-            "Jamestown was founded"
+            "the founding of Jamestown"
     ),
     THIRTY_YEARS_WAR_BEGAN(
             1618,
-            "the Thirty Years' War began"
+            "the beginning of the Thirty Years' War"
     ),
     MAYFLOWER_REACHED_PLYMOUTH(
             1620,
-            "the Mayflower reached Plymouth"
+            "the Mayflower's arrival at Plymouth"
     ),
     GALILEO_TRIED_BY_INQUISITION(
             1633,
-            "Galileo was tried by the Roman Inquisition"
+            "Galileo's trial by the Roman Inquisition"
     ),
     PEACE_OF_WESTPHALIA(
             1648,
-            "the Peace of Westphalia"
+            "the signing of the Peace of Westphalia"
     ),
     LEVIATHAN_PUBLISHED(
             1651,
-            "Hobbes published Leviathan"
+            "the publication of Hobbes's Leviathan"
     ),
     GREAT_FIRE_OF_LONDON(
             1666,
@@ -239,11 +239,11 @@ public enum HistoricalEvent {
     ),
     FRANCO_DUTCH_WAR_BEGAN(
             1672,
-            "the Franco-Dutch War began"
+            "the beginning of the Franco-Dutch War"
     ),
     PRINCIPIA_PUBLISHED(
             1687,
-            "Newton published the Principia"
+            "the publication of Newton's Principia"
     ),
     SALEM_WITCH_TRIALS(
             1692,
@@ -251,7 +251,7 @@ public enum HistoricalEvent {
     ),
     ACTS_OF_UNION(
             1707,
-            "the Acts of Union created Great Britain"
+            "the Acts of Union that created Great Britain"
     ),
     JACOBITE_RISING(
             1715,
@@ -259,39 +259,39 @@ public enum HistoricalEvent {
     ),
     TREATY_OF_NYSTAD(
             1721,
-            "the Treaty of Nystad ended the Great Northern War"
+            "the Treaty of Nystad ending the Great Northern War"
     ),
     FLYING_SHUTTLE_PATENTED(
             1733,
-            "the flying shuttle was patented"
+            "the patenting of the flying shuttle"
     ),
     WAR_OF_AUSTRIAN_SUCCESSION_BEGAN(
             1740,
-            "the War of the Austrian Succession began"
+            "the beginning of the War of the Austrian Succession"
     ),
     SEVEN_YEARS_WAR_BEGAN(
             1756,
-            "the Seven Years' War began"
+            "the beginning of the Seven Years' War"
     ),
     STAMP_ACT(
             1765,
-            "the British Parliament passed the Stamp Act"
+            "the passage of the Stamp Act"
     ),
     DECLARATION_OF_INDEPENDENCE(
             1776,
-            "the American Declaration of Independence"
+            "the adoption of the American Declaration of Independence"
     ),
     FRENCH_REVOLUTION(
             1789,
-            "the French Revolution"
+            "the beginning of the French Revolution"
     ),
     HAITIAN_REVOLUTION_BEGAN(
             1791,
-            "the Haitian Revolution began"
+            "the beginning of the Haitian Revolution"
     ),
     HAITI_DECLARED_INDEPENDENCE(
             1804,
-            "Haiti declared independence"
+            "Haiti's declaration of independence"
     ),
     BATTLE_OF_WATERLOO(
             1815,
@@ -299,7 +299,7 @@ public enum HistoricalEvent {
     ),
     GREEK_WAR_OF_INDEPENDENCE_BEGAN(
             1821,
-            "the Greek War of Independence began"
+            "the beginning of the Greek War of Independence"
     ),
     JULY_REVOLUTION(
             1830,
@@ -311,19 +311,19 @@ public enum HistoricalEvent {
     ),
     ORIGIN_OF_SPECIES_PUBLISHED(
             1859,
-            "Darwin published On the Origin of Species"
+            "the publication of Darwin's On the Origin of Species"
     ),
     AMERICAN_CIVIL_WAR_BEGAN(
             1861,
-            "the American Civil War began"
+            "the beginning of the American Civil War"
     ),
     FIRST_IMPRESSIONIST_EXHIBITION(
             1874,
-            "the first Impressionist exhibition"
+            "the opening of the first Impressionist exhibition"
     ),
     EIFFEL_TOWER_OPENED(
             1889,
-            "the Eiffel Tower opened"
+            "the opening of the Eiffel Tower"
     ),
     FIRST_MODERN_OLYMPICS(
             1896,
@@ -331,15 +331,15 @@ public enum HistoricalEvent {
     ),
     WRIGHT_FLYER_FIRST_FLIGHT(
             1903,
-            "the Wright Flyer made its first flight"
+            "the Wright Flyer's first flight"
     ),
     FIRST_WORLD_WAR(
             1914,
-            "the First World War"
+            "the beginning of the First World War"
     ),
     TUTANKHAMUN_TOMB_DISCOVERED(
             1922,
-            "Tutankhamun's tomb was discovered"
+            "the discovery of Tutankhamun's tomb"
     );
 
     private final int year;

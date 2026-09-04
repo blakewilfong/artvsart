@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 public class ArtistYoungerAtCreationQuestionStrategy
         implements ArtworkQuestionStrategy {
 
+    static final int FIRST_AVAILABLE_ROUND = 16;
+
     private final ArtistYoungerAtCreationQuestionService
             questionService;
     private final StreakDifficultyPolicy streakDifficultyPolicy;
@@ -28,6 +30,10 @@ public class ArtistYoungerAtCreationQuestionStrategy
             Artwork artworkTwo,
             GameRun run
     ) {
+        if (run.getRoundNumber() < FIRST_AVAILABLE_ROUND) {
+            return false;
+        }
+
         if (run.getGameMode() != GameMode.STREAK) {
             return isEligiblePair(
                     artworkOne,
@@ -69,6 +75,10 @@ public class ArtistYoungerAtCreationQuestionStrategy
             Artwork artworkTwo,
             int roundNumber
     ) {
+        if (roundNumber < FIRST_AVAILABLE_ROUND) {
+            return false;
+        }
+
         if (!questionService.isEligiblePair(
                 artworkOne,
                 artworkTwo
@@ -89,20 +99,6 @@ public class ArtistYoungerAtCreationQuestionStrategy
         long difference = Math.abs(
                 (long) firstAge - secondAge
         );
-
-        if (roundNumber <= 5) {
-            return difference >= 30;
-        }
-
-        if (roundNumber <= 10) {
-            return difference >= 20
-                    && difference <= 29;
-        }
-
-        if (roundNumber <= 15) {
-            return difference >= 10
-                    && difference <= 19;
-        }
 
         return difference
                 >= ArtistYoungerAtCreationQuestionService

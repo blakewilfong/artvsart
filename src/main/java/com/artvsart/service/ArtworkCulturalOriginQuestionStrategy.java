@@ -3,11 +3,13 @@ package com.artvsart.service;
 import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkCulturalOrigin;
 import com.artvsart.model.QuestionType;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
-@Component
+/**
+ * Retained only so previously stored culture questions remain compatible.
+ * This strategy is deliberately not registered for question generation.
+ */
 public class ArtworkCulturalOriginQuestionStrategy
         implements ArtworkQuestionStrategy {
 

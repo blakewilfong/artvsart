@@ -124,21 +124,21 @@ class QuestionTypeTest {
                 )
         );
         assertEquals(
-                "Which artwork was created closer in time to this event: the Mongols sacked Baghdad?",
+                "Which artwork was created closer in time to the Mongol sack of Baghdad?",
                 QuestionType.BEFORE_HISTORICAL_EVENT.getPrompt(
                         HistoricalEvent.MONGOLS_SACKED_BAGHDAD.name()
                 )
         );
         assertEquals(
-                "Which artwork was created closer in time to this event: the first Impressionist exhibition?",
+                "Which artwork was created closer in time to the opening of the first Impressionist exhibition?",
                 QuestionType.BEFORE_HISTORICAL_EVENT.getPrompt(
                         HistoricalEvent.FIRST_IMPRESSIONIST_EXHIBITION.name()
                 )
         );
         assertEquals(
-                "Which artist was alive for this event: the French Revolution?",
+                "Which artist was alive for the beginning of the Haitian Revolution?",
                 QuestionType.ARTIST_ALIVE_DURING_EVENT.getPrompt(
-                        HistoricalEvent.FRENCH_REVOLUTION.name()
+                        HistoricalEvent.HAITIAN_REVOLUTION_BEGAN.name()
                 )
         );
         assertEquals(
