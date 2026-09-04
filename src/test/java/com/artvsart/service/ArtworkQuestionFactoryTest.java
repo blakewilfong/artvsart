@@ -55,7 +55,8 @@ class ArtworkQuestionFactoryTest {
                 new ArtworkQuestionFactory(
                         artworkService,
                         questionRepository,
-                        List.of()
+                        List.of(),
+                        new StreakDifficultyPolicy()
                 );
 
         ArtworkQuestion result =
@@ -100,7 +101,7 @@ class ArtworkQuestionFactoryTest {
         when(strategy.isEligiblePair(
                 artworkOne,
                 artworkTwo,
-                1
+                run
         )).thenReturn(true);
 
         when(strategy.getCorrectArtwork(
@@ -129,7 +130,8 @@ class ArtworkQuestionFactoryTest {
                 new ArtworkQuestionFactory(
                         artworkService,
                         questionRepository,
-                        List.of(strategy)
+                        List.of(strategy),
+                        new StreakDifficultyPolicy()
                 );
 
         ArtworkQuestion question =
@@ -192,14 +194,14 @@ class ArtworkQuestionFactoryTest {
                 unavailableStrategy.isEligiblePair(
                         artworkOne,
                         artworkTwo,
-                        1
+                        run
                 )
         ).thenReturn(false);
 
         when(availableStrategy.isEligiblePair(
                 artworkOne,
                 artworkTwo,
-                1
+                run
         )).thenReturn(true);
 
         when(availableStrategy.getCorrectArtwork(
@@ -225,7 +227,8 @@ class ArtworkQuestionFactoryTest {
                         List.of(
                                 unavailableStrategy,
                                 availableStrategy
-                        )
+                        ),
+                        new StreakDifficultyPolicy()
                 );
 
         ArtworkQuestion question =

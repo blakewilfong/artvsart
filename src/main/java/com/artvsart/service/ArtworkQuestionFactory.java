@@ -2,6 +2,7 @@ package com.artvsart.service;
 
 import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkQuestion;
+import com.artvsart.model.GameMode;
 import com.artvsart.model.GameRun;
 import com.artvsart.repository.ArtworkQuestionRepository;
 import org.springframework.stereotype.Service;
@@ -21,15 +22,18 @@ public class ArtworkQuestionFactory {
     private final ArtworkService artworkService;
     private final ArtworkQuestionRepository questionRepository;
     private final List<ArtworkQuestionStrategy> strategies;
+    private final StreakDifficultyPolicy streakDifficultyPolicy;
 
     public ArtworkQuestionFactory(
             ArtworkService artworkService,
             ArtworkQuestionRepository questionRepository,
-            List<ArtworkQuestionStrategy> strategies
+            List<ArtworkQuestionStrategy> strategies,
+            StreakDifficultyPolicy streakDifficultyPolicy
     ) {
         this.artworkService = artworkService;
         this.questionRepository = questionRepository;
         this.strategies = List.copyOf(strategies);
+        this.streakDifficultyPolicy = streakDifficultyPolicy;
     }
 
     @Transactional
@@ -73,10 +77,17 @@ public class ArtworkQuestionFactory {
         List<ArtworkQuestionStrategy> shuffledStrategies =
                 new ArrayList<>(strategies);
 
-        Collections.shuffle(
-                shuffledStrategies,
-                ThreadLocalRandom.current()
-        );
+        if (run.getGameMode() == GameMode.STREAK) {
+            applyStreakDifficultyWeights(
+                    shuffledStrategies,
+                    run.getRoundNumber()
+            );
+        } else {
+            Collections.shuffle(
+                    shuffledStrategies,
+                    ThreadLocalRandom.current()
+            );
+        }
 
         for (ArtworkQuestionStrategy strategy
                 : shuffledStrategies) {
@@ -85,7 +96,7 @@ public class ArtworkQuestionFactory {
                     createEligiblePairs(
                             artworks,
                             strategy,
-                            run.getRoundNumber()
+                            run
                     );
 
             if (eligiblePairs.isEmpty()) {
@@ -133,7 +144,7 @@ public class ArtworkQuestionFactory {
     private List<ArtworkPair> createEligiblePairs(
             List<Artwork> artworks,
             ArtworkQuestionStrategy strategy,
-            int roundNumber
+            GameRun run
     ) {
         List<ArtworkPair> eligiblePairs =
                 new ArrayList<>();
@@ -155,7 +166,7 @@ public class ArtworkQuestionFactory {
                 if (strategy.isEligiblePair(
                         artworkOne,
                         artworkTwo,
-                        roundNumber
+                        run
                 )) {
                     eligiblePairs.add(
                             new ArtworkPair(
@@ -168,6 +179,48 @@ public class ArtworkQuestionFactory {
         }
 
         return eligiblePairs;
+    }
+
+    private void applyStreakDifficultyWeights(
+            List<ArtworkQuestionStrategy> strategies,
+            int roundNumber
+    ) {
+        List<ArtworkQuestionStrategy> remaining =
+                new ArrayList<>(strategies);
+
+        strategies.clear();
+
+        while (!remaining.isEmpty()) {
+            int totalWeight = remaining.stream()
+                    .mapToInt(strategy -> streakDifficultyPolicy
+                            .getQuestionTypeWeight(
+                                    strategy.getQuestionType(),
+                                    roundNumber
+                            ))
+                    .sum();
+
+            int ticket = ThreadLocalRandom.current()
+                    .nextInt(totalWeight);
+
+            for (int index = 0;
+                 index < remaining.size();
+                 index++) {
+                ArtworkQuestionStrategy strategy =
+                        remaining.get(index);
+
+                ticket -= streakDifficultyPolicy
+                        .getQuestionTypeWeight(
+                                strategy.getQuestionType(),
+                                roundNumber
+                        );
+
+                if (ticket < 0) {
+                    strategies.add(strategy);
+                    remaining.remove(index);
+                    break;
+                }
+            }
+        }
     }
 
     private record ArtworkPair(

@@ -1,6 +1,8 @@
 package com.artvsart.service;
 
 import com.artvsart.model.Artwork;
+import com.artvsart.model.GameMode;
+import com.artvsart.model.GameRun;
 import com.artvsart.model.QuestionType;
 import org.springframework.stereotype.Component;
 
@@ -9,11 +11,47 @@ public class ArtistBornEarlierQuestionStrategy
         implements ArtworkQuestionStrategy {
 
     private final ArtistBornEarlierQuestionService questionService;
+    private final StreakDifficultyPolicy streakDifficultyPolicy;
 
     public ArtistBornEarlierQuestionStrategy(
-            ArtistBornEarlierQuestionService questionService
+            ArtistBornEarlierQuestionService questionService,
+            StreakDifficultyPolicy streakDifficultyPolicy
     ) {
         this.questionService = questionService;
+        this.streakDifficultyPolicy = streakDifficultyPolicy;
+    }
+
+    @Override
+    public boolean isEligiblePair(
+            Artwork artworkOne,
+            Artwork artworkTwo,
+            GameRun run
+    ) {
+        if (run.getGameMode() != GameMode.STREAK) {
+            return isEligiblePair(
+                    artworkOne,
+                    artworkTwo,
+                    run.getRoundNumber()
+            );
+        }
+
+        if (!questionService.isEligiblePair(
+                artworkOne,
+                artworkTwo
+        )) {
+            return false;
+        }
+
+        long difference = Math.abs(
+                (long) artworkOne.getArtistBeginYear()
+                        - artworkTwo.getArtistBeginYear()
+        );
+
+        return streakDifficultyPolicy
+                .isArtistBirthYearDifferenceEligible(
+                        difference,
+                        run.getRoundNumber()
+                );
     }
 
     @Override
