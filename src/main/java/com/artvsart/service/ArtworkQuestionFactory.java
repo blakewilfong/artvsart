@@ -4,6 +4,7 @@ import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.GameMode;
 import com.artvsart.model.GameRun;
+import com.artvsart.model.QuestionType;
 import com.artvsart.repository.ArtworkQuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -63,9 +65,58 @@ public class ArtworkQuestionFactory {
             return existingQuestion.get();
         }
 
-        if (strategies.isEmpty()) {
+        return createForRun(run, Set.of());
+    }
+
+    @Transactional
+    public ArtworkQuestion reroll(
+            ArtworkQuestion currentQuestion
+    ) {
+        if (currentQuestion == null
+                || !currentQuestion.belongsToRun()) {
+            throw new IllegalArgumentException(
+                    "A run question is required"
+            );
+        }
+
+        GameRun run = currentQuestion.getGameRun();
+
+        if (!run.isActive()
+                || currentQuestion.getRoundNumber()
+                != run.getRoundNumber()) {
             throw new IllegalStateException(
-                    "No artwork question strategies are available"
+                    "Only the current question can be rerolled"
+            );
+        }
+
+        questionRepository.delete(currentQuestion);
+        questionRepository.flush();
+
+        return createForRun(
+                run,
+                Set.of(currentQuestion.getQuestionType())
+        );
+    }
+
+    private ArtworkQuestion createForRun(
+            GameRun run,
+            Set<QuestionType> excludedTypes
+    ) {
+        List<ArtworkQuestionStrategy> availableStrategies =
+                strategies.stream()
+                        .filter(strategy ->
+                                excludedTypes.isEmpty()
+                                        || !excludedTypes.contains(
+                                        strategy.getQuestionType()
+                                )
+                        )
+                        .toList();
+
+        if (availableStrategies.isEmpty()) {
+            throw new IllegalStateException(
+                    excludedTypes.isEmpty()
+                            ? "No artwork question strategies are available"
+                            : "No alternate question strategies are available"
             );
         }
 
@@ -75,7 +126,7 @@ public class ArtworkQuestionFactory {
                 );
 
         List<ArtworkQuestionStrategy> orderedStrategies =
-                new ArrayList<>(strategies);
+                new ArrayList<>(availableStrategies);
 
         if (run.getGameMode() == GameMode.STREAK) {
             orderedStrategies = streakDifficultyPolicy

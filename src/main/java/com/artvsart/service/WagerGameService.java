@@ -18,17 +18,20 @@ public class WagerGameService {
     private final GameRunRepository gameRunRepository;
     private final ArtworkAnswerService answerService;
     private final ArtworkQuestionFactory questionFactory;
+    private final ArtworkQuestionRerollService rerollService;
 
     public WagerGameService(
             ArtworkQuestionRepository questionRepository,
             GameRunRepository gameRunRepository,
             ArtworkAnswerService answerService,
-            ArtworkQuestionFactory questionFactory
+            ArtworkQuestionFactory questionFactory,
+            ArtworkQuestionRerollService rerollService
     ) {
         this.questionRepository = questionRepository;
         this.gameRunRepository = gameRunRepository;
         this.answerService = answerService;
         this.questionFactory = questionFactory;
+        this.rerollService = rerollService;
     }
 
     @Transactional
@@ -138,6 +141,17 @@ public class WagerGameService {
     ) {
         return answerService.findAnswer(
                 questionId,
+                voterId
+        );
+    }
+
+    @Transactional
+    public ArtworkQuestion rerollQuestion(
+            Long questionId,
+            String voterId
+    ) {
+        return rerollService.reroll(
+                getQuestion(questionId, voterId),
                 voterId
         );
     }

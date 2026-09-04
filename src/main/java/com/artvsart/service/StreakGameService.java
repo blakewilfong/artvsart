@@ -20,6 +20,7 @@ public class StreakGameService {
     private final ArtworkQuestionFactory questionFactory;
     private final LeaderboardService leaderboardService;
     private final StreakLeaderboardScoreProvider scoreProvider;
+    private final ArtworkQuestionRerollService rerollService;
 
     public StreakGameService(
             ArtworkQuestionRepository questionRepository,
@@ -27,7 +28,8 @@ public class StreakGameService {
             ArtworkAnswerService answerService,
             ArtworkQuestionFactory questionFactory,
             LeaderboardService leaderboardService,
-            StreakLeaderboardScoreProvider scoreProvider
+            StreakLeaderboardScoreProvider scoreProvider,
+            ArtworkQuestionRerollService rerollService
     ) {
         this.questionRepository = questionRepository;
         this.gameRunRepository = gameRunRepository;
@@ -35,6 +37,7 @@ public class StreakGameService {
         this.questionFactory = questionFactory;
         this.leaderboardService = leaderboardService;
         this.scoreProvider = scoreProvider;
+        this.rerollService = rerollService;
     }
 
     @Transactional
@@ -156,6 +159,17 @@ public class StreakGameService {
     public int getGlobalHighScore() {
         return leaderboardService.getAllTimeHighScore(
                 GameMode.STREAK
+        );
+    }
+
+    @Transactional
+    public ArtworkQuestion rerollQuestion(
+            Long questionId,
+            String voterId
+    ) {
+        return rerollService.reroll(
+                getQuestion(questionId, voterId),
+                voterId
         );
     }
 

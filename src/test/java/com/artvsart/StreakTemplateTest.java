@@ -41,6 +41,54 @@ class StreakTemplateTest {
     private StreakGameService streakGameService;
 
     @Test
+    void offersRerollsForAnUnansweredQuestion()
+            throws Exception {
+        Artwork artworkOne = artwork(
+                1L,
+                "First work",
+                "First artist"
+        );
+        Artwork artworkTwo = artwork(
+                2L,
+                "Second work",
+                "Second artist"
+        );
+        ArtworkQuestion question = question(
+                artworkOne,
+                artworkTwo
+        );
+        GameRun run = mock(GameRun.class);
+
+        when(run.isActive()).thenReturn(true);
+        when(run.getCorrectAnswers()).thenReturn(2);
+        when(run.getRerollsRemaining()).thenReturn(3);
+        when(question.getGameRun()).thenReturn(run);
+        when(streakGameService.getQuestion(12L, VOTER_ID))
+                .thenReturn(question);
+        when(streakGameService.findAnswer(12L, VOTER_ID))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(
+                        get("/streak/12")
+                                .cookie(new Cookie(
+                                        VoterCookieManager.COOKIE_NAME,
+                                        VOTER_ID
+                                ))
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        org.hamcrest.Matchers.allOf(
+                                org.hamcrest.Matchers.containsString(
+                                        "action=\"/streak/reroll\""
+                                ),
+                                org.hamcrest.Matchers.containsString(
+                                        "Reroll (3)"
+                                )
+                        )
+                ));
+    }
+
+    @Test
     void rendersCompletedRunLeaderboardAndNameForm()
             throws Exception {
         Artwork artworkOne = artwork(

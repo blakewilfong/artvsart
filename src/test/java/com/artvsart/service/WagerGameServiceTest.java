@@ -38,6 +38,9 @@ class WagerGameServiceTest {
     @Mock
     private ArtworkQuestionFactory questionFactory;
 
+    @Mock
+    private ArtworkQuestionRerollService rerollService;
+
     private WagerGameService service;
 
     @BeforeEach
@@ -46,7 +49,8 @@ class WagerGameServiceTest {
                 questionRepository,
                 gameRunRepository,
                 answerService,
-                questionFactory
+                questionFactory,
+                rerollService
         );
     }
 
@@ -227,5 +231,28 @@ class WagerGameServiceTest {
                 service.getGlobalHighScore();
 
         assertEquals(425, highScore);
+    }
+
+    @Test
+    void rerollsOwnedWagerQuestion() {
+        ArtworkQuestion question = mock(ArtworkQuestion.class);
+        ArtworkQuestion replacement = mock(ArtworkQuestion.class);
+        GameRun run = mock(GameRun.class);
+
+        when(questionRepository.findById(10L))
+                .thenReturn(Optional.of(question));
+        when(question.getGameMode()).thenReturn(GameMode.WAGER);
+        when(question.belongsToRun()).thenReturn(true);
+        when(question.getGameRun()).thenReturn(run);
+        when(run.getVoterId()).thenReturn(VOTER_ID);
+        when(rerollService.reroll(question, VOTER_ID))
+                .thenReturn(replacement);
+
+        ArtworkQuestion result = service.rerollQuestion(
+                10L,
+                VOTER_ID
+        );
+
+        assertSame(replacement, result);
     }
 }

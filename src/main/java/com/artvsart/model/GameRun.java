@@ -17,8 +17,10 @@ public class GameRun {
 
     public static final int STARTING_POINTS = 100;
     public static final int BASE_MINIMUM_WAGER = 5;
+    public static final int STARTING_REROLLS = 3;
 
     private static final double MINIMUM_WAGER_GROWTH_RATE = 1.10;
+    private static final int ROUNDS_PER_REROLL = 3;
     private static final int ROUNDS_PER_RAKE_INCREASE = 5;
     private static final int RAKE_INCREASE_PERCENTAGE = 5;
     private static final int MAXIMUM_RAKE_PERCENTAGE = 25;
@@ -43,6 +45,8 @@ public class GameRun {
     private Integer pointBalance;
 
     private Integer highestPointBalance;
+
+    private Integer rerollsRemaining;
 
     @Column(nullable = false)
     private boolean active;
@@ -78,6 +82,7 @@ public class GameRun {
         this.correctAnswers = 0;
         this.pointBalance = pointBalance;
         this.highestPointBalance = pointBalance;
+        this.rerollsRemaining = STARTING_REROLLS;
         this.active = true;
         this.startedAt = Instant.now();
     }
@@ -107,7 +112,7 @@ public class GameRun {
         }
 
         correctAnswers++;
-        roundNumber++;
+        advanceRound();
     }
 
     public void recordWagerAnswer(
@@ -139,7 +144,23 @@ public class GameRun {
             return;
         }
 
-        roundNumber++;
+        advanceRound();
+    }
+
+    public void spendReroll() {
+        if (!active) {
+            throw new IllegalStateException(
+                    "Cannot reroll a completed run"
+            );
+        }
+
+        if (getRerollsRemaining() == 0) {
+            throw new IllegalStateException(
+                    "No rerolls remain"
+            );
+        }
+
+        rerollsRemaining = getRerollsRemaining() - 1;
     }
 
     public int getMinimumWager() {
@@ -301,6 +322,14 @@ public class GameRun {
         completedAt = Instant.now();
     }
 
+    private void advanceRound() {
+        if (roundNumber % ROUNDS_PER_REROLL == 0) {
+            rerollsRemaining = getRerollsRemaining() + 1;
+        }
+
+        roundNumber++;
+    }
+
     public Long getId() {
         return id;
     }
@@ -329,6 +358,12 @@ public class GameRun {
     public int getHighestPointBalance() {
         requireMode(GameMode.WAGER);
         return highestPointBalance;
+    }
+
+    public int getRerollsRemaining() {
+        return rerollsRemaining == null
+                ? STARTING_REROLLS
+                : rerollsRemaining;
     }
 
     public boolean isActive() {

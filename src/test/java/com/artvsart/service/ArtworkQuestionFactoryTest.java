@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -303,6 +305,75 @@ class ArtworkQuestionFactoryTest {
         );
     }
 
+    @Test
+    void rerollUsesADifferentQuestionTypeForTheSameRound() {
+        GameRun run = run(10L, 4, GameMode.WAGER);
+        Artwork artworkOne = artwork(1L);
+        Artwork artworkTwo = artwork(2L);
+        ArtworkQuestion currentQuestion =
+                mock(ArtworkQuestion.class);
+        ArtworkQuestionStrategy currentStrategy =
+                mock(ArtworkQuestionStrategy.class);
+        ArtworkQuestionStrategy replacementStrategy =
+                mock(ArtworkQuestionStrategy.class);
+
+        when(currentQuestion.belongsToRun()).thenReturn(true);
+        when(currentQuestion.getGameRun()).thenReturn(run);
+        when(currentQuestion.getRoundNumber()).thenReturn(4);
+        when(currentQuestion.getQuestionType())
+                .thenReturn(QuestionType.OLDER_ARTWORK);
+        when(currentStrategy.getQuestionType())
+                .thenReturn(QuestionType.OLDER_ARTWORK);
+        when(replacementStrategy.getQuestionType())
+                .thenReturn(QuestionType.ARTWORK_MEDIUM);
+        when(artworkService.getBalancedQuestionCandidates(240))
+                .thenReturn(List.of(artworkOne, artworkTwo));
+        when(replacementStrategy.isEligiblePair(
+                artworkOne,
+                artworkTwo,
+                run
+        )).thenReturn(true);
+        when(replacementStrategy.getCorrectArtwork(
+                artworkOne,
+                artworkTwo
+        )).thenReturn(artworkOne);
+        when(replacementStrategy.getQuestionParameter(
+                artworkOne,
+                artworkTwo,
+                4
+        )).thenReturn("Oil");
+        when(questionRepository.save(any(ArtworkQuestion.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ArtworkQuestionFactory factory =
+                new ArtworkQuestionFactory(
+                        artworkService,
+                        questionRepository,
+                        List.of(
+                                currentStrategy,
+                                replacementStrategy
+                        ),
+                        new StreakDifficultyPolicy()
+                );
+
+        ArtworkQuestion replacement = factory.reroll(
+                currentQuestion
+        );
+
+        assertSame(
+                QuestionType.ARTWORK_MEDIUM,
+                replacement.getQuestionType()
+        );
+        assertEquals(4, replacement.getRoundNumber());
+        verify(questionRepository).delete(currentQuestion);
+        verify(questionRepository).flush();
+        verify(currentStrategy, never()).isEligiblePair(
+                artworkOne,
+                artworkTwo,
+                run
+        );
+    }
+
     private GameRun run(
             Long id,
             int roundNumber,
@@ -310,7 +381,7 @@ class ArtworkQuestionFactoryTest {
     ) {
         GameRun run = mock(GameRun.class);
 
-        when(run.getId()).thenReturn(id);
+        lenient().when(run.getId()).thenReturn(id);
         when(run.isActive()).thenReturn(true);
         when(run.getRoundNumber())
                 .thenReturn(roundNumber);

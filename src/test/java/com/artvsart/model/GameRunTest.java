@@ -18,6 +18,7 @@ class GameRunTest {
         assertEquals(GameMode.STREAK, run.getGameMode());
         assertEquals(1, run.getRoundNumber());
         assertEquals(0, run.getCorrectAnswers());
+        assertEquals(3, run.getRerollsRemaining());
         assertTrue(run.isActive());
         assertNotNull(run.getStartedAt());
     }
@@ -58,6 +59,38 @@ class GameRunTest {
     }
 
     @Test
+    void spendsRerollsWithoutAdvancingTheRound() {
+        GameRun run = GameRun.startStreak("voter-1");
+
+        run.spendReroll();
+        run.spendReroll();
+        run.spendReroll();
+
+        assertEquals(0, run.getRerollsRemaining());
+        assertEquals(1, run.getRoundNumber());
+        assertThrows(
+                IllegalStateException.class,
+                run::spendReroll
+        );
+    }
+
+    @Test
+    void earnsAnUnlimitedRerollEveryThreeCompletedRounds() {
+        GameRun run = GameRun.startStreak("voter-1");
+
+        run.spendReroll();
+        run.spendReroll();
+        run.spendReroll();
+
+        for (int answer = 0; answer < 9; answer++) {
+            run.recordStreakAnswer(true);
+        }
+
+        assertEquals(3, run.getRerollsRemaining());
+        assertEquals(10, run.getRoundNumber());
+    }
+
+    @Test
     void startsWagerRunWithOneHundredPoints() {
         GameRun run = GameRun.startWager("voter-1");
 
@@ -65,6 +98,7 @@ class GameRunTest {
         assertEquals(1, run.getRoundNumber());
         assertEquals(100, run.getPointBalance());
         assertEquals(100, run.getHighestPointBalance());
+        assertEquals(3, run.getRerollsRemaining());
         assertEquals(5, run.getMinimumWager());
         assertEquals(0, run.getRakePercentage());
         assertEquals(6, run.getNextRakeIncreaseRound());
@@ -273,6 +307,29 @@ class GameRunTest {
         assertEquals(0, run.getPointBalance());
         assertFalse(run.isActive());
         assertNotNull(run.getCompletedAt());
+    }
+
+    @Test
+    void wagerRunEarnsRerollAfterThirdCompletedRound() {
+        GameRun run = GameRun.startWager("voter-1");
+
+        run.recordWagerAnswer(true, 5);
+        run.recordWagerAnswer(true, 6);
+        run.recordWagerAnswer(false, 7);
+
+        assertEquals(4, run.getRerollsRemaining());
+        assertEquals(4, run.getRoundNumber());
+    }
+
+    @Test
+    void completedRunCannotSpendReroll() {
+        GameRun run = GameRun.startWager("voter-1");
+        run.recordWagerAnswer(false, 100);
+
+        assertThrows(
+                IllegalStateException.class,
+                run::spendReroll
+        );
     }
 
     private void advanceWithCorrectAnswers(

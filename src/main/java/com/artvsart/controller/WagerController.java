@@ -219,4 +219,25 @@ public class WagerController {
                 nextRoundRakePercentage
         );
     }
+
+    @PostMapping("/wager/reroll")
+    public String rerollQuestion(
+            @RequestParam Long questionId,
+            @CookieValue(
+                    name = VoterCookieManager.COOKIE_NAME,
+                    required = false
+            ) String voterId
+    ) {
+        if (!voterCookieManager.isValid(voterId)) {
+            return "redirect:/wager";
+        }
+
+        ArtworkQuestion question =
+                wagerGameService.rerollQuestion(
+                        questionId,
+                        voterId
+                );
+
+        return "redirect:/wager/" + question.getId();
+    }
 }

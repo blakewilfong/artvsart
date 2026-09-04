@@ -43,6 +43,9 @@ class StreakGameServiceTest {
     @Mock
     private StreakLeaderboardScoreProvider scoreProvider;
 
+    @Mock
+    private ArtworkQuestionRerollService rerollService;
+
     private StreakGameService service;
 
     @BeforeEach
@@ -53,7 +56,8 @@ class StreakGameServiceTest {
                 answerService,
                 questionFactory,
                 leaderboardService,
-                scoreProvider
+                scoreProvider,
+                rerollService
         );
     }
 
@@ -242,5 +246,28 @@ class StreakGameServiceTest {
         verify(run).recordStreakAnswer(false);
         verify(gameRunRepository).save(run);
         verify(leaderboardService).recordCompletedRun(run, 3);
+    }
+
+    @Test
+    void rerollsOwnedStreakQuestion() {
+        ArtworkQuestion question = mock(ArtworkQuestion.class);
+        ArtworkQuestion replacement = mock(ArtworkQuestion.class);
+        GameRun run = mock(GameRun.class);
+
+        when(questionRepository.findById(10L))
+                .thenReturn(Optional.of(question));
+        when(question.getGameMode()).thenReturn(GameMode.STREAK);
+        when(question.belongsToRun()).thenReturn(true);
+        when(question.getGameRun()).thenReturn(run);
+        when(run.getVoterId()).thenReturn(VOTER_ID);
+        when(rerollService.reroll(question, VOTER_ID))
+                .thenReturn(replacement);
+
+        ArtworkQuestion result = service.rerollQuestion(
+                10L,
+                VOTER_ID
+        );
+
+        assertSame(replacement, result);
     }
 }

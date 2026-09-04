@@ -162,6 +162,27 @@ public class StreakController {
                 + "?reveal=true";
     }
 
+    @PostMapping("/streak/reroll")
+    public String rerollQuestion(
+            @RequestParam Long questionId,
+            @CookieValue(
+                    name = VoterCookieManager.COOKIE_NAME,
+                    required = false
+            ) String voterId
+    ) {
+        if (!voterCookieManager.isValid(voterId)) {
+            return "redirect:/streak";
+        }
+
+        ArtworkQuestion question =
+                streakGameService.rerollQuestion(
+                        questionId,
+                        voterId
+                );
+
+        return "redirect:/streak/" + question.getId();
+    }
+
     @PostMapping("/streak/score/name")
     public String nameScore(
             @RequestParam Long questionId,

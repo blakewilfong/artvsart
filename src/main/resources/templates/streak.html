@@ -77,6 +77,29 @@
                     (1874)
                 </span>
             </h2>
+
+            <form
+                    class="reroll-form"
+                    th:if="${!answered}"
+                    method="post"
+                    th:action="@{/streak/reroll}"
+                    action="/streak/reroll"
+            >
+                <input
+                        type="hidden"
+                        name="questionId"
+                        th:value="${question.id}"
+                >
+
+                <button
+                        class="reroll-button"
+                        type="submit"
+                        th:disabled="${run.rerollsRemaining == 0}"
+                        th:text="|Reroll (${run.rerollsRemaining})|"
+                >
+                    Reroll (3)
+                </button>
+            </form>
         </header>
 
         <section
