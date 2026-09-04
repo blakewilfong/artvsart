@@ -21,7 +21,7 @@ class BeforeHistoricalEventQuestionStrategyTest {
             new BeforeHistoricalEventQuestionStrategy();
 
     @Test
-    void selectsAnEventBetweenTheArtworkDates() {
+    void selectsAnEventBetweenTheArtworkDatesAndChoosesTheCloserWork() {
         Artwork older = artwork("1", 1700);
         Artwork newer = artwork("2", 1800);
 
@@ -30,7 +30,33 @@ class BeforeHistoricalEventQuestionStrategyTest {
                 "SEVEN_YEARS_WAR_BEGAN",
                 strategy.getQuestionParameter(older, newer, 1)
         );
+        assertSame(newer, strategy.getCorrectArtwork(older, newer));
+    }
+
+    @Test
+    void canChooseTheOlderArtworkWhenItIsCloserToTheEvent() {
+        Artwork older = artwork("1", 1700);
+        Artwork newer = artwork("2", 1770);
+
+        assertTrue(strategy.isEligiblePair(older, newer, 1));
+        assertEquals(
+                "FLYING_SHUTTLE_PATENTED",
+                strategy.getQuestionParameter(older, newer, 1)
+        );
         assertSame(older, strategy.getCorrectArtwork(older, newer));
+    }
+
+    @Test
+    void skipsAnEventWhenTheArtworksAreEquallyClose() {
+        Artwork older = artwork("1", 1200);
+        Artwork newer = artwork("2", 1316);
+
+        assertTrue(strategy.isEligiblePair(older, newer, 1));
+        assertEquals(
+                "BATTLE_OF_AIN_JALUT",
+                strategy.getQuestionParameter(older, newer, 1)
+        );
+        assertSame(newer, strategy.getCorrectArtwork(older, newer));
     }
 
     @Test

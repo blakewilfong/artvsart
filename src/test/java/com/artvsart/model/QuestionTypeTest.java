@@ -84,5 +84,21 @@ class QuestionTypeTest {
                                 HistoricalEvent.EIFFEL_TOWER_OPENED.name()
                         )
         );
+        assertEquals(
+                "Which artwork was created closer to when the Mongols sacked Baghdad?",
+                QuestionType.BEFORE_HISTORICAL_EVENT.getPrompt(
+                        HistoricalEvent.MONGOLS_SACKED_BAGHDAD.name()
+                )
+        );
+        assertEquals(
+                "Closer",
+                QuestionType.BEFORE_HISTORICAL_EVENT
+                        .getCorrectAnswerLabel()
+        );
+        assertEquals(
+                "Farther away",
+                QuestionType.BEFORE_HISTORICAL_EVENT
+                        .getIncorrectAnswerLabel()
+        );
     }
 }

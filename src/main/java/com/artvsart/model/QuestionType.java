@@ -46,7 +46,7 @@ public enum QuestionType {
                             + " tradition?";
 
             case BEFORE_HISTORICAL_EVENT ->
-                    "Which artwork was created before "
+                    "Which artwork was created closer to when "
                             + event(parameter).getDisplayName()
                             + "?";
 
@@ -70,7 +70,7 @@ public enum QuestionType {
                  ARTWORK_MEDIUM,
                  ARTWORK_STYLE -> "Matches";
 
-            case BEFORE_HISTORICAL_EVENT -> "Before";
+            case BEFORE_HISTORICAL_EVENT -> "Closer";
 
             default ->
                     throw unsupported();
@@ -92,7 +92,7 @@ public enum QuestionType {
                  ARTWORK_MEDIUM,
                  ARTWORK_STYLE -> "Does not match";
 
-            case BEFORE_HISTORICAL_EVENT -> "Not before";
+            case BEFORE_HISTORICAL_EVENT -> "Farther away";
 
             default ->
                     throw unsupported();

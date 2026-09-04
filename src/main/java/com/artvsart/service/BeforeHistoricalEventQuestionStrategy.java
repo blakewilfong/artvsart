@@ -36,7 +36,13 @@ public class BeforeHistoricalEventQuestionStrategy
                 artworkTwo
         );
 
-        return artworkOne.getObjectBeginYear() < event.getYear()
+        return distanceFromEvent(
+                artworkOne.getObjectBeginYear(),
+                event
+        ) < distanceFromEvent(
+                artworkTwo.getObjectBeginYear(),
+                event
+        )
                 ? artworkOne
                 : artworkTwo;
     }
@@ -58,7 +64,7 @@ public class BeforeHistoricalEventQuestionStrategy
 
         if (event == null) {
             throw new IllegalArgumentException(
-                    "The artworks must straddle a historical event"
+                    "The artworks must be different distances from a historical event between them"
             );
         }
 
@@ -80,8 +86,10 @@ public class BeforeHistoricalEventQuestionStrategy
         return Arrays.stream(HistoricalEvent.values())
                 .filter(event -> isBefore(firstYear, event)
                         != isBefore(secondYear, event))
+                .filter(event -> distanceFromEvent(firstYear, event)
+                        != distanceFromEvent(secondYear, event))
                 .min(Comparator.comparingLong(event ->
-                        distanceFromMidpoint(
+                        differenceBetweenDistances(
                                 firstYear,
                                 secondYear,
                                 event
@@ -89,16 +97,22 @@ public class BeforeHistoricalEventQuestionStrategy
                 .orElse(null);
     }
 
-    private long distanceFromMidpoint(
+    private long differenceBetweenDistances(
             int firstYear,
             int secondYear,
             HistoricalEvent event
     ) {
         return Math.abs(
-                (long) firstYear
-                        + secondYear
-                        - 2L * event.getYear()
+                distanceFromEvent(firstYear, event)
+                        - distanceFromEvent(secondYear, event)
         );
+    }
+
+    private long distanceFromEvent(
+            int artworkYear,
+            HistoricalEvent event
+    ) {
+        return Math.abs((long) artworkYear - event.getYear());
     }
 
     private boolean isBefore(
