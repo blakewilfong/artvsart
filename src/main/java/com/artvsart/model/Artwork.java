@@ -221,6 +221,10 @@ public class Artwork {
         return sourceUrl;
     }
 
+    public void updateSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
+    }
+
     public String getSourceCredit() {
         if (source == null) {
             return null;

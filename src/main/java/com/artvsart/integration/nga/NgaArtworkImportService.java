@@ -30,6 +30,8 @@ public class NgaArtworkImportService {
 
     private static final String SOURCE = "nga";
     private static final String LICENSE = "CC0";
+    private static final String ARTWORK_URL_PREFIX =
+            "https://purl.org/nga/collection/artobject/";
     private static final int DISPLAY_IMAGE_SIZE = 1600;
     private static final Pattern HTML_TAG =
             Pattern.compile("<[^>]+>");
@@ -83,6 +85,8 @@ public class NgaArtworkImportService {
 
         List<Artwork> existingArtworks =
                 repository.findAllBySourceOrderByIdAsc(SOURCE);
+
+        refreshSourceUrls(existingArtworks);
 
         if (existingArtworks.size() >= targetSize) {
             LOGGER.info(
@@ -352,7 +356,7 @@ public class NgaArtworkImportService {
                     artist.name(),
                     displayDate,
                     image.displayUrl(),
-                    "https://www.nga.gov/artworks/" + id,
+                    sourceUrl(id),
                     LICENSE
             );
 
@@ -393,6 +397,37 @@ public class NgaArtworkImportService {
                 limit,
                 Artwork::getGenre
         );
+    }
+
+    private void refreshSourceUrls(List<Artwork> artworks) {
+        List<Artwork> changed = new ArrayList<>();
+
+        for (Artwork artwork : artworks) {
+            String sourceUrl = sourceUrl(
+                    artwork.getSourceArtworkId()
+            );
+
+            if (sourceUrl.equals(artwork.getSourceUrl())) {
+                continue;
+            }
+
+            artwork.updateSourceUrl(sourceUrl);
+            changed.add(artwork);
+        }
+
+        if (changed.isEmpty()) {
+            return;
+        }
+
+        repository.saveAll(changed);
+        LOGGER.info(
+                "Updated {} NGA artwork source links",
+                changed.size()
+        );
+    }
+
+    private String sourceUrl(String objectId) {
+        return ARTWORK_URL_PREFIX + objectId;
     }
 
     private Map<String, List<String>> readGenresByObject(

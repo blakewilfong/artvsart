@@ -85,6 +85,10 @@ class NgaArtworkImportServiceTest {
                 "https://api.nga.gov/iiif/abc/full/full/0/default.jpg",
                 artwork.getOriginalImageUrl()
         );
+        assertEquals(
+                "https://purl.org/nga/collection/artobject/1",
+                artwork.getSourceUrl()
+        );
     }
 
     @Test
@@ -121,7 +125,7 @@ class NgaArtworkImportServiceTest {
     }
 
     @Test
-    void skipsDownloadWhenNgaPoolAlreadyMeetsTarget() {
+    void repairsSourceLinksWithoutDownloadingAFullPool() {
         NgaOpenDataClient client = mock(NgaOpenDataClient.class);
         ArtworkRepository repository = mock(ArtworkRepository.class);
         Artwork existing = new Artwork(
@@ -130,7 +134,9 @@ class NgaArtworkImportServiceTest {
                 "Existing",
                 "Artist",
                 "1900",
-                "https://example.test/image.jpg"
+                "https://example.test/image.jpg",
+                "https://www.nga.gov/artworks/1",
+                "CC0"
         );
 
         when(repository.findAllBySourceOrderByIdAsc("nga"))
@@ -143,7 +149,11 @@ class NgaArtworkImportServiceTest {
 
         assertEquals(0, service.importPaintingPool(1));
         verify(client, never()).read(anyString(), any());
-        verify(repository, never()).saveAll(any());
+        verify(repository).saveAll(List.of(existing));
+        assertEquals(
+                "https://purl.org/nga/collection/artobject/1",
+                existing.getSourceUrl()
+        );
     }
 
     private NgaArtworkImportService createService(
