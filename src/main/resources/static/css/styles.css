@@ -328,29 +328,11 @@ button.artwork-card:focus-visible .choice-label {
     background: rgba(132, 109, 49, 0.9);
 }
 
-.rate-result {
-    display: block;
-    margin-bottom: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 .rate-value {
     display: block;
-    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-size: clamp(1.4rem, 4vw, 2.5rem);
     font-weight: 800;
-    line-height: 1;
-}
-
-.rate-label {
-    display: block;
-    margin-top: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    line-height: 1.1;
 }
 
 @keyframes reveal-rate {

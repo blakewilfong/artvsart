@@ -230,31 +230,14 @@
                                 ? ' rate-overlay--winner'
                                 : ' rate-overlay--loser'"
                     >
-                        <span
-                                class="rate-result"
-                                th:text="${correctArtworkId
-                                    == question.artworkOne.id
-                                    ? question.correctAnswerLabel
-                                    : question.incorrectAnswerLabel}"
-                        >
-                            Result
-                        </span>
-
                         <strong
                                 class="rate-value"
-                                th:text="${question.displayValue(
+                                th:text="${question.getAnswerCaption(
                                     question.artworkOne
                                 )}"
                         >
-                            Answer value
+                            Answer
                         </strong>
-
-                        <span
-                                class="rate-label"
-                                th:text="${question.valueLabel}"
-                        >
-                            Answer value
-                        </span>
                     </div>
                 </div>
 
@@ -323,31 +306,14 @@
                                 ? ' rate-overlay--winner'
                                 : ' rate-overlay--loser'"
                     >
-                        <span
-                                class="rate-result"
-                                th:text="${correctArtworkId
-                                    == question.artworkTwo.id
-                                    ? question.correctAnswerLabel
-                                    : question.incorrectAnswerLabel}"
-                        >
-                            Result
-                        </span>
-
                         <strong
                                 class="rate-value"
-                                th:text="${question.displayValue(
+                                th:text="${question.getAnswerCaption(
                                     question.artworkTwo
                                 )}"
                         >
-                            Answer value
+                            Answer
                         </strong>
-
-                        <span
-                                class="rate-label"
-                                th:text="${question.valueLabel}"
-                        >
-                            Answer value
-                        </span>
                     </div>
                 </div>
 

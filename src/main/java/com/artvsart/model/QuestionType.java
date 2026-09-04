@@ -172,6 +172,33 @@ public enum QuestionType {
         };
     }
 
+    public String getAnswerCaption(
+            Artwork artwork,
+            String parameter
+    ) {
+        return switch (this) {
+            case OLDER_ARTWORK,
+                 BEFORE_HISTORICAL_EVENT ->
+                    "Created " + displayValue(artwork, parameter);
+
+            case ARTIST_BORN_EARLIER -> {
+                String year = displayValue(artwork, parameter);
+                yield "Unknown".equals(year)
+                        ? "Birth year unknown"
+                        : "Born " + year;
+            }
+
+            case ARTIST_YOUNGER_AT_CREATION ->
+                    formatArtistAgeCaption(artwork);
+
+            case ARTIST_NATIONALITY,
+                 ARTWORK_MEDIUM,
+                 ARTWORK_STYLE -> displayValue(artwork, parameter);
+
+            default -> throw unsupported();
+        };
+    }
+
     public boolean requiresParameter() {
         return this == ARTIST_NATIONALITY
                 || this == ARTWORK_MEDIUM
@@ -231,6 +258,19 @@ public enum QuestionType {
         int age = artworkYear - artistBirthYear;
 
         return age + " years old";
+    }
+
+    private String formatArtistAgeCaption(
+            Artwork artwork
+    ) {
+        Integer artistBirthYear = artwork.getArtistBeginYear();
+        Integer artworkYear = artwork.getObjectBeginYear();
+
+        if (artistBirthYear == null || artworkYear == null) {
+            return "Age unknown";
+        }
+
+        return "Age " + (artworkYear - artistBirthYear);
     }
 
     private String formatYear(Integer year) {

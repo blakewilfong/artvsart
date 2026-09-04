@@ -296,6 +296,13 @@ public class ArtworkQuestion {
         );
     }
 
+    public String getAnswerCaption(Artwork artwork) {
+        return questionType.getAnswerCaption(
+                artwork,
+                questionParameter
+        );
+    }
+
     public GameRun getGameRun() {
         return gameRun;
     }

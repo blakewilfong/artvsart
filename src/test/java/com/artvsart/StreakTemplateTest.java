@@ -108,6 +108,9 @@ class StreakTemplateTest {
                                 ),
                                 org.hamcrest.Matchers.containsString(
                                         "src=\"/artworks/1/image\""
+                                ),
+                                org.hamcrest.Matchers.containsString(
+                                        "Created 1900"
                                 )
                         )
                 ));
@@ -163,6 +166,9 @@ class StreakTemplateTest {
                                 org.hamcrest.Matchers.containsString(
                                         "data-next-url=\"/streak/12\""
                                 ),
+                                org.hamcrest.Matchers.containsString(
+                                        "Created 1900"
+                                ),
                                 org.hamcrest.Matchers.not(
                                         org.hamcrest.Matchers.containsString(
                                                 "Final score"
@@ -188,11 +194,10 @@ class StreakTemplateTest {
         when(question.getArtworkOne()).thenReturn(artworkOne);
         when(question.getArtworkTwo()).thenReturn(artworkTwo);
         when(question.getCorrectArtwork()).thenReturn(artworkTwo);
-        when(question.getCorrectAnswerLabel()).thenReturn("Older");
-        when(question.getIncorrectAnswerLabel()).thenReturn("Newer");
-        when(question.getValueLabel()).thenReturn("Year");
-        when(question.displayValue(artworkOne)).thenReturn("1900");
-        when(question.displayValue(artworkTwo)).thenReturn("1950");
+        when(question.getAnswerCaption(artworkOne))
+                .thenReturn("Created 1900");
+        when(question.getAnswerCaption(artworkTwo))
+                .thenReturn("Created 1950");
         return question;
     }
 
