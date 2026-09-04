@@ -108,4 +108,14 @@ public class ArtworkStyle {
     public String getSource() {
         return source;
     }
+
+    void updateDisplayLabel(String label) {
+        if (label == null || label.isBlank()) {
+            throw new IllegalArgumentException(
+                    "A style label is required"
+            );
+        }
+
+        this.displayLabel = label.trim();
+    }
 }

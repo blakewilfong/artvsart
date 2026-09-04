@@ -2,7 +2,10 @@ package com.artvsart.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ArtworkTest {
 
@@ -104,6 +107,33 @@ class ArtworkTest {
                 "Source: The Cleveland Museum of Art",
                 artwork.getSourceCredit()
         );
+    }
+
+    @Test
+    void retainsMatchingStyleEntitiesDuringSourceRefresh() {
+        Artwork artwork = artworkFrom("nga");
+        artwork.replaceStylesFromSource(
+                "nga",
+                List.of(new Artwork.StyleDefinition(
+                        ArtworkStyleType.STYLE,
+                        "Gothic",
+                        "nga"
+                ))
+        );
+        ArtworkStyle originalStyle = artwork.getStyles().getFirst();
+
+        artwork.replaceStylesFromSource(
+                "NGA",
+                List.of(new Artwork.StyleDefinition(
+                        ArtworkStyleType.STYLE,
+                        "GOTHIC",
+                        "nga"
+                ))
+        );
+
+        assertEquals(1, artwork.getStyles().size());
+        assertSame(originalStyle, artwork.getStyles().getFirst());
+        assertEquals("GOTHIC", originalStyle.getDisplayLabel());
     }
 
     private Artwork artworkFrom(String source) {

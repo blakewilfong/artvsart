@@ -16,8 +16,10 @@ import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 @Entity
@@ -314,21 +316,59 @@ public class Artwork {
             );
         }
 
-        boolean containsAnotherSource = definitions.stream()
-                .anyMatch(definition -> !source.equalsIgnoreCase(
-                        definition.source()
-                ));
+        String normalizedSource = normalizeStyleSource(source);
+        Map<StyleIdentity, StyleDefinition> desiredStyles =
+                new LinkedHashMap<>();
 
-        if (containsAnotherSource) {
-            throw new IllegalArgumentException(
-                    "Artwork style definitions must match their source"
+        for (StyleDefinition definition : definitions) {
+            if (definition == null
+                    || !normalizedSource.equals(
+                    normalizeStyleSource(definition.source())
+            )) {
+                throw new IllegalArgumentException(
+                        "Artwork style definitions must match their source"
+                );
+            }
+
+            desiredStyles.putIfAbsent(
+                    StyleIdentity.from(definition),
+                    definition
             );
         }
 
-        styles.removeIf(style -> source.equalsIgnoreCase(
-                style.getSource()
+        styles.removeIf(style -> normalizedSource.equals(
+                normalizeStyleSource(style.getSource())
+        ) && !desiredStyles.containsKey(
+                StyleIdentity.from(style)
         ));
-        addStyles(definitions);
+
+        Map<StyleIdentity, ArtworkStyle> existingStyles =
+                new LinkedHashMap<>();
+
+        styles.stream()
+                .filter(style -> normalizedSource.equals(
+                        normalizeStyleSource(style.getSource())
+                ))
+                .forEach(style -> existingStyles.put(
+                        StyleIdentity.from(style),
+                        style
+                ));
+
+        desiredStyles.forEach((identity, definition) -> {
+            ArtworkStyle existingStyle = existingStyles.get(identity);
+
+            if (existingStyle == null) {
+                styles.add(new ArtworkStyle(
+                        this,
+                        definition.type(),
+                        definition.label(),
+                        definition.source()
+                ));
+                return;
+            }
+
+            existingStyle.updateDisplayLabel(definition.label());
+        });
     }
 
     private void addStyles(
@@ -370,5 +410,35 @@ public class Artwork {
             String label,
             String source
     ) {
+    }
+
+    private static String normalizeStyleSource(String source) {
+        return source == null
+                ? ""
+                : source.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private record StyleIdentity(
+            ArtworkStyleType type,
+            String normalizedLabel,
+            String source
+    ) {
+        private static StyleIdentity from(
+                StyleDefinition definition
+        ) {
+            return new StyleIdentity(
+                    definition.type(),
+                    ArtworkStyle.normalize(definition.label()),
+                    normalizeStyleSource(definition.source())
+            );
+        }
+
+        private static StyleIdentity from(ArtworkStyle style) {
+            return new StyleIdentity(
+                    style.getType(),
+                    style.getNormalizedLabel(),
+                    normalizeStyleSource(style.getSource())
+            );
+        }
     }
 }
