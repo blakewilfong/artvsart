@@ -74,23 +74,28 @@ public class ArtworkQuestionFactory {
                         MAXIMUM_QUESTION_CANDIDATES
                 );
 
-        List<ArtworkQuestionStrategy> shuffledStrategies =
+        List<ArtworkQuestionStrategy> orderedStrategies =
                 new ArrayList<>(strategies);
 
         if (run.getGameMode() == GameMode.STREAK) {
-            applyStreakDifficultyWeights(
-                    shuffledStrategies,
-                    run.getRoundNumber()
-            );
+            orderedStrategies = streakDifficultyPolicy
+                    .orderStrategies(
+                            orderedStrategies,
+                            questionRepository
+                                    .findAllByGameRunIdOrderByRoundNumberAsc(
+                                            run.getId()
+                                    ),
+                            run.getRoundNumber()
+                    );
         } else {
             Collections.shuffle(
-                    shuffledStrategies,
+                    orderedStrategies,
                     ThreadLocalRandom.current()
             );
         }
 
         for (ArtworkQuestionStrategy strategy
-                : shuffledStrategies) {
+                : orderedStrategies) {
 
             List<ArtworkPair> eligiblePairs =
                     createEligiblePairs(
@@ -179,48 +184,6 @@ public class ArtworkQuestionFactory {
         }
 
         return eligiblePairs;
-    }
-
-    private void applyStreakDifficultyWeights(
-            List<ArtworkQuestionStrategy> strategies,
-            int roundNumber
-    ) {
-        List<ArtworkQuestionStrategy> remaining =
-                new ArrayList<>(strategies);
-
-        strategies.clear();
-
-        while (!remaining.isEmpty()) {
-            int totalWeight = remaining.stream()
-                    .mapToInt(strategy -> streakDifficultyPolicy
-                            .getQuestionTypeWeight(
-                                    strategy.getQuestionType(),
-                                    roundNumber
-                            ))
-                    .sum();
-
-            int ticket = ThreadLocalRandom.current()
-                    .nextInt(totalWeight);
-
-            for (int index = 0;
-                 index < remaining.size();
-                 index++) {
-                ArtworkQuestionStrategy strategy =
-                        remaining.get(index);
-
-                ticket -= streakDifficultyPolicy
-                        .getQuestionTypeWeight(
-                                strategy.getQuestionType(),
-                                roundNumber
-                        );
-
-                if (ticket < 0) {
-                    strategies.add(strategy);
-                    remaining.remove(index);
-                    break;
-                }
-            }
-        }
     }
 
     private record ArtworkPair(

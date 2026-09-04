@@ -1,7 +1,15 @@
 package com.artvsart.service;
 
+import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.QuestionType;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class StreakDifficultyPolicy {
@@ -16,6 +24,55 @@ public class StreakDifficultyPolicy {
     private static final long HARD_ARTIST_BIRTH_YEAR_DIFFERENCE = 5;
     private static final long EASY_ARTIST_AGE_DIFFERENCE = 40;
     private static final long HARD_ARTIST_AGE_DIFFERENCE = 5;
+
+    public List<ArtworkQuestionStrategy> orderStrategies(
+            List<ArtworkQuestionStrategy> strategies,
+            List<ArtworkQuestion> previousQuestions,
+            int roundNumber
+    ) {
+        if (strategies == null || previousQuestions == null) {
+            throw new IllegalArgumentException(
+                    "Strategies and previous questions are required"
+            );
+        }
+
+        Map<QuestionType, Integer> usageCounts =
+                new EnumMap<>(QuestionType.class);
+
+        previousQuestions.forEach(question -> usageCounts.merge(
+                question.getQuestionType(),
+                1,
+                Integer::sum
+        ));
+
+        QuestionType previousType = previousQuestions.isEmpty()
+                ? null
+                : previousQuestions.getLast().getQuestionType();
+
+        Map<Integer, List<ArtworkQuestionStrategy>> usageGroups =
+                new TreeMap<>();
+
+        strategies.stream()
+                .filter(strategy -> strategy.getQuestionType()
+                        != previousType)
+                .forEach(strategy -> usageGroups.computeIfAbsent(
+                                usageCounts.getOrDefault(
+                                        strategy.getQuestionType(),
+                                        0
+                                ),
+                                ignored -> new ArrayList<>()
+                        )
+                        .add(strategy));
+
+        List<ArtworkQuestionStrategy> ordered =
+                new ArrayList<>();
+
+        usageGroups.values().forEach(group -> ordered.addAll(
+                weightedOrder(group, roundNumber)
+        ));
+
+        return List.copyOf(ordered);
+    }
 
     public int getQuestionTypeWeight(
             QuestionType questionType,
@@ -121,5 +178,48 @@ public class StreakDifficultyPolicy {
                 pairDifficulty
                         - getDifficultyForRound(roundNumber)
         ) <= PAIR_DIFFICULTY_TOLERANCE;
+    }
+
+    private List<ArtworkQuestionStrategy> weightedOrder(
+            List<ArtworkQuestionStrategy> strategies,
+            int roundNumber
+    ) {
+        List<ArtworkQuestionStrategy> remaining =
+                new ArrayList<>(strategies);
+
+        List<ArtworkQuestionStrategy> ordered =
+                new ArrayList<>();
+
+        while (!remaining.isEmpty()) {
+            int totalWeight = remaining.stream()
+                    .mapToInt(strategy -> getQuestionTypeWeight(
+                            strategy.getQuestionType(),
+                            roundNumber
+                    ))
+                    .sum();
+
+            int ticket = ThreadLocalRandom.current()
+                    .nextInt(totalWeight);
+
+            for (int index = 0;
+                 index < remaining.size();
+                 index++) {
+                ArtworkQuestionStrategy strategy =
+                        remaining.get(index);
+
+                ticket -= getQuestionTypeWeight(
+                        strategy.getQuestionType(),
+                        roundNumber
+                );
+
+                if (ticket < 0) {
+                    ordered.add(strategy);
+                    remaining.remove(index);
+                    break;
+                }
+            }
+        }
+
+        return ordered;
     }
 }

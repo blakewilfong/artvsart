@@ -1,11 +1,17 @@
 package com.artvsart.service;
 
+import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.QuestionType;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class StreakDifficultyPolicyTest {
 
@@ -107,5 +113,70 @@ class StreakDifficultyPolicyTest {
                         10
                 )
         );
+    }
+
+    @Test
+    void excludesThePreviousQuestionType() {
+        ArtworkQuestionStrategy older = strategy(
+                QuestionType.OLDER_ARTWORK
+        );
+        ArtworkQuestionStrategy medium = strategy(
+                QuestionType.ARTWORK_MEDIUM
+        );
+
+        List<ArtworkQuestionStrategy> ordered =
+                policy.orderStrategies(
+                        List.of(older, medium),
+                        List.of(question(
+                                QuestionType.OLDER_ARTWORK
+                        )),
+                        2
+                );
+
+        assertEquals(1, ordered.size());
+        assertSame(medium, ordered.getFirst());
+    }
+
+    @Test
+    void putsLeastUsedQuestionTypesFirst() {
+        ArtworkQuestionStrategy older = strategy(
+                QuestionType.OLDER_ARTWORK
+        );
+        ArtworkQuestionStrategy nationality = strategy(
+                QuestionType.ARTIST_NATIONALITY
+        );
+
+        List<ArtworkQuestionStrategy> ordered =
+                policy.orderStrategies(
+                        List.of(older, nationality),
+                        List.of(
+                                question(QuestionType.OLDER_ARTWORK),
+                                question(QuestionType.OLDER_ARTWORK),
+                                question(QuestionType.ARTWORK_STYLE)
+                        ),
+                        4
+                );
+
+        assertSame(nationality, ordered.getFirst());
+        assertSame(older, ordered.getLast());
+    }
+
+    private ArtworkQuestionStrategy strategy(
+            QuestionType questionType
+    ) {
+        ArtworkQuestionStrategy strategy =
+                mock(ArtworkQuestionStrategy.class);
+
+        when(strategy.getQuestionType()).thenReturn(questionType);
+
+        return strategy;
+    }
+
+    private ArtworkQuestion question(QuestionType questionType) {
+        ArtworkQuestion question = mock(ArtworkQuestion.class);
+
+        when(question.getQuestionType()).thenReturn(questionType);
+
+        return question;
     }
 }
