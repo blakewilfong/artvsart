@@ -23,7 +23,7 @@ public class CmaImportRunner implements ApplicationRunner {
 
     private final CmaArtworkImportService importService;
     private final int targetSize;
-    private final int createdAfterYear;
+    private final Integer createdAfterYear;
     private final int maximumWorksPerArtist;
 
     public CmaImportRunner(
@@ -31,7 +31,7 @@ public class CmaImportRunner implements ApplicationRunner {
             @Value("${artvsart.import.cma.target-size:600}")
             int targetSize,
             @Value("${artvsart.import.cma.created-after:1750}")
-            int createdAfterYear,
+            Integer createdAfterYear,
             @Value("${artvsart.import.cma.max-per-artist:5}")
             int maximumWorksPerArtist
     ) {

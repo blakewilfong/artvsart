@@ -5,6 +5,8 @@ import com.artvsart.repository.ArtworkRepository;
 import com.artvsart.service.ArtworkGenreClassifier;
 import com.artvsart.service.BalancedPoolSelector;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.io.StringReader;
@@ -21,8 +23,9 @@ import static org.mockito.Mockito.when;
 
 class NgaArtworkImportServiceTest {
 
-    @Test
-    void importsEligiblePaintingWithPrimaryArtistAndIiifImage() {
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void importsEligiblePaintingWithPrimaryArtistAndIiifImage(int targetSize) {
         NgaOpenDataClient client = mock(NgaOpenDataClient.class);
         ArtworkRepository repository = mock(ArtworkRepository.class);
 
@@ -58,7 +61,7 @@ class NgaArtworkImportServiceTest {
                 repository
         );
 
-        assertEquals(1, service.importPaintingPool(1));
+        assertEquals(1, service.importPaintingPool(targetSize));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Artwork>> saved =

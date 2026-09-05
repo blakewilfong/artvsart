@@ -15,6 +15,24 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class CmaArtworkClientTest {
 
     @Test
+    void omitsTheDateFilterForAllEraImports() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        CmaArtworkClient client = new CmaArtworkClient(builder);
+        server.expect(requestTo(startsWith(
+                        "https://openaccess-api.clevelandart.org/api/artworks/")))
+                .andExpect(request -> org.junit.jupiter.api.Assertions.assertFalse(
+                        request.getURI().getQuery().contains("created_after")))
+                .andExpect(queryParam("cc0", ""))
+                .andExpect(queryParam("has_image", "1"))
+                .andRespond(withSuccess("{\"info\":{\"total\":0},\"data\":[]}",
+                        MediaType.APPLICATION_JSON));
+
+        assertEquals(0, client.searchOpenAccessPaintings(null, 0, 1000).total());
+        server.verify();
+    }
+
+    @Test
     void fetchesCc0PaintingsWithModernArtworkMetadata() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer

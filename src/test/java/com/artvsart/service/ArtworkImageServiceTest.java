@@ -67,6 +67,32 @@ class ArtworkImageServiceTest {
         assertTrue(service.load(10L).isEmpty());
     }
 
+    @Test
+    void allowsSmithsonianImagesFromTheIdsService() {
+        ArtworkRepository repository = mock(ArtworkRepository.class);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer
+                .bindTo(builder)
+                .build();
+        ArtworkImageService service = new ArtworkImageService(
+                repository,
+                builder
+        );
+        String imageUrl = "https://ids.si.edu/ids/deliveryService?id=SAAM-1";
+
+        when(repository.findById(11L)).thenReturn(Optional.of(
+                artwork("smithsonian", imageUrl)
+        ));
+        server.expect(requestTo(imageUrl))
+                .andRespond(withSuccess(
+                        new byte[]{4, 5, 6},
+                        MediaType.IMAGE_JPEG
+                ));
+
+        assertTrue(service.load(11L).isPresent());
+        server.verify();
+    }
+
     private Artwork artwork(String source, String imageUrl) {
         return new Artwork(
                 source,

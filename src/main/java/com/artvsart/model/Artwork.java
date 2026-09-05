@@ -240,6 +240,10 @@ public class Artwork {
                     "Courtesy National Gallery of Art, Washington";
             case "cma" ->
                     "Source: The Cleveland Museum of Art";
+            case "smithsonian" -> department == null
+                    || department.isBlank()
+                    ? "Source: Smithsonian Institution"
+                    : "Source: " + department;
             default -> "Source: " + source;
         };
     }
@@ -293,6 +297,8 @@ public class Artwork {
                 || objectBeginYear == 0
                 || dateDisplay == null
                 || dateDisplay.isBlank()
+                || dateDisplay.toLowerCase(Locale.ROOT).contains("century")
+                || dateDisplay.toLowerCase(Locale.ROOT).contains("centuries")
                 || dateDisplay.equalsIgnoreCase("unknown")
                 || dateDisplay.equalsIgnoreCase("date unknown")) {
             return Optional.empty();

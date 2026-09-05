@@ -114,6 +114,7 @@ public class ArtworkImageService {
             case "cma" -> Set.of(
                     "openaccess-cdn.clevelandart.org"
             );
+            case "smithsonian" -> Set.of("ids.si.edu");
             default -> Set.of();
         };
 

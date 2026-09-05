@@ -50,25 +50,25 @@ public class CmaArtworkImportService {
 
     public int importModernPaintingPool(
             int targetSize,
-            int createdAfterYear,
+            Integer createdAfterYear,
             int maximumWorksPerArtist
     ) {
-        if (targetSize <= 0) {
+        if (targetSize < 0) {
             throw new IllegalArgumentException(
-                    "Target size must be positive"
+                    "Target size cannot be negative (zero imports all)"
             );
         }
 
-        if (maximumWorksPerArtist <= 0) {
+        if (maximumWorksPerArtist < 0) {
             throw new IllegalArgumentException(
-                    "Maximum works per artist must be positive"
+                    "Maximum works per artist cannot be negative (zero is unlimited)"
             );
         }
 
         List<Artwork> existingArtworks =
                 repository.findAllBySourceOrderByIdAsc(SOURCE);
 
-        if (existingArtworks.size() >= targetSize) {
+        if (targetSize > 0 && existingArtworks.size() >= targetSize) {
             LOGGER.info(
                     "CMA artwork pool already contains {} artworks",
                     existingArtworks.size()
@@ -95,22 +95,25 @@ public class CmaArtworkImportService {
         candidates.sort(
                 Comparator.comparing(
                                 CmaArtworkResponse::creationDateEarliest,
-                                Comparator.reverseOrder()
+                                Comparator.nullsLast(Comparator.reverseOrder())
                         )
                         .thenComparing(CmaArtworkResponse::id)
         );
 
-        int needed = targetSize - existingArtworks.size();
+        int needed = targetSize == 0
+                ? Integer.MAX_VALUE : targetSize - existingArtworks.size();
         List<Artwork> eligible = new ArrayList<>();
 
         for (CmaArtworkResponse candidate : candidates) {
-            String sourceArtworkId = candidate.id().toString();
-
-            if (existingIds.contains(sourceArtworkId)
-                    || !eligibilityPolicy.isEligible(
+            if (!eligibilityPolicy.isEligible(
                     candidate,
                     createdAfterYear
             )) {
+                continue;
+            }
+
+            String sourceArtworkId = candidate.id().toString();
+            if (existingIds.contains(sourceArtworkId)) {
                 continue;
             }
 
@@ -120,7 +123,7 @@ public class CmaArtworkImportService {
             String artistKey = normalizeArtist(artist.displayName());
             int artistCount = worksByArtist.getOrDefault(artistKey, 0);
 
-            if (artistCount >= maximumWorksPerArtist) {
+            if (maximumWorksPerArtist > 0 && artistCount >= maximumWorksPerArtist) {
                 continue;
             }
 
@@ -138,12 +141,12 @@ public class CmaArtworkImportService {
         repository.saveAll(selected);
 
         LOGGER.info(
-                "CMA import completed with {} new post-{} paintings",
+                "CMA import completed with {} new paintings (date cutoff: {})",
                 selected.size(),
                 createdAfterYear
         );
 
-        if (selected.size() < needed) {
+        if (targetSize > 0 && selected.size() < needed) {
             LOGGER.warn(
                     "CMA import found only {} of {} requested eligible artworks",
                     selected.size(),
@@ -155,7 +158,7 @@ public class CmaArtworkImportService {
     }
 
     private List<CmaArtworkResponse> loadCandidates(
-            int createdAfterYear
+            Integer createdAfterYear
     ) {
         List<CmaArtworkResponse> candidates = new ArrayList<>();
         int skip = 0;

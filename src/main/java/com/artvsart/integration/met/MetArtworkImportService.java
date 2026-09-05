@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -88,16 +89,18 @@ public class MetArtworkImportService {
     }
 
     public int importPaintingPool(int targetSize) {
-        if (targetSize <= 0) {
+        if (targetSize < 0) {
             throw new IllegalArgumentException(
-                    "Target size must be positive"
+                    "Target size cannot be negative (zero imports all)"
             );
         }
 
         long existingArtworkCount =
                 artworkRepository.countBySource(SOURCE);
 
-        if (existingArtworkCount >= targetSize) {
+        boolean importAll = targetSize == 0;
+
+        if (!importAll && existingArtworkCount >= targetSize) {
             LOGGER.info(
                     "Met artwork pool already contains {} artworks",
                     existingArtworkCount
@@ -120,14 +123,17 @@ public class MetArtworkImportService {
                 targetSize % DEPARTMENTS.size();
 
         int importedCount = 0;
+        List<MetDepartment> departments = importAll
+                ? List.of(new MetDepartment(0, "All painting departments"))
+                : DEPARTMENTS;
 
         departmentLoop:
         for (int departmentIndex = 0;
-             departmentIndex < DEPARTMENTS.size();
+             departmentIndex < departments.size();
              departmentIndex++) {
 
             MetDepartment department =
-                    DEPARTMENTS.get(departmentIndex);
+                    departments.get(departmentIndex);
 
             int departmentTarget = baseQuota;
 
@@ -146,8 +152,9 @@ public class MetArtworkImportService {
             pauseBeforeRequest();
 
             try {
-                departmentObjects =
-                        metArtworkClient
+                departmentObjects = importAll
+                        ? metArtworkClient.searchPaintings()
+                        : metArtworkClient
                                 .searchDepartmentPaintings(
                                         department.id()
                                 );
@@ -181,7 +188,7 @@ public class MetArtworkImportService {
 
             List<Long> candidateIds =
                     new ArrayList<>(
-                            departmentObjects.objectIds()
+                            new LinkedHashSet<>(departmentObjects.objectIds())
                     );
 
             long existingDepartmentCount =
@@ -193,7 +200,7 @@ public class MetArtworkImportService {
                             )
                             .count();
 
-            int neededCount = Math.max(
+            int neededCount = importAll ? Integer.MAX_VALUE : Math.max(
                     0,
                     departmentTarget
                             - Math.toIntExact(
@@ -213,7 +220,7 @@ public class MetArtworkImportService {
 
             LOGGER.info(
                     "Importing {} flat artworks from {}",
-                    neededCount,
+                    importAll ? "all eligible" : neededCount,
                     department.name()
             );
 
@@ -225,9 +232,9 @@ public class MetArtworkImportService {
             int checkedCount = 0;
             boolean stopImport = false;
             List<Artwork> eligibleCandidates = new ArrayList<>();
-            int candidateTarget = Math.min(
+            int candidateTarget = importAll ? Integer.MAX_VALUE : (int) Math.min(
                     MAX_CANDIDATES_PER_DEPARTMENT,
-                    neededCount * 2
+                    (long) neededCount * 2
             );
 
             for (Long objectId : candidateIds) {
@@ -235,7 +242,7 @@ public class MetArtworkImportService {
                     break;
                 }
 
-                if (checkedCount
+                if (!importAll && checkedCount
                         >= MAX_CANDIDATES_PER_DEPARTMENT) {
                     break;
                 }
@@ -260,7 +267,19 @@ public class MetArtworkImportService {
                     Optional<Artwork> candidate =
                             loadArtwork(objectId);
 
-                    candidate.ifPresent(eligibleCandidates::add);
+                    if (candidate.isPresent()) {
+                        eligibleCandidates.add(candidate.get());
+                    }
+
+                    if (importAll && eligibleCandidates.size() >= 50) {
+                        artworkRepository.saveAll(eligibleCandidates);
+                        eligibleCandidates.stream()
+                                .map(Artwork::getSourceArtworkId)
+                                .forEach(importedObjectIds::add);
+                        importedCount += eligibleCandidates.size();
+                        LOGGER.info("Met full import saved {} new artworks", importedCount);
+                        eligibleCandidates = new ArrayList<>();
+                    }
                 } catch (
                         RestClientResponseException exception
                 ) {
@@ -309,7 +328,7 @@ public class MetArtworkImportService {
             LOGGER.info(
                     "Imported {} of {} requested artworks from {} after checking {} candidates",
                     departmentImportedCount,
-                    neededCount,
+                    importAll ? "all eligible" : neededCount,
                     department.name(),
                     checkedCount
             );
@@ -322,7 +341,7 @@ public class MetArtworkImportService {
         long finalArtworkCount =
                 artworkRepository.countBySource(SOURCE);
 
-        if (finalArtworkCount < targetSize) {
+        if (!importAll && finalArtworkCount < targetSize) {
             LOGGER.warn(
                     "Met import stopped with {} of {} artworks",
                     finalArtworkCount,

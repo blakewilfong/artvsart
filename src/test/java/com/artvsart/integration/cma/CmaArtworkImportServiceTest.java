@@ -20,6 +20,44 @@ import static org.mockito.Mockito.when;
 class CmaArtworkImportServiceTest {
 
     @Test
+    void importsAllErasAndMoreThanFiveWorksPerArtistAcrossPages() {
+        CmaArtworkClient client = mock(CmaArtworkClient.class);
+        ArtworkRepository repository = mock(ArtworkRepository.class);
+        CmaArtworkImportService service = new CmaArtworkImportService(
+                client, repository,
+                new CmaArtworkEligibilityPolicy(new ArtworkGenreClassifier()),
+                new ArtworkGenreClassifier(), new BalancedPoolSelector()
+        );
+        Artwork existing = new Artwork(
+                "cma", "1", "Existing", "Artist A", "1700", "image.jpg"
+        );
+        when(repository.findAllBySourceOrderByIdAsc("cma"))
+                .thenReturn(List.of(existing));
+        when(client.searchOpenAccessPaintings(null, 0, 1000))
+                .thenReturn(new CmaArtworkSearchResponse(
+                        new CmaArtworkSearchResponse.Info(7),
+                        java.util.stream.LongStream.rangeClosed(1, 3)
+                                .mapToObj(id -> artwork(id, 1700, "Artist A", "French"))
+                                .toList()
+                ));
+        when(client.searchOpenAccessPaintings(null, 3, 1000))
+                .thenReturn(new CmaArtworkSearchResponse(
+                        new CmaArtworkSearchResponse.Info(7),
+                        java.util.stream.LongStream.rangeClosed(4, 7)
+                                .mapToObj(id -> artwork(id, 1700, "Artist A", "French"))
+                                .toList()
+                ));
+
+        assertEquals(6, service.importModernPaintingPool(0, null, 0));
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Artwork>> saved = ArgumentCaptor.forClass(List.class);
+        verify(repository).saveAll(saved.capture());
+        assertEquals(6, saved.getValue().size());
+        org.junit.jupiter.api.Assertions.assertTrue(saved.getValue().stream()
+                .noneMatch(value -> value.getSourceArtworkId().equals("1")));
+    }
+
+    @Test
     void importsNewestPaintingsWithoutOverloadingOneArtist() {
         CmaArtworkClient client = mock(CmaArtworkClient.class);
         ArtworkRepository repository = mock(ArtworkRepository.class);

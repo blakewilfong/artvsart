@@ -1,6 +1,8 @@
 package com.artvsart.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +11,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ArtworkTest {
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "first half of 17th century",
+            "17th Century",
+            "late 16th–early 17th centuries"
+    })
+    void rejectsCenturyDescriptionsEvenWhenNumericYearsMatch(String date) {
+        Artwork artwork = new Artwork(
+                "met", "123", "Title", "Artist", date, "image.jpg"
+        );
+        artwork.updateMetadata(new ArtworkMetadata(
+                null, null, null, null, null,
+                17, 17, null, null, "Oil"
+        ));
+
+        assertEquals(Optional.empty(), artwork.findSingleCreationYear());
+    }
 
     @Test
     void findsOnlyOneUnambiguousCreationYear() {

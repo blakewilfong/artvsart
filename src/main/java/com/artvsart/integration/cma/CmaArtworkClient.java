@@ -4,6 +4,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.Optional;
+
 @Component
 public class CmaArtworkClient {
 
@@ -41,7 +43,7 @@ public class CmaArtworkClient {
     }
 
     public CmaArtworkSearchResponse searchOpenAccessPaintings(
-            int createdAfterYear,
+            Integer createdAfterYear,
             int skip,
             int limit
     ) {
@@ -64,9 +66,9 @@ public class CmaArtworkClient {
                         .queryParam("cc0", "")
                         .queryParam("has_image", 1)
                         .queryParam("type", "Painting")
-                        .queryParam(
+                        .queryParamIfPresent(
                                 "created_after",
-                                createdAfterYear
+                                Optional.ofNullable(createdAfterYear)
                         )
                         .queryParam("skip", skip)
                         .queryParam("limit", limit)

@@ -4,6 +4,7 @@ import com.artvsart.model.Artwork;
 import com.artvsart.model.QuestionType;
 import org.springframework.stereotype.Component;
 
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
@@ -97,15 +98,26 @@ public class ArtistLastNameQuestionStrategy
         String first = lastName(artworkOne);
         String second = lastName(artworkTwo);
 
-        if (first == null
-                || second == null
-                || first.equalsIgnoreCase(second)) {
+        if (first == null || second == null) {
             return null;
         }
 
-        return first.compareToIgnoreCase(second) <= 0
+        String firstKey = comparisonKey(first);
+        String secondKey = comparisonKey(second);
+
+        if (firstKey.equals(secondKey)) {
+            return null;
+        }
+
+        return firstKey.compareTo(secondKey) <= 0
                 ? new ArtistSelection(artworkOne, first)
                 : new ArtistSelection(artworkTwo, second);
+    }
+
+    private String comparisonKey(String lastName) {
+        return Normalizer.normalize(lastName, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .toLowerCase(Locale.ROOT);
     }
 
     private String lastName(Artwork artwork) {

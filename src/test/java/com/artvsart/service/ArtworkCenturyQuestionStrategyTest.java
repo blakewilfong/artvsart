@@ -11,6 +11,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ArtworkCenturyQuestionStrategyTest {
 
+    @Test
+    void rejectsCenturyDescriptionsWithMisleadingNumericYears() {
+        Artwork ambiguous = new Artwork(
+                "met", "123", "Title", "Artist",
+                "first half of 17th century", "image.jpg"
+        );
+        ambiguous.updateMetadata(new ArtworkMetadata(
+                null, null, null, null, null,
+                17, 17, null, null, "Oil"
+        ));
+        Artwork known = artwork("2", 1850, 1850);
+
+        assertFalse(strategy.isEligiblePair(ambiguous, known, 1));
+        assertFalse(strategy.isEligiblePair(known, ambiguous, 1));
+    }
+
     private final ArtworkCenturyQuestionStrategy strategy =
             new ArtworkCenturyQuestionStrategy(
                     new StreakDifficultyPolicy()

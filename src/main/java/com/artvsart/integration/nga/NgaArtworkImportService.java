@@ -77,9 +77,9 @@ public class NgaArtworkImportService {
     }
 
     public int importPaintingPool(int targetSize) {
-        if (targetSize <= 0) {
+        if (targetSize < 0) {
             throw new IllegalArgumentException(
-                    "Target size must be positive"
+                    "Target size cannot be negative (zero imports all)"
             );
         }
 
@@ -88,7 +88,7 @@ public class NgaArtworkImportService {
 
         refreshSourceUrls(existingArtworks);
 
-        if (existingArtworks.size() >= targetSize) {
+        if (targetSize > 0 && existingArtworks.size() >= targetSize) {
             LOGGER.info(
                     "NGA artwork pool already contains {} artworks",
                     existingArtworks.size()
@@ -127,11 +127,12 @@ public class NgaArtworkImportService {
                 this::readGenresByObject
         );
 
-        int remaining = targetSize - existingArtworks.size();
+        int remaining = targetSize == 0
+                ? Integer.MAX_VALUE : targetSize - existingArtworks.size();
 
         LOGGER.info(
                 "Selecting up to {} NGA paintings and collages",
-                remaining
+                targetSize == 0 ? "all eligible" : remaining
         );
 
         List<Artwork> selectedArtworks = client.read(
@@ -153,7 +154,7 @@ public class NgaArtworkImportService {
                 selectedArtworks.size()
         );
 
-        if (selectedArtworks.size() < remaining) {
+        if (targetSize > 0 && selectedArtworks.size() < remaining) {
             LOGGER.warn(
                     "NGA import found only {} of {} requested eligible artworks",
                     selectedArtworks.size(),

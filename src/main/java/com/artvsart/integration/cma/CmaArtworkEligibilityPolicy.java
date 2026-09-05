@@ -16,7 +16,7 @@ public class CmaArtworkEligibilityPolicy {
 
     public boolean isEligible(
             CmaArtworkResponse artwork,
-            int createdAfterYear
+            Integer createdAfterYear
     ) {
         if (artwork == null
                 || artwork.id() == null
@@ -27,7 +27,8 @@ public class CmaArtworkEligibilityPolicy {
                 || !hasText(artwork.title())
                 || !hasText(artwork.creationDate())
                 || artwork.creationDateEarliest() == null
-                || artwork.creationDateEarliest() <= createdAfterYear
+                || (createdAfterYear != null
+                && artwork.creationDateEarliest() <= createdAfterYear)
                 || !hasText(artwork.webImageUrl())
                 || !hasText(artwork.url())
                 || artwork.primaryArtist().isEmpty()
