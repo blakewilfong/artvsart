@@ -116,6 +116,8 @@
             </form>
         </header>
 
+        <div th:replace="~{fragments/event-reveal :: eventReveal}"></div>
+
         <section
                 class="outcome-banner"
                 th:if="${answered}"
@@ -451,11 +453,9 @@
         });
     });
 
-    /*[# th:if="${run.active}"]*/
-    window.setTimeout(function () {
-        window.location.assign("/wager/continue");
-    }, 2500);
-    /*[/]*/
 </script>
+<div id="auto-advance" th:if="${answered and run.active}"
+     th:data-next-url="@{/wager/continue}" hidden></div>
+<script th:src="@{/js/game.js}" src="/js/game.js"></script>
 </body>
 </html>

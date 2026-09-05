@@ -41,6 +41,11 @@ public interface ArtworkQuestionStrategy {
         return false;
     }
 
+    default Artwork getCorrectArtwork(Artwork artworkOne, Artwork artworkTwo,
+                                      int roundNumber) {
+        return getCorrectArtwork(artworkOne, artworkTwo);
+    }
+
     default String getQuestionParameter(
             Artwork artworkOne,
             Artwork artworkTwo,

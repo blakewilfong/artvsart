@@ -28,11 +28,7 @@ class BeforeHistoricalEventQuestionStrategyTest {
         Artwork newer = artwork("2", 1800);
 
         assertTrue(strategy.isEligiblePair(older, newer, 1));
-        assertEquals(
-                "JAMESTOWN_FOUNDED",
-                strategy.getQuestionParameter(older, newer, 1)
-        );
-        assertSame(older, strategy.getCorrectArtwork(older, newer));
+        assertValidSelection(older, newer, 1);
     }
 
     @Test
@@ -41,11 +37,7 @@ class BeforeHistoricalEventQuestionStrategyTest {
         Artwork newer = artwork("2", 1810);
 
         assertTrue(strategy.isEligiblePair(older, newer, 1));
-        assertEquals(
-                "HAITI_DECLARED_INDEPENDENCE",
-                strategy.getQuestionParameter(older, newer, 1)
-        );
-        assertSame(newer, strategy.getCorrectArtwork(older, newer));
+        assertValidSelection(older, newer, 1);
     }
 
     @Test
@@ -54,11 +46,7 @@ class BeforeHistoricalEventQuestionStrategyTest {
         Artwork newer = artwork("2", 1316);
 
         assertTrue(strategy.isEligiblePair(older, newer, 20));
-        assertEquals(
-                "GREAT_FAMINE_OF_EUROPE",
-                strategy.getQuestionParameter(older, newer, 1)
-        );
-        assertSame(newer, strategy.getCorrectArtwork(older, newer));
+        assertValidSelection(older, newer, 20);
     }
 
     @Test
@@ -115,6 +103,35 @@ class BeforeHistoricalEventQuestionStrategyTest {
 
     private int decadeOf(int year) {
         return Math.floorDiv(year, 10) * 10;
+    }
+
+    @Test
+    void selectsVariedEventsWithoutBreakingDifficultyOrAnswers() {
+        Set<String> selected = new java.util.HashSet<>();
+        for (int round : new int[]{1, 10, 11, 20, 21, 40}) {
+            for (int i = 0; i < 100; i++) {
+                Artwork first = artwork("left-" + i, 1500);
+                Artwork second = artwork("right-" + i, 1900);
+                assertTrue(strategy.isEligiblePair(first, second, round));
+                assertValidSelection(first, second, round);
+                selected.add(strategy.getQuestionParameter(first, second, round));
+            }
+        }
+        assertTrue(selected.size() > 10);
+    }
+
+    private void assertValidSelection(Artwork first, Artwork second, int round) {
+        HistoricalEvent event = HistoricalEvent.valueOf(
+                strategy.getQuestionParameter(first, second, round));
+        long firstDistance = Math.abs((long) first.findSingleCreationYear().orElseThrow() - event.getYear());
+        long secondDistance = Math.abs((long) second.findSingleCreationYear().orElseThrow() - event.getYear());
+        assertTrue(new StreakDifficultyPolicy().isHistoricalEventDistanceEligible(
+                Math.min(firstDistance, secondDistance), Math.max(firstDistance, secondDistance), round));
+        assertSame(firstDistance < secondDistance ? first : second,
+                strategy.getCorrectArtwork(first, second, round));
+        assertEquals(event.name(), strategy.getQuestionParameter(second, first, round));
+        assertSame(strategy.getCorrectArtwork(first, second, round),
+                strategy.getCorrectArtwork(second, first, round));
     }
 
     private Artwork artwork(String id, Integer year) {

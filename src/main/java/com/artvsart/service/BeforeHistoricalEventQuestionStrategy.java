@@ -6,17 +6,14 @@ import com.artvsart.model.QuestionType;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.List;
 
 @Component
-public class BeforeHistoricalEventQuestionStrategy
-        implements ArtworkQuestionStrategy {
+public class BeforeHistoricalEventQuestionStrategy implements ArtworkQuestionStrategy {
 
     private final StreakDifficultyPolicy difficultyPolicy;
 
-    public BeforeHistoricalEventQuestionStrategy(
-            StreakDifficultyPolicy difficultyPolicy
-    ) {
+    public BeforeHistoricalEventQuestionStrategy(StreakDifficultyPolicy difficultyPolicy) {
         this.difficultyPolicy = difficultyPolicy;
     }
 
@@ -26,142 +23,57 @@ public class BeforeHistoricalEventQuestionStrategy
     }
 
     @Override
-    public boolean isEligiblePair(
-            Artwork artworkOne,
-            Artwork artworkTwo,
-            int roundNumber
-    ) {
-        HistoricalEvent event = selectEvent(
-                artworkOne,
-                artworkTwo
-        );
-
-        if (event == null) {
-            return false;
-        }
-
-        long firstDistance = distanceFromEvent(
-                singleYearOf(artworkOne),
-                event
-        );
-        long secondDistance = distanceFromEvent(
-                singleYearOf(artworkTwo),
-                event
-        );
-
-        return difficultyPolicy
-                .isHistoricalEventDistanceEligible(
-                        Math.min(firstDistance, secondDistance),
-                        Math.max(firstDistance, secondDistance),
-                        roundNumber
-                );
+    public boolean isEligiblePair(Artwork first, Artwork second, int round) {
+        return !eligibleEvents(first, second, round).isEmpty();
     }
 
     @Override
-    public Artwork getCorrectArtwork(
-            Artwork artworkOne,
-            Artwork artworkTwo
-    ) {
-        HistoricalEvent event = requiredEvent(
-                artworkOne,
-                artworkTwo
-        );
-
-        return distanceFromEvent(
-                singleYearOf(artworkOne),
-                event
-        ) < distanceFromEvent(
-                singleYearOf(artworkTwo),
-                event
-        )
-                ? artworkOne
-                : artworkTwo;
+    public Artwork getCorrectArtwork(Artwork first, Artwork second) {
+        return getCorrectArtwork(first, second, 1);
     }
 
     @Override
-    public String getQuestionParameter(
-            Artwork artworkOne,
-            Artwork artworkTwo,
-            int roundNumber
-    ) {
-        return requiredEvent(artworkOne, artworkTwo).name();
+    public Artwork getCorrectArtwork(Artwork first, Artwork second, int round) {
+        HistoricalEvent event = requiredEvent(first, second, round);
+        return distance(first.findSingleCreationYear().orElseThrow(), event)
+                < distance(second.findSingleCreationYear().orElseThrow(), event)
+                ? first : second;
     }
 
-    private HistoricalEvent requiredEvent(
-            Artwork artworkOne,
-            Artwork artworkTwo
-    ) {
-        HistoricalEvent event = selectEvent(artworkOne, artworkTwo);
+    @Override
+    public String getQuestionParameter(Artwork first, Artwork second, int round) {
+        return requiredEvent(first, second, round).name();
+    }
 
+    private HistoricalEvent requiredEvent(Artwork first, Artwork second, int round) {
+        HistoricalEvent event = HistoricalEventSelector.select(
+                eligibleEvents(first, second, round), first, second, round);
         if (event == null) {
             throw new IllegalArgumentException(
-                    "The artworks must be different distances from a historical event between them"
-            );
+                    "No historical event meets the artwork dates and round difficulty");
         }
-
         return event;
     }
 
-    private HistoricalEvent selectEvent(
-            Artwork artworkOne,
-            Artwork artworkTwo
-    ) {
-        Integer firstYear = artworkOne == null
-                ? null
-                : artworkOne.findSingleCreationYear().orElse(null);
-        Integer secondYear = artworkTwo == null
-                ? null
-                : artworkTwo.findSingleCreationYear().orElse(null);
-
-        if (firstYear == null || secondYear == null
-                || firstYear.equals(secondYear)) {
-            return null;
+    private List<HistoricalEvent> eligibleEvents(Artwork first, Artwork second, int round) {
+        Integer firstYear = first == null ? null
+                : first.findSingleCreationYear().orElse(null);
+        Integer secondYear = second == null ? null
+                : second.findSingleCreationYear().orElse(null);
+        if (firstYear == null || secondYear == null || firstYear.equals(secondYear)) {
+            return List.of();
         }
-
         return Arrays.stream(HistoricalEvent.values())
-                .filter(event -> isBefore(firstYear, event)
-                        != isBefore(secondYear, event))
-                .filter(event -> distanceFromEvent(firstYear, event)
-                        != distanceFromEvent(secondYear, event))
-                .max(Comparator.comparingLong(event ->
-                        differenceBetweenDistances(
-                                firstYear,
-                                secondYear,
-                                event
-                        )))
-                .orElse(null);
+                .filter(event -> (firstYear < event.getYear())
+                        != (secondYear < event.getYear()))
+                .filter(event -> difficultyPolicy.isHistoricalEventDistanceEligible(
+                        Math.min(distance(firstYear, event), distance(secondYear, event)),
+                        Math.max(distance(firstYear, event), distance(secondYear, event)),
+                        round))
+                .toList();
     }
 
-    private int singleYearOf(Artwork artwork) {
-        return artwork.findSingleCreationYear().orElseThrow(() ->
-                new IllegalArgumentException(
-                        "Artwork must have one creation year"
-                )
-        );
-    }
-
-    private long differenceBetweenDistances(
-            int firstYear,
-            int secondYear,
-            HistoricalEvent event
-    ) {
-        return Math.abs(
-                distanceFromEvent(firstYear, event)
-                        - distanceFromEvent(secondYear, event)
-        );
-    }
-
-    private long distanceFromEvent(
-            int artworkYear,
-            HistoricalEvent event
-    ) {
-        return Math.abs((long) artworkYear - event.getYear());
-    }
-
-    private boolean isBefore(
-            int artworkYear,
-            HistoricalEvent event
-    ) {
-        return artworkYear < event.getYear();
+    private long distance(int year, HistoricalEvent event) {
+        return Math.abs((long) year - event.getYear());
     }
 }

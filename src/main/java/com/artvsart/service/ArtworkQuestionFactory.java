@@ -168,7 +168,8 @@ public class ArtworkQuestionFactory {
             Artwork correctArtwork =
                     strategy.getCorrectArtwork(
                             selectedPair.artworkOne(),
-                            selectedPair.artworkTwo()
+                            selectedPair.artworkTwo(),
+                            run.getRoundNumber()
                     );
 
             String questionParameter =

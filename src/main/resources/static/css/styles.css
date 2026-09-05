@@ -30,6 +30,39 @@ a {
     font: inherit;
 }
 
+.event-reveal {
+    margin: 0 0 1.25rem;
+    padding: 0.9rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    line-height: 1.5;
+}
+
+.event-reveal p {
+    margin: 0 0 0.65rem;
+    max-width: 80ch;
+}
+
+.event-reveal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1rem;
+    font-size: 0.9rem;
+}
+
+.event-reveal a { color: var(--accent-dark); }
+.event-reveal button {
+    padding: 0.35rem 0.6rem;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+.event-reveal [role="status"] { color: var(--muted); }
+
 .site-header {
     display: flex;
     align-items: center;

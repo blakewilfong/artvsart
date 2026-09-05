@@ -309,6 +309,14 @@ public class ArtworkQuestion {
         );
     }
 
+    public HistoricalEvent getHistoricalEvent() {
+        return switch (questionType) {
+            case BEFORE_HISTORICAL_EVENT, ARTIST_ALIVE_DURING_EVENT ->
+                    HistoricalEvent.valueOf(questionParameter);
+            default -> null;
+        };
+    }
+
     public GameRun getGameRun() {
         return gameRun;
     }

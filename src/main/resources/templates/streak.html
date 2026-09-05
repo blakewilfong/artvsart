@@ -102,6 +102,8 @@
             </form>
         </header>
 
+        <div th:replace="~{fragments/event-reveal :: eventReveal}"></div>
+
         <section
                 class="outcome-banner"
                 th:if="${answered}"

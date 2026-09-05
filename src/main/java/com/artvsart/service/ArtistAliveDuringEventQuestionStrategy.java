@@ -6,11 +6,10 @@ import com.artvsart.model.QuestionType;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.List;
 
 @Component
-public class ArtistAliveDuringEventQuestionStrategy
-        implements ArtworkQuestionStrategy {
+public class ArtistAliveDuringEventQuestionStrategy implements ArtworkQuestionStrategy {
 
     @Override
     public QuestionType getQuestionType() {
@@ -18,81 +17,44 @@ public class ArtistAliveDuringEventQuestionStrategy
     }
 
     @Override
-    public boolean isEligiblePair(
-            Artwork artworkOne,
-            Artwork artworkTwo,
-            int roundNumber
-    ) {
-        return selectEvent(artworkOne, artworkTwo) != null;
+    public boolean isEligiblePair(Artwork first, Artwork second, int round) {
+        return !eligibleEvents(first, second).isEmpty();
     }
 
     @Override
-    public Artwork getCorrectArtwork(
-            Artwork artworkOne,
-            Artwork artworkTwo
-    ) {
-        HistoricalEvent event = requiredEvent(
-                artworkOne,
-                artworkTwo
-        );
-
-        return wasAlive(artworkOne, event.getYear())
-                ? artworkOne
-                : artworkTwo;
+    public Artwork getCorrectArtwork(Artwork first, Artwork second) {
+        return getCorrectArtwork(first, second, 1);
     }
 
     @Override
-    public String getQuestionParameter(
-            Artwork artworkOne,
-            Artwork artworkTwo,
-            int roundNumber
-    ) {
-        return requiredEvent(artworkOne, artworkTwo).name();
+    public Artwork getCorrectArtwork(Artwork first, Artwork second, int round) {
+        return wasAlive(first, requiredEvent(first, second, round).getYear())
+                ? first : second;
     }
 
-    private HistoricalEvent requiredEvent(
-            Artwork artworkOne,
-            Artwork artworkTwo
-    ) {
-        HistoricalEvent event = selectEvent(
-                artworkOne,
-                artworkTwo
-        );
+    @Override
+    public String getQuestionParameter(Artwork first, Artwork second, int round) {
+        return requiredEvent(first, second, round).name();
+    }
 
+    private HistoricalEvent requiredEvent(Artwork first, Artwork second, int round) {
+        HistoricalEvent event = HistoricalEventSelector.select(
+                eligibleEvents(first, second), first, second, round);
         if (event == null) {
             throw new IllegalArgumentException(
-                    "Two complete lifespans with one artist alive at an event are required"
-            );
+                    "Two complete lifespans with one artist alive at an event are required");
         }
-
         return event;
     }
 
-    private HistoricalEvent selectEvent(
-            Artwork artworkOne,
-            Artwork artworkTwo
-    ) {
-        if (!hasCompleteLifespan(artworkOne)
-                || !hasCompleteLifespan(artworkTwo)) {
-            return null;
+    private List<HistoricalEvent> eligibleEvents(Artwork first, Artwork second) {
+        if (!hasCompleteLifespan(first) || !hasCompleteLifespan(second)) {
+            return List.of();
         }
-
         return Arrays.stream(HistoricalEvent.values())
-                .filter(event -> wasAlive(
-                        artworkOne,
-                        event.getYear()
-                ) != wasAlive(
-                        artworkTwo,
-                        event.getYear()
-                ))
-                .max(Comparator
-                        .<HistoricalEvent>comparingLong(event -> separationScore(
-                                artworkOne,
-                                artworkTwo,
-                                event.getYear()
-                        ))
-                        .thenComparingInt(HistoricalEvent::getYear))
-                .orElse(null);
+                .filter(event -> wasAlive(first, event.getYear())
+                        != wasAlive(second, event.getYear()))
+                .toList();
     }
 
     private boolean hasCompleteLifespan(Artwork artwork) {
@@ -101,42 +63,10 @@ public class ArtistAliveDuringEventQuestionStrategy
                 && artwork.getArtistEndYear() != null
                 && artwork.getArtistBeginYear() != 0
                 && artwork.getArtistEndYear() != 0
-                && artwork.getArtistBeginYear()
-                <= artwork.getArtistEndYear();
+                && artwork.getArtistBeginYear() <= artwork.getArtistEndYear();
     }
 
     private boolean wasAlive(Artwork artwork, int year) {
-        return artwork.getArtistBeginYear() <= year
-                && year <= artwork.getArtistEndYear();
-    }
-
-    private long separationScore(
-            Artwork artworkOne,
-            Artwork artworkTwo,
-            int year
-    ) {
-        return distanceFromLifespanBoundary(artworkOne, year)
-                + distanceFromLifespanBoundary(artworkTwo, year);
-    }
-
-    private long distanceFromLifespanBoundary(
-            Artwork artwork,
-            int year
-    ) {
-        int birthYear = artwork.getArtistBeginYear();
-        int deathYear = artwork.getArtistEndYear();
-
-        if (year < birthYear) {
-            return (long) birthYear - year;
-        }
-
-        if (year > deathYear) {
-            return (long) year - deathYear;
-        }
-
-        return Math.min(
-                (long) year - birthYear,
-                (long) deathYear - year
-        );
+        return artwork.getArtistBeginYear() <= year && year <= artwork.getArtistEndYear();
     }
 }

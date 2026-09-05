@@ -106,10 +106,7 @@ class ArtworkQuestionFactoryTest {
                 run
         )).thenReturn(true);
 
-        when(strategy.getCorrectArtwork(
-                artworkOne,
-                artworkTwo
-        )).thenReturn(artworkOne);
+        when(strategy.getCorrectArtwork(artworkOne, artworkTwo, 1)).thenReturn(artworkOne);
 
         when(strategy.getQuestionType())
                 .thenReturn(
@@ -191,7 +188,7 @@ class ArtworkQuestionFactoryTest {
                 .thenReturn(true);
         when(strategy.isEligiblePair(popularTwo, obscure, run))
                 .thenReturn(true);
-        when(strategy.getCorrectArtwork(popularOne, popularTwo))
+        when(strategy.getCorrectArtwork(popularOne, popularTwo, 1))
                 .thenReturn(popularOne);
         when(strategy.getQuestionParameter(
                 popularOne,
@@ -264,10 +261,7 @@ class ArtworkQuestionFactoryTest {
                 run
         )).thenReturn(true);
 
-        when(availableStrategy.getCorrectArtwork(
-                artworkOne,
-                artworkTwo
-        )).thenReturn(artworkTwo);
+        when(availableStrategy.getCorrectArtwork(artworkOne, artworkTwo, 1)).thenReturn(artworkTwo);
 
         when(availableStrategy.getQuestionType())
                 .thenReturn(
@@ -333,10 +327,7 @@ class ArtworkQuestionFactoryTest {
                 artworkTwo,
                 run
         )).thenReturn(true);
-        when(replacementStrategy.getCorrectArtwork(
-                artworkOne,
-                artworkTwo
-        )).thenReturn(artworkOne);
+        when(replacementStrategy.getCorrectArtwork(artworkOne, artworkTwo, 4)).thenReturn(artworkOne);
         when(replacementStrategy.getQuestionParameter(
                 artworkOne,
                 artworkTwo,
