@@ -122,6 +122,66 @@ class StreakDifficultyPolicyTest {
     }
 
     @Test
+    void requiresHistoricalEventAnswersToBeClearlyCloser() {
+        assertTrue(
+                policy.isHistoricalEventDistanceEligible(
+                        20,
+                        170,
+                        1
+                )
+        );
+        assertFalse(
+                policy.isHistoricalEventDistanceEligible(
+                        20,
+                        169,
+                        1
+                )
+        );
+        assertFalse(
+                policy.isHistoricalEventDistanceEligible(
+                        100,
+                        101,
+                        100
+                )
+        );
+    }
+
+    @Test
+    void graduallyAllowsCloserHistoricalEventComparisons() {
+        assertEquals(
+                150,
+                policy.getMinimumHistoricalEventDistanceAdvantage(1)
+        );
+        assertEquals(
+                146,
+                policy.getMinimumHistoricalEventDistanceAdvantage(2)
+        );
+        assertEquals(
+                142,
+                policy.getMinimumHistoricalEventDistanceAdvantage(3)
+        );
+        assertEquals(
+                25,
+                policy.getMinimumHistoricalEventDistanceAdvantage(100)
+        );
+
+        assertFalse(
+                policy.isHistoricalEventDistanceEligible(
+                        70,
+                        150,
+                        1
+                )
+        );
+        assertTrue(
+                policy.isHistoricalEventDistanceEligible(
+                        70,
+                        150,
+                        20
+                )
+        );
+    }
+
+    @Test
     void movesFromPopularArtistsToObscureArtists() {
         Artwork veryPopular = artworkWithPopularityRank(5);
         Artwork popular = artworkWithPopularityRank(10);

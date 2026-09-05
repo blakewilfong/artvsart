@@ -25,6 +25,8 @@ public class StreakDifficultyPolicy {
     private static final long HARD_ARTIST_BIRTH_YEAR_DIFFERENCE = 5;
     private static final long EASY_ARTIST_AGE_DIFFERENCE = 40;
     private static final long HARD_ARTIST_AGE_DIFFERENCE = 5;
+    private static final long EASY_EVENT_DISTANCE_ADVANTAGE = 150;
+    private static final long HARD_EVENT_DISTANCE_ADVANTAGE = 25;
 
     public List<ArtworkQuestionStrategy> orderStrategies(
             List<ArtworkQuestionStrategy> strategies,
@@ -145,6 +147,43 @@ public class StreakDifficultyPolicy {
                 roundNumber,
                 EASY_ARTIST_AGE_DIFFERENCE,
                 HARD_ARTIST_AGE_DIFFERENCE
+        );
+    }
+
+    public boolean isHistoricalEventDistanceEligible(
+            long closerDistance,
+            long fartherDistance,
+            int roundNumber
+    ) {
+        if (closerDistance < 0 || fartherDistance < 0) {
+            throw new IllegalArgumentException(
+                    "Event distances cannot be negative"
+            );
+        }
+
+        if (closerDistance >= fartherDistance) {
+            return false;
+        }
+
+        return fartherDistance - closerDistance
+                >= getMinimumHistoricalEventDistanceAdvantage(
+                roundNumber
+        );
+    }
+
+    public long getMinimumHistoricalEventDistanceAdvantage(
+            int roundNumber
+    ) {
+        double difficultyProgress =
+                (getDifficultyForRound(roundNumber)
+                        - STARTING_DIFFICULTY)
+                        / (1.0 - STARTING_DIFFICULTY);
+
+        return Math.round(
+                EASY_EVENT_DISTANCE_ADVANTAGE
+                        - (EASY_EVENT_DISTANCE_ADVANTAGE
+                        - HARD_EVENT_DISTANCE_ADVANTAGE)
+                        * difficultyProgress
         );
     }
 

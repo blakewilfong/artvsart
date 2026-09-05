@@ -12,6 +12,14 @@ import java.util.Comparator;
 public class BeforeHistoricalEventQuestionStrategy
         implements ArtworkQuestionStrategy {
 
+    private final StreakDifficultyPolicy difficultyPolicy;
+
+    public BeforeHistoricalEventQuestionStrategy(
+            StreakDifficultyPolicy difficultyPolicy
+    ) {
+        this.difficultyPolicy = difficultyPolicy;
+    }
+
     @Override
     public QuestionType getQuestionType() {
         return QuestionType.BEFORE_HISTORICAL_EVENT;
@@ -23,7 +31,30 @@ public class BeforeHistoricalEventQuestionStrategy
             Artwork artworkTwo,
             int roundNumber
     ) {
-        return selectEvent(artworkOne, artworkTwo) != null;
+        HistoricalEvent event = selectEvent(
+                artworkOne,
+                artworkTwo
+        );
+
+        if (event == null) {
+            return false;
+        }
+
+        long firstDistance = distanceFromEvent(
+                singleYearOf(artworkOne),
+                event
+        );
+        long secondDistance = distanceFromEvent(
+                singleYearOf(artworkTwo),
+                event
+        );
+
+        return difficultyPolicy
+                .isHistoricalEventDistanceEligible(
+                        Math.min(firstDistance, secondDistance),
+                        Math.max(firstDistance, secondDistance),
+                        roundNumber
+                );
     }
 
     @Override
@@ -92,7 +123,7 @@ public class BeforeHistoricalEventQuestionStrategy
                         != isBefore(secondYear, event))
                 .filter(event -> distanceFromEvent(firstYear, event)
                         != distanceFromEvent(secondYear, event))
-                .min(Comparator.comparingLong(event ->
+                .max(Comparator.comparingLong(event ->
                         differenceBetweenDistances(
                                 firstYear,
                                 secondYear,

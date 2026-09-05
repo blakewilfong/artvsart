@@ -18,32 +18,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BeforeHistoricalEventQuestionStrategyTest {
 
     private final BeforeHistoricalEventQuestionStrategy strategy =
-            new BeforeHistoricalEventQuestionStrategy();
+            new BeforeHistoricalEventQuestionStrategy(
+                    new StreakDifficultyPolicy()
+            );
 
     @Test
     void selectsAnEventBetweenTheArtworkDatesAndChoosesTheCloserWork() {
-        Artwork older = artwork("1", 1700);
+        Artwork older = artwork("1", 1600);
         Artwork newer = artwork("2", 1800);
 
         assertTrue(strategy.isEligiblePair(older, newer, 1));
         assertEquals(
-                "SEVEN_YEARS_WAR_BEGAN",
-                strategy.getQuestionParameter(older, newer, 1)
-        );
-        assertSame(newer, strategy.getCorrectArtwork(older, newer));
-    }
-
-    @Test
-    void canChooseTheOlderArtworkWhenItIsCloserToTheEvent() {
-        Artwork older = artwork("1", 1700);
-        Artwork newer = artwork("2", 1770);
-
-        assertTrue(strategy.isEligiblePair(older, newer, 1));
-        assertEquals(
-                "FLYING_SHUTTLE_PATENTED",
+                "JAMESTOWN_FOUNDED",
                 strategy.getQuestionParameter(older, newer, 1)
         );
         assertSame(older, strategy.getCorrectArtwork(older, newer));
+    }
+
+    @Test
+    void canChooseTheNewerArtworkWhenItIsCloserToTheEvent() {
+        Artwork older = artwork("1", 1600);
+        Artwork newer = artwork("2", 1810);
+
+        assertTrue(strategy.isEligiblePair(older, newer, 1));
+        assertEquals(
+                "HAITI_DECLARED_INDEPENDENCE",
+                strategy.getQuestionParameter(older, newer, 1)
+        );
+        assertSame(newer, strategy.getCorrectArtwork(older, newer));
     }
 
     @Test
@@ -51,12 +53,20 @@ class BeforeHistoricalEventQuestionStrategyTest {
         Artwork older = artwork("1", 1200);
         Artwork newer = artwork("2", 1316);
 
-        assertTrue(strategy.isEligiblePair(older, newer, 1));
+        assertTrue(strategy.isEligiblePair(older, newer, 20));
         assertEquals(
-                "BATTLE_OF_AIN_JALUT",
+                "GREAT_FAMINE_OF_EUROPE",
                 strategy.getQuestionParameter(older, newer, 1)
         );
         assertSame(newer, strategy.getCorrectArtwork(older, newer));
+    }
+
+    @Test
+    void rejectsNearlyEqualDistancesFromTheOnlyEvent() {
+        Artwork older = artwork("1", 1753);
+        Artwork newer = artwork("2", 1758);
+
+        assertFalse(strategy.isEligiblePair(older, newer, 100));
     }
 
     @Test
