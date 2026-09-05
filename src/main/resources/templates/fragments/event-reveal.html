@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<aside th:fragment="eventReveal" class="event-reveal"
+<th:block th:fragment="questionPrompt">
+    <a th:if="${answered and question.historicalEvent != null}"
+       class="event-question-link" th:href="${question.historicalEvent.wikipediaUrl}"
+       th:text="${question.prompt}" target="_blank" rel="noopener noreferrer"
+       title="Read on Wikipedia (opens in a new tab)" data-event-link>Question</a>
+    <span th:unless="${answered and question.historicalEvent != null}"
+          th:text="${question.prompt}">Question</span>
+</th:block>
+<div th:fragment="eventReveal" class="event-reading-controls"
        th:if="${answered and question.historicalEvent != null}"
-       th:with="event=${question.historicalEvent}"
-       aria-label="About this historical event">
-    <p th:if="${event.summary != null}" th:text="${event.summary}"></p>
+       role="group" aria-label="Automatic navigation">
     <div class="event-reveal__actions">
-        <a th:href="${event.wikipediaUrl}" target="_blank" rel="noopener noreferrer"
-           data-event-link>Read about this event on Wikipedia (new tab)</a>
         <button type="button" data-auto-advance-control aria-pressed="false" hidden>
             Pause auto-advance
         </button>
         <span data-auto-advance-status role="status" aria-live="polite"></span>
     </div>
-</aside>
+</div>
 </body>
 </html>

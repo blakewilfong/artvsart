@@ -5,6 +5,7 @@ import com.artvsart.model.Artwork;
 import com.artvsart.model.ArtworkAnswer;
 import com.artvsart.model.ArtworkQuestion;
 import com.artvsart.model.GameRun;
+import com.artvsart.model.HistoricalEvent;
 import com.artvsart.service.LeaderboardView;
 import com.artvsart.service.StreakGameService;
 import jakarta.servlet.http.Cookie;
@@ -134,6 +135,15 @@ class StreakTemplateTest {
                                 ))
                 )
                 .andExpect(status().isOk())
+                .andExpect(result -> {
+                    String html = result.getResponse().getContentAsString();
+                    String summary = html.substring(html.indexOf("<header class=\"leaderboard-summary\">"));
+                    summary = summary.substring(0, summary.indexOf("</header>"));
+                    org.junit.jupiter.api.Assertions.assertTrue(summary.contains(
+                            "href=\"" + HistoricalEvent.FIRST_IMPRESSIONIST_EXHIBITION.getWikipediaUrl() + "\""));
+                    org.junit.jupiter.api.Assertions.assertTrue(summary.contains(
+                            "data-event-link>" + question.getPrompt() + "</a>"));
+                })
                 .andExpect(content().string(
                         org.hamcrest.Matchers.allOf(
                                 org.hamcrest.Matchers.containsString(
@@ -248,6 +258,7 @@ class StreakTemplateTest {
                 "Which artwork was created closer in time to this event: the first Impressionist exhibition?"
         );
         when(question.getAnswerContext()).thenReturn("1874");
+        when(question.getHistoricalEvent()).thenReturn(HistoricalEvent.FIRST_IMPRESSIONIST_EXHIBITION);
         when(question.getArtworkOne()).thenReturn(artworkOne);
         when(question.getArtworkTwo()).thenReturn(artworkTwo);
         when(question.getCorrectArtwork()).thenReturn(artworkTwo);

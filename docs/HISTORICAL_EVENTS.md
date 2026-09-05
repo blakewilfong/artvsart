@@ -23,7 +23,7 @@ Selection uses a symmetric artwork-pair seed and round number. Eligibility, even
 
 ## Reveal and reading behavior
 
-Wikipedia links appear only in the server-rendered answer reveal, open a new tab, and never appear in unanswered HTML. New unusual events have concise explanatory notes, with uncertainty and hoaxes labeled. Selected familiar landmarks also have colorful notes. Humor comes from the history rather than invented claims or jokes about victims.
+After answering, the question itself links to Wikipedia in a new tab. Links never appear in unanswered HTML. The final event question is also linked inside the high-score panel, so the overlay cannot block access. Separate explanatory blurbs are not displayed. Humor comes from the history rather than invented claims or jokes about victims.
 
 Where auto-advance is already scheduled (active Wager rounds and Streak's final-answer transition), the reveal provides pause/resume. Focusing or opening the Wikipedia link also pauses navigation. Resume starts a fresh 2.5-second timer. Active Streak's existing manual Next question behavior remains unchanged.
 

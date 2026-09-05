@@ -78,9 +78,7 @@
             </div>
 
             <h2>
-                <span th:text="${question.prompt}">
-                    Question
-                </span>
+                <th:block th:replace="~{fragments/event-reveal :: questionPrompt}"></th:block>
 
                 <span
                         class="question-answer-context"

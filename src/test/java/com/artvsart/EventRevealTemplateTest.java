@@ -30,7 +30,7 @@ class EventRevealTemplateTest {
     @ParameterizedTest
     @CsvSource({"streak,false,true", "streak,true,true", "streak,true,false",
             "wager,false,true", "wager,true,true", "wager,true,false"})
-    void onlyRevealsEventDetailsAfterAnswer(String mode, boolean answered, boolean active) throws Exception {
+    void linksTheQuestionOnlyAfterAnswerWithoutABlurb(String mode, boolean answered, boolean active) throws Exception {
         Artwork first = mock(Artwork.class);
         Artwork second = mock(Artwork.class);
         when(first.getId()).thenReturn(1L);
@@ -60,13 +60,20 @@ class EventRevealTemplateTest {
                 .cookie(new Cookie(VoterCookieManager.COOKIE_NAME, VOTER)))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertEquals(answered, html.contains("https://en.wikipedia.org/wiki/Great_Stink"));
-        assertEquals(answered, html.contains(HistoricalEvent.GREAT_STINK.getSummary()));
+        assertFalse(html.contains(HistoricalEvent.GREAT_STINK.getSummary()));
+        assertFalse(html.contains("Read about this event"));
         assertEquals(answered, html.contains("(1858)"));
         assertEquals(answered, html.contains("data-auto-advance-control"));
         if (answered) {
+            assertTrue(html.matches("(?s).*<a[^>]*data-event-link[^>]*>Which artwork was closer to London(?:&#39;|')s Great Stink\\?</a>.*"));
             assertTrue(html.contains("target=\"_blank\""));
             assertTrue(html.contains("rel=\"noopener noreferrer\""));
         }
+        when(question.getHistoricalEvent()).thenReturn(null);
+        String ordinaryHtml = mvc.perform(get("/" + mode + "/12").param("reveal", "true")
+                .cookie(new Cookie(VoterCookieManager.COOKIE_NAME, VOTER)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertFalse(ordinaryHtml.contains("data-event-link"));
         if (mode.equals("wager")) {
             assertEquals(answered && active, html.contains("data-next-url=\"/wager/continue\""));
         }

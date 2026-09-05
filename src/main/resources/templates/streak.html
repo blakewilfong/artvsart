@@ -64,9 +64,7 @@
             </div>
 
             <h2>
-                <span th:text="${question.prompt}">
-                    Question
-                </span>
+                <th:block th:replace="~{fragments/event-reveal :: questionPrompt}"></th:block>
 
                 <span
                         class="question-answer-context"
@@ -374,6 +372,11 @@
                 aria-labelledby="final-score-heading"
         >
             <header class="leaderboard-summary">
+                <p class="leaderboard-question" th:if="${answered and question.historicalEvent != null}">
+                    <th:block th:replace="~{fragments/event-reveal :: questionPrompt}"></th:block>
+                    <span th:if="${question.answerContext != null}"
+                          th:text="|(${question.answerContext})|"></span>
+                </p>
                 <p class="outcome-label">Run complete</p>
 
                 <h2 id="final-score-heading">
